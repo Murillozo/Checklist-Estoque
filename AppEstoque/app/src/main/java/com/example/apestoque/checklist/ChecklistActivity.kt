@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
 import com.example.apestoque.data.NetworkModule
 import com.example.apestoque.data.Solicitacao
+import com.example.apestoque.data.ComprasRequest
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
@@ -35,22 +36,26 @@ class ChecklistActivity : AppCompatActivity() {
         }
         checks.forEach { container.addView(it) }
 
-        val btn = findViewById<Button>(R.id.btnAprovar)
+        val btn = findViewById<Button>(R.id.btnConcluir)
         btn.setOnClickListener {
-            if (checks.all { it.isChecked }) {
-                lifecycleScope.launch {
-                    try {
-                        withContext(Dispatchers.IO) {
+            val pendentes = solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
+            lifecycleScope.launch {
+                try {
+                    withContext(Dispatchers.IO) {
+                        if (pendentes.isEmpty()) {
                             NetworkModule.api.aprovarSolicitacao(solicitacao.id)
+                        } else {
+                            NetworkModule.api.marcarCompras(
+                                solicitacao.id,
+                                ComprasRequest(pendentes)
+                            )
                         }
-                        setResult(Activity.RESULT_OK)
-                        finish()
-                    } catch (e: Exception) {
-                        Toast.makeText(this@ChecklistActivity, "Erro ao aprovar", Toast.LENGTH_SHORT).show()
                     }
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                } catch (e: Exception) {
+                    Toast.makeText(this@ChecklistActivity, "Erro ao enviar", Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                Toast.makeText(this, "Marque todos os itens", Toast.LENGTH_SHORT).show()
             }
         }
     }

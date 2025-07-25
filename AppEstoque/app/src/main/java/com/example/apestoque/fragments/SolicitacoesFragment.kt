@@ -22,7 +22,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class EstoqueFragment : Fragment() {
+class SolicitacoesFragment : Fragment() {
 
     private var refreshJob: Job? = null
     private val refreshIntervalMs = 30_000L  // 30 segundos
@@ -38,7 +38,7 @@ class EstoqueFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Infla o layout que contém swipeRefresh, rvSolicitacoes e tvMensagem
-        return inflater.inflate(R.layout.fragment_estoque, container, false)
+        return inflater.inflate(R.layout.fragment_solicitacoes, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/purple_500"
-            app:title="Checklist Estoque"
+            app:title="Checklist Solicitações"
             app:titleTextColor="@android:color/white"/>
 
         <com.google.android.material.tabs.TabLayout
