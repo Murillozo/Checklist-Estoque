@@ -14,5 +14,6 @@ data class Solicitacao(
     val obra: String,
     val data: String,
     val itens: List<Item>,
-    val status: String? = null
+    val status: String? = null,
+    val pendencias: String? = null
 )
