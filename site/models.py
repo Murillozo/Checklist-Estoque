@@ -9,7 +9,8 @@ class Solicitacao(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     obra = db.Column(db.String(100), nullable=False)
     data = db.Column(db.DateTime, default=datetime.utcnow)
-    status = db.Column(db.String(20), default='compras')
+    # novo status padrao indicando que a solicitacao esta em analise
+    status = db.Column(db.String(20), default='analise')
     pendencias = db.Column(db.Text)
     itens = db.relationship('Item', backref='solicitacao', cascade='all, delete-orphan')
 

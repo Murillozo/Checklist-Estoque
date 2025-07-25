@@ -14,7 +14,13 @@
       <tr>
         <td>{{ sol.id }}</td>
         <td>{{ sol.obra }}</td>
-        <td>{{ sol.status }}</td>
+        <td>
+          {% if sol.status == 'analise' %}
+            Em análise
+          {% else %}
+            {{ sol.status }}
+          {% endif %}
+        </td>
       </tr>
     {% else %}
       <tr>
