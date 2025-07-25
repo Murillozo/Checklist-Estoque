@@ -104,14 +104,16 @@ class SolicitacoesFragment : Fragment() {
                     NetworkModule.api.listarSolicitacoes()
                 }
 
-                if (lista.isEmpty()) {
+                val pendentes = lista.filter { it.status != "aprovado" && it.pendencias == null }
+
+                if (pendentes.isEmpty()) {
                     tvMensagem.text = "Nenhuma solicitação encontrada."
                     tvMensagem.visibility = View.VISIBLE
                     rvSolicitacoes.visibility = View.GONE
                     todasSolicitacoes = emptyList()
                 } else {
                     // Agrupa por obra e pega a última solicitação de cada obra
-                    val ultimasPorObra = lista
+                    val ultimasPorObra = pendentes
                         .groupBy { it.obra }
                         .mapNotNull { (_, group) -> group.maxByOrNull { it.id } }
                         .sortedByDescending { it.id }
