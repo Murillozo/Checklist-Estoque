@@ -16,10 +16,10 @@
             android:layout_height="wrap_content" />
 
         <Button
-            android:id="@+id/btnAprovar"
+            android:id="@+id/btnConcluir"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Aprovar"
+            android:text="Concluir"
             android:layout_marginTop="24dp" />
     </LinearLayout>
 </ScrollView>

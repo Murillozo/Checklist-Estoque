@@ -1,6 +1,7 @@
 # projetista/__init__.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import db, Solicitacao, Item
+import json
 from collections import defaultdict
 import io
 from flask import send_file
@@ -8,14 +9,13 @@ import openpyxl
 import pytz
 from collections import Counter
 from flask import jsonify
-from models import Solicitacao, Item
-
 
 bp = Blueprint('projetista', __name__)
 
 @bp.route('/')
 def index():
-    return render_template('index.html')
+    consulta = Solicitacao.query.order_by(Solicitacao.data.desc()).all()
+    return render_template('index.html', solicitacoes=consulta)
 
 @bp.route('/solicitacoes')
 def solicitacoes():
@@ -203,6 +203,28 @@ def api_listar_solicitacoes():
             "id": sol.id,
             "obra": sol.obra,
             "data": sol.data.isoformat(),
-            "itens": itens
+            "itens": itens,
+            "status": sol.status,
+            "pendencias": sol.pendencias
         })
     return jsonify(resultados)
+
+
+@bp.route('/api/solicitacoes/<int:id>/aprovar', methods=['POST'])
+def api_aprovar(id):
+    sol = Solicitacao.query.get_or_404(id)
+    sol.status = 'aprovado'
+    sol.pendencias = None
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+@bp.route('/api/solicitacoes/<int:id>/compras', methods=['POST'])
+def api_compras(id):
+    sol = Solicitacao.query.get_or_404(id)
+    dados = request.get_json() or {}
+    pendencias = dados.get('pendencias', [])
+    sol.status = 'compras'
+    sol.pendencias = json.dumps(pendencias)
+    db.session.commit()
+    return jsonify({'ok': True})
