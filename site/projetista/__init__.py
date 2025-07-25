@@ -1,21 +1,20 @@
 # projetista/__init__.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from models import db, Solicitacao, Item
-from collections import defaultdict
 import io
 from flask import send_file
 import openpyxl
 import pytz
 from collections import Counter
-from flask import jsonify
-from models import Solicitacao, Item
+import json
 
 
 bp = Blueprint('projetista', __name__)
 
 @bp.route('/')
 def index():
-    return render_template('index.html')
+    solicitacoes = Solicitacao.query.order_by(Solicitacao.data.desc()).all()
+    return render_template('index.html', solicitacoes=solicitacoes)
 
 @bp.route('/solicitacoes')
 def solicitacoes():
@@ -199,10 +198,33 @@ def api_listar_solicitacoes():
             {"referencia": it.referencia, "quantidade": it.quantidade}
             for it in sol.itens
         ]
+        faltantes = json.loads(sol.faltantes) if sol.faltantes else []
         resultados.append({
             "id": sol.id,
             "obra": sol.obra,
             "data": sol.data.isoformat(),
-            "itens": itens
+            "status": sol.status,
+            "itens": itens,
+            "faltantes": faltantes
         })
     return jsonify(resultados)
+
+
+@bp.route('/api/solicitacao/<int:sol_id>/compras', methods=['POST'])
+def api_marcar_compras(sol_id):
+    sol = Solicitacao.query.get_or_404(sol_id)
+    data = request.get_json() or {}
+    faltantes = data.get('faltantes', [])
+    sol.status = 'compras'
+    sol.faltantes = json.dumps(faltantes, ensure_ascii=False)
+    db.session.commit()
+    return jsonify({'status': 'ok'})
+
+
+@bp.route('/api/solicitacao/<int:sol_id>/aprovada', methods=['POST'])
+def api_marcar_aprovada(sol_id):
+    sol = Solicitacao.query.get_or_404(sol_id)
+    sol.status = 'aprovada'
+    sol.faltantes = None
+    db.session.commit()
+    return jsonify({'status': 'ok'})

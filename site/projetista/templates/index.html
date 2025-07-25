@@ -1,5 +1,26 @@
 {% extends 'base.html' %}
 {% block body %}
   <h1>Status do pedido</h1>
-  <p>Use o menu acima para criar ou ver solicitações de materiais.</p>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Obra</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sol in solicitacoes %}
+        <tr>
+          <td>{{ sol.id }}</td>
+          <td>{{ sol.obra }}</td>
+          <td>{{ sol.status }}</td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="3" class="text-muted">Nenhuma solicitação registrada.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}
