@@ -15,7 +15,16 @@ bp = Blueprint('projetista', __name__)
 @bp.route('/')
 def index():
     consulta = Solicitacao.query.order_by(Solicitacao.data.desc()).all()
-    return render_template('index.html', solicitacoes=consulta)
+
+    # Mantém apenas a ocorrência mais recente de cada obra
+    unicas = []
+    vistas = set()
+    for sol in consulta:
+        if sol.obra not in vistas:
+            unicas.append(sol)
+            vistas.add(sol.obra)
+
+    return render_template('index.html', solicitacoes=unicas)
 
 @bp.route('/solicitacoes')
 def solicitacoes():
