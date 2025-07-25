@@ -1,10 +1,12 @@
 package com.example.apestoque.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -12,9 +14,12 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.apestoque.R
 import com.example.apestoque.adapter.SolicitacaoAdapter
+import com.example.apestoque.checklist.ChecklistActivity
 import com.example.apestoque.data.NetworkModule
 import com.example.apestoque.data.Solicitacao
 import com.google.android.material.snackbar.Snackbar
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -32,6 +37,9 @@ class SolicitacoesFragment : Fragment() {
     private lateinit var tvMensagem: TextView
     private lateinit var searchView: SearchView
     private var todasSolicitacoes: List<Solicitacao> = emptyList()
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        carregarDados(showSnackbar = false)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -143,9 +151,17 @@ class SolicitacoesFragment : Fragment() {
             tvMensagem.visibility = View.VISIBLE
             rvSolicitacoes.visibility = View.GONE
         } else {
-            rvSolicitacoes.adapter = SolicitacaoAdapter(filtrada)
+            rvSolicitacoes.adapter = SolicitacaoAdapter(filtrada) { sol -> abrirChecklist(sol) }
             rvSolicitacoes.visibility = View.VISIBLE
             tvMensagem.visibility = View.GONE
         }
+    }
+
+    private fun abrirChecklist(sol: Solicitacao) {
+        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+        val json = moshi.adapter(Solicitacao::class.java).toJson(sol)
+        val intent = Intent(requireContext(), ChecklistActivity::class.java)
+        intent.putExtra("solicitacao", json)
+        launcher.launch(intent)
     }
 }
