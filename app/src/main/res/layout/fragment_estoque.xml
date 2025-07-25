@@ -6,10 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-  <FrameLayout
+  <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="match_parent"
+      android:orientation="vertical"
       android:padding="8dp">
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:iconifiedByDefault="false"
+        android:queryHint="Buscar projeto" />
 
     <!-- Lista de cards -->
     <androidx.recyclerview.widget.RecyclerView
@@ -32,5 +40,5 @@
         android:text="Carregando..."
         android:textSize="18sp" />
 
-  </FrameLayout>
+  </LinearLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

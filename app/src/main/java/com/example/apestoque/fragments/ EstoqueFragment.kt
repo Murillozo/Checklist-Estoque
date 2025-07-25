@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
@@ -29,6 +30,8 @@ class EstoqueFragment : Fragment() {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var rvSolicitacoes: RecyclerView
     private lateinit var tvMensagem: TextView
+    private lateinit var searchView: SearchView
+    private var todasSolicitacoes: List<Solicitacao> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,6 +48,19 @@ class EstoqueFragment : Fragment() {
         swipeRefresh    = view.findViewById(R.id.swipeRefresh)
         rvSolicitacoes  = view.findViewById(R.id.rvSolicitacoes)
         tvMensagem      = view.findViewById(R.id.tvMensagem)
+        searchView      = view.findViewById(R.id.searchView)
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                filtrar(query)
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filtrar(newText)
+                return true
+            }
+        })
 
         // Pull-to-refresh manual
         swipeRefresh.setOnRefreshListener {
@@ -84,6 +100,7 @@ class EstoqueFragment : Fragment() {
                     tvMensagem.text = "Nenhuma solicitação encontrada."
                     tvMensagem.visibility = View.VISIBLE
                     rvSolicitacoes.visibility = View.GONE
+                    todasSolicitacoes = emptyList()
                 } else {
                     // Agrupa por obra e pega a última solicitação de cada obra
                     val ultimasPorObra = lista
@@ -91,10 +108,8 @@ class EstoqueFragment : Fragment() {
                         .mapNotNull { (_, group) -> group.maxByOrNull { it.id } }
                         .sortedByDescending { it.id }
 
-                    // Atualiza RecyclerView
-                    rvSolicitacoes.adapter = SolicitacaoAdapter(ultimasPorObra)
-                    rvSolicitacoes.visibility = View.VISIBLE
-                    tvMensagem.visibility = View.GONE
+                    todasSolicitacoes = ultimasPorObra
+                    filtrar(searchView.query.toString())
 
                     if (showSnackbar) {
                         Snackbar.make(
@@ -112,6 +127,25 @@ class EstoqueFragment : Fragment() {
                 // Sempre desliga o loading
                 swipeRefresh.isRefreshing = false
             }
+        }
+    }
+
+    private fun filtrar(query: String?) {
+        val texto = query.orEmpty()
+        val filtrada = if (texto.isBlank()) {
+            todasSolicitacoes
+        } else {
+            todasSolicitacoes.filter { it.obra.contains(texto, ignoreCase = true) }
+        }
+
+        if (filtrada.isEmpty()) {
+            tvMensagem.text = "Nenhum projeto encontrado."
+            tvMensagem.visibility = View.VISIBLE
+            rvSolicitacoes.visibility = View.GONE
+        } else {
+            rvSolicitacoes.adapter = SolicitacaoAdapter(filtrada)
+            rvSolicitacoes.visibility = View.VISIBLE
+            tvMensagem.visibility = View.GONE
         }
     }
 }
