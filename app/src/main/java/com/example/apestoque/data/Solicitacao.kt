@@ -13,5 +13,6 @@ data class Solicitacao(
     val id: Int,
     val obra: String,
     val data: String,
-    val itens: List<Item>
+    val itens: List<Item>,
+    val status: String? = null
 )

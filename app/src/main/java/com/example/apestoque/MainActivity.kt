@@ -7,6 +7,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.apestoque.fragments.EstoqueFragment
 import com.example.apestoque.fragments.HistoricoFragment
+import com.example.apestoque.fragments.ComprasFragment
+import com.example.apestoque.fragments.AprovadoFragment
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import androidx.fragment.app.Fragment
@@ -28,9 +30,11 @@ class MainActivity : AppCompatActivity() {
         // Fragments + Titles
         val frags: List<Fragment> = listOf(
             EstoqueFragment(),
+            ComprasFragment(),
+            AprovadoFragment(),
             HistoricoFragment()
         )
-        val titles = listOf("Estoque", "Histórico")
+        val titles = listOf("Estoque", "Compras", "Aprovado", "Histórico")
 
         // Adapter
         pager.adapter = ViewPagerAdapter(this, frags)

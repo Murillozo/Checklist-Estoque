@@ -9,7 +9,8 @@ import com.example.apestoque.R
 import com.example.apestoque.data.Solicitacao
 
 class SolicitacaoAdapter(
-    private val lista: List<Solicitacao>
+    private val lista: List<Solicitacao>,
+    private val onClick: ((Solicitacao) -> Unit)? = null
 ) : RecyclerView.Adapter<SolicitacaoAdapter.ViewHolder>() {
 
     inner class ViewHolder(item: View) : RecyclerView.ViewHolder(item) {
@@ -36,5 +37,6 @@ class SolicitacaoAdapter(
             "• ${it.referencia} × ${it.quantidade}"
         }
         holder.tvItens.text = itensTexto
+        holder.itemView.setOnClickListener { onClick?.invoke(sol) }
     }
 }
