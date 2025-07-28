@@ -31,6 +31,11 @@
           <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.nova_solicitacao') }}">Nova Solicitação</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.solicitacoes') }}">Ver Solicitações</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.comparador') }}">Comparador</a></li>
+          {% if current_user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Sair</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+          {% endif %}
         </ul>
       </div>
     </div>
