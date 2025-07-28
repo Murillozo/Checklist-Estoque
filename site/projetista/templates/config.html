@@ -30,4 +30,32 @@
   </div>
   <button type="submit" class="btn btn-primary">Salvar</button>
 </form>
+
+<hr class="my-4">
+<h1 class="h4 mb-3">IPs Autorizados</h1>
+<form method="post" class="mb-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label for="new_ip" class="form-label">Novo IP</label>
+      <input type="text" class="form-control" id="new_ip" name="new_ip" required>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-secondary" name="add_ip">Adicionar</button>
+    </div>
+  </div>
+</form>
+
+<ul class="list-group">
+  {% for ip in ips %}
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+    {{ ip.ip_address }}
+    <form method="post" style="margin:0">
+      <input type="hidden" name="delete_ip" value="{{ ip.id }}">
+      <button type="submit" class="btn btn-sm btn-danger">Remover</button>
+    </form>
+  </li>
+  {% else %}
+  <li class="list-group-item text-muted">Nenhum IP cadastrado.</li>
+  {% endfor %}
+</ul>
 {% endblock %}

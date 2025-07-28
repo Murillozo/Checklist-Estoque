@@ -1,6 +1,6 @@
 # projetista/__init__.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Solicitacao, Item, User
+from models import db, Solicitacao, Item, User, AuthorizedIP
 from flask_login import login_required, current_user
 import json
 import io
@@ -265,8 +265,27 @@ def config():
 
     admin_user = User.query.filter_by(role='admin').first()
     compras_user = User.query.filter_by(role='compras').first()
+    ips = AuthorizedIP.query.all()
 
     if request.method == 'POST':
+        # Gerenciar adicao ou remocao de IPs
+        new_ip = request.form.get('new_ip')
+        delete_ip = request.form.get('delete_ip')
+        if new_ip is not None:
+            ip_val = new_ip.strip()
+            if ip_val and not AuthorizedIP.query.filter_by(ip_address=ip_val).first():
+                db.session.add(AuthorizedIP(ip_address=ip_val))
+                db.session.commit()
+                flash('IP adicionado.', 'success')
+            return redirect(url_for('projetista.config'))
+        if delete_ip:
+            ip_obj = AuthorizedIP.query.get(int(delete_ip))
+            if ip_obj:
+                db.session.delete(ip_obj)
+                db.session.commit()
+                flash('IP removido.', 'success')
+            return redirect(url_for('projetista.config'))
+
         admin_username = request.form.get('admin_username', '').strip()
         admin_password = request.form.get('admin_password', '').strip()
         compras_username = request.form.get('compras_username', '').strip()
@@ -297,5 +316,6 @@ def config():
     return render_template(
         'config.html',
         admin_user=admin_user,
-        compras_user=compras_user
+        compras_user=compras_user,
+        ips=ips
     )

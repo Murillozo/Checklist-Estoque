@@ -1,11 +1,12 @@
 # app.py
 import os
 
-from models import db, User
+from models import db, User, AuthorizedIP
 from projetista import bp as projetista_bp
 from compras import bp as compras_bp
 from auth import bp as auth_bp
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user, current_user
+from flask import Flask, request
 
 def create_app():
     app = Flask(__name__, template_folder="projetista/templates")
@@ -27,6 +28,18 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.before_request
+    def auto_login_ip():
+        if current_user.is_authenticated:
+            return
+        ip = request.remote_addr
+        if AuthorizedIP.query.filter_by(ip_address=ip).first():
+            user = User.query.filter_by(role='compras').first()
+            if not user:
+                user = User.query.filter_by(role='admin').first()
+            if user:
+                login_user(user)
 
     app.register_blueprint(projetista_bp, url_prefix='/projetista')
     app.register_blueprint(compras_bp, url_prefix='/compras')
