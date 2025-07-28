@@ -14,35 +14,41 @@
     rel="stylesheet" 
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
   >
-  <style> body { padding-top: 4.5rem; } </style>
+  <style>
+    {% if not hide_navbar %}
+      body { padding-top: 4.5rem; }
+    {% endif %}
+  </style>
 </head>
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
-    <div class="container">
-      <a class="navbar-brand" href="{{ url_for('projetista.index') }}">Solicitação do Projetista</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.index') }}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.nova_solicitacao') }}">Nova Solicitação</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.solicitacoes') }}">Ver Solicitações</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.comparador') }}">Comparador</a></li>
-          {% if current_user.is_authenticated and current_user.role == 'admin' %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.config') }}">Configurações</a></li>
-          {% endif %}
-          {% if current_user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Sair</a></li>
-          {% else %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
-          {% endif %}
-        </ul>
+  {% if not hide_navbar %}
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('projetista.index') }}">Solicitação do Projetista</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.index') }}">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.nova_solicitacao') }}">Nova Solicitação</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.solicitacoes') }}">Ver Solicitações</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.comparador') }}">Comparador</a></li>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.config') }}">Configurações</a></li>
+            {% endif %}
+            {% if current_user.is_authenticated %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Sair</a></li>
+            {% else %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+            {% endif %}
+          </ul>
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
+  {% endif %}
 
   {% with messages = get_flashed_messages(with_categories=True) %}
     {% if messages %}

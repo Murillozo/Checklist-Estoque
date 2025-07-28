@@ -23,7 +23,7 @@ def index():
         except json.JSONDecodeError:
             sol.pendencias_list = []
 
-    return render_template('compras.html', solicitacoes=solicitacoes)
+    return render_template('compras.html', solicitacoes=solicitacoes, hide_navbar=True)
 
 
 @bp.route('/<int:id>/concluir', methods=['POST'])
