@@ -1,6 +1,6 @@
 # app.py
 import os
-from flask import Flask
+
 from models import db, User
 from projetista import bp as projetista_bp
 from compras import bp as compras_bp
@@ -31,6 +31,7 @@ def create_app():
     app.register_blueprint(projetista_bp, url_prefix='/projetista')
     app.register_blueprint(compras_bp, url_prefix='/compras')
     app.register_blueprint(auth_bp)
+
 
     with app.app_context():
         db.create_all()

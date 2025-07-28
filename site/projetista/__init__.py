@@ -3,7 +3,6 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import db, Solicitacao, Item
 from flask_login import login_required, current_user
 import json
-from collections import defaultdict
 import io
 from flask import send_file
 import openpyxl
