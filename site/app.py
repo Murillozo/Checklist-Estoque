@@ -1,6 +1,6 @@
 # app.py
 import os
-from flask import Flask, redirect, url_for
+
 from models import db, User
 from projetista import bp as projetista_bp
 from compras import bp as compras_bp
@@ -32,9 +32,7 @@ def create_app():
     app.register_blueprint(compras_bp, url_prefix='/compras')
     app.register_blueprint(auth_bp)
 
-    @app.route('/')
-    def root():
-        return redirect(url_for('auth.login'))
+
 
     with app.app_context():
         db.create_all()

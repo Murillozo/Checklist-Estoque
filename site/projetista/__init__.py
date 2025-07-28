@@ -1,6 +1,6 @@
 # projetista/__init__.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Solicitacao, Item
+from models import db, Solicitacao, Item, User
 from flask_login import login_required, current_user
 import json
 import io
@@ -254,3 +254,48 @@ def delete_solicitacao(id):
     db.session.commit()
     flash('Solicitação removida.', 'success')
     return redirect(url_for('projetista.index'))
+
+
+@bp.route('/config', methods=['GET', 'POST'])
+@login_required
+def config():
+    """Página para configurar usuários e senhas."""
+    if current_user.role != 'admin':
+        return redirect(url_for('projetista.index'))
+
+    admin_user = User.query.filter_by(role='admin').first()
+    compras_user = User.query.filter_by(role='compras').first()
+
+    if request.method == 'POST':
+        admin_username = request.form.get('admin_username', '').strip()
+        admin_password = request.form.get('admin_password', '').strip()
+        compras_username = request.form.get('compras_username', '').strip()
+        compras_password = request.form.get('compras_password', '').strip()
+
+        if admin_username:
+            if not admin_user:
+                admin_user = User(username=admin_username, role='admin')
+                db.session.add(admin_user)
+            else:
+                admin_user.username = admin_username
+            if admin_password:
+                admin_user.set_password(admin_password)
+
+        if compras_username:
+            if not compras_user:
+                compras_user = User(username=compras_username, role='compras')
+                db.session.add(compras_user)
+            else:
+                compras_user.username = compras_username
+            if compras_password:
+                compras_user.set_password(compras_password)
+
+        db.session.commit()
+        flash('Credenciais atualizadas.', 'success')
+        return redirect(url_for('projetista.config'))
+
+    return render_template(
+        'config.html',
+        admin_user=admin_user,
+        compras_user=compras_user
+    )
