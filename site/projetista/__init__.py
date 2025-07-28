@@ -2,6 +2,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import db, Solicitacao, Item, User
 from flask_login import login_required, current_user
+from functools import wraps
 import json
 import io
 from flask import send_file
@@ -12,8 +13,20 @@ from flask import jsonify
 
 bp = Blueprint('projetista', __name__)
 
+
+def admin_required(view_func):
+    """Decorator que restringe acesso a usuários com role 'admin'."""
+    @wraps(view_func)
+    @login_required
+    def wrapper(*args, **kwargs):
+        if current_user.role != 'admin':
+            return redirect(url_for('compras.index'))
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
 @bp.route('/')
-@login_required
+@admin_required
 def index():
     consulta = Solicitacao.query.order_by(Solicitacao.data.desc()).all()
 
@@ -28,7 +41,7 @@ def index():
     return render_template('index.html', solicitacoes=unicas)
 
 @bp.route('/solicitacoes')
-@login_required
+@admin_required
 def solicitacoes():
     consulta = Solicitacao.query.order_by(Solicitacao.data.asc()).all()
     tz = pytz.timezone('America/Sao_Paulo')
@@ -48,7 +61,7 @@ def solicitacoes():
 
 
 @bp.route('/solicitacao/nova', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def nova_solicitacao():
     if request.method == 'POST':
         obra = request.form['obra'].strip()
@@ -97,7 +110,7 @@ def nova_solicitacao():
 
 
 @bp.route('/comparador', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def comparador():
     # lista de obras únicas
     obras = [row[0] for row in db.session.query(Solicitacao.obra).distinct().all()]
@@ -177,6 +190,7 @@ def comparador():
         solicitacoes=solicitacoes
     )
 @bp.route('/template-solicitacao.xlsx')
+@admin_required
 def export_template():
     # Cria a planilha
     wb = openpyxl.Workbook()
@@ -205,7 +219,7 @@ def export_template():
 
 
 @bp.route('/api/solicitacoes')
-@login_required
+@admin_required
 def api_listar_solicitacoes():
     resultados = []
     for sol in Solicitacao.query.order_by(Solicitacao.id.desc()).all():
@@ -225,7 +239,7 @@ def api_listar_solicitacoes():
 
 
 @bp.route('/api/solicitacoes/<int:id>/aprovar', methods=['POST'])
-@login_required
+@admin_required
 def api_aprovar(id):
     sol = Solicitacao.query.get_or_404(id)
     sol.status = 'aprovado'
@@ -235,7 +249,7 @@ def api_aprovar(id):
 
 
 @bp.route('/api/solicitacoes/<int:id>/compras', methods=['POST'])
-@login_required
+@admin_required
 def api_compras(id):
     sol = Solicitacao.query.get_or_404(id)
     dados = request.get_json() or {}
@@ -247,7 +261,7 @@ def api_compras(id):
 
 
 @bp.route('/solicitacao/<int:id>/delete', methods=['POST'])
-@login_required
+@admin_required
 def delete_solicitacao(id):
     sol = Solicitacao.query.get_or_404(id)
     db.session.delete(sol)
@@ -257,7 +271,7 @@ def delete_solicitacao(id):
 
 
 @bp.route('/config', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def config():
     """Página para configurar usuários e senhas."""
     if current_user.role != 'admin':
