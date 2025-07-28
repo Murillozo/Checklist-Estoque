@@ -8,6 +8,13 @@
 <body class="bg-light d-flex justify-content-center align-items-center" style="height:100vh;">
   <div class="card p-4 shadow" style="min-width:300px;">
     <h1 class="h4 mb-3 text-center">Entrar</h1>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <form method="post">
       <div class="form-floating mb-3">
         <input type="text" class="form-control" id="username" name="username" placeholder="Usuário" required>
