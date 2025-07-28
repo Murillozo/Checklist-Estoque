@@ -1,8 +1,8 @@
 # projetista/__init__.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import db, Solicitacao, Item
+from flask_login import login_required, current_user
 import json
-from collections import defaultdict
 import io
 from flask import send_file
 import openpyxl
@@ -13,6 +13,7 @@ from flask import jsonify
 bp = Blueprint('projetista', __name__)
 
 @bp.route('/')
+@login_required
 def index():
     consulta = Solicitacao.query.order_by(Solicitacao.data.desc()).all()
 
@@ -27,6 +28,7 @@ def index():
     return render_template('index.html', solicitacoes=unicas)
 
 @bp.route('/solicitacoes')
+@login_required
 def solicitacoes():
     consulta = Solicitacao.query.order_by(Solicitacao.data.asc()).all()
     tz = pytz.timezone('America/Sao_Paulo')
@@ -46,6 +48,7 @@ def solicitacoes():
 
 
 @bp.route('/solicitacao/nova', methods=['GET', 'POST'])
+@login_required
 def nova_solicitacao():
     if request.method == 'POST':
         obra = request.form['obra'].strip()
@@ -94,6 +97,7 @@ def nova_solicitacao():
 
 
 @bp.route('/comparador', methods=['GET', 'POST'])
+@login_required
 def comparador():
     # lista de obras únicas
     obras = [row[0] for row in db.session.query(Solicitacao.obra).distinct().all()]
@@ -201,6 +205,7 @@ def export_template():
 
 
 @bp.route('/api/solicitacoes')
+@login_required
 def api_listar_solicitacoes():
     resultados = []
     for sol in Solicitacao.query.order_by(Solicitacao.id.desc()).all():
@@ -220,6 +225,7 @@ def api_listar_solicitacoes():
 
 
 @bp.route('/api/solicitacoes/<int:id>/aprovar', methods=['POST'])
+@login_required
 def api_aprovar(id):
     sol = Solicitacao.query.get_or_404(id)
     sol.status = 'aprovado'
@@ -229,6 +235,7 @@ def api_aprovar(id):
 
 
 @bp.route('/api/solicitacoes/<int:id>/compras', methods=['POST'])
+@login_required
 def api_compras(id):
     sol = Solicitacao.query.get_or_404(id)
     dados = request.get_json() or {}
@@ -237,3 +244,13 @@ def api_compras(id):
     sol.pendencias = json.dumps(pendencias)
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@bp.route('/solicitacao/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_solicitacao(id):
+    sol = Solicitacao.query.get_or_404(id)
+    db.session.delete(sol)
+    db.session.commit()
+    flash('Solicitação removida.', 'success')
+    return redirect(url_for('projetista.index'))

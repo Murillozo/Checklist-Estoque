@@ -31,10 +31,28 @@
           <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.nova_solicitacao') }}">Nova Solicitação</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.solicitacoes') }}">Ver Solicitações</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.comparador') }}">Comparador</a></li>
+          {% if current_user.is_authenticated %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Sair</a></li>
+          {% else %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+          {% endif %}
         </ul>
       </div>
     </div>
   </nav>
+
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <!-- Conteúdo -->
   <main class="container mt-4">
