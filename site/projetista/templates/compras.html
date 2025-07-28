@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block body %}
   <h1 class="mb-4">Solicitações em Compras</h1>
-  <table class="table table-striped">
+  <table id="compras-table" class="table table-striped">
     <thead>
       <tr>
         <th>ID</th>
@@ -45,4 +45,47 @@
     {% endfor %}
     </tbody>
   </table>
+
+  <script>
+    const tbody = document.querySelector('#compras-table tbody');
+
+    function renderPendencias(list) {
+      if (!list || !list.length) {
+        return '<span class="text-success">Nenhuma</span>';
+      }
+      return '<ul class="mb-0">' +
+        list.map(p => `<li>${p.referencia} <span class="badge bg-warning text-dark">${p.quantidade}</span></li>`).join('') +
+        '</ul>';
+    }
+
+    function renderItens(itens) {
+      return '<ul class="mb-0">' +
+        itens.map(it => `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span></li>`).join('') +
+        '</ul>';
+    }
+
+    async function fetchData() {
+      const resp = await fetch('/projetista/api/solicitacoes');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      tbody.innerHTML = '';
+      data.filter(sol => sol.status === 'compras').forEach(sol => {
+        let row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${sol.id}</td>
+          <td>${sol.obra}</td>
+          <td>${renderItens(sol.itens)}</td>
+          <td>${renderPendencias(JSON.parse(sol.pendencias || '[]'))}</td>
+          <td>
+            <form method="post" action="/compras/${sol.id}/concluir">
+              <button type="submit" class="btn btn-sm btn-success">Concluir</button>
+            </form>
+          </td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    fetchData();
+    setInterval(fetchData, 5000);
+  </script>
 {% endblock %}
