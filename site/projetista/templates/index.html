@@ -50,15 +50,50 @@
 
   <script>
     const select = document.getElementById('status-filter');
-    select.addEventListener('change', () => {
+    const tbody = document.querySelector('#status-table tbody');
+
+    function applyFilter() {
       const val = select.value;
       document.querySelectorAll('#status-table tbody tr').forEach(row => {
-        if (!val || row.dataset.status === val) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
+        row.style.display = (!val || row.dataset.status === val) ? '' : 'none';
       });
-    });
+    }
+
+    select.addEventListener('change', applyFilter);
+
+    function renderStatus(status) {
+      const map = {
+        analise: 'Em análise',
+        aprovado: 'Aprovado',
+        compras: 'Compras',
+        concluido: 'Concluído'
+      };
+      return map[status] || status;
+    }
+
+    async function fetchData() {
+      const resp = await fetch('/projetista/api/solicitacoes');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      tbody.innerHTML = '';
+      data.forEach(sol => {
+        const tr = document.createElement('tr');
+        tr.dataset.status = sol.status;
+        tr.innerHTML = `
+          <td>${sol.id}</td>
+          <td>${sol.obra}</td>
+          <td>${renderStatus(sol.status)}</td>
+          <td>
+            <form method="post" action="/projetista/solicitacao/${sol.id}/delete" onsubmit="return confirm('Confirma apagar?');">
+              <button type="submit" class="btn btn-sm btn-danger">Apagar</button>
+            </form>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      applyFilter();
+    }
+
+    fetchData();
+    setInterval(fetchData, 5000);
   </script>
 {% endblock %}
