@@ -33,6 +33,7 @@ def create_app():
     app.register_blueprint(auth_bp)
 
 
+
     with app.app_context():
         db.create_all()
         if not User.query.filter_by(username='admin').first():
