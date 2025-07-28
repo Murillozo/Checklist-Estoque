@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required
 from models import db, Solicitacao
+import json
 
 bp = Blueprint('compras', __name__, template_folder='../projetista/templates')
 
@@ -14,6 +15,14 @@ def index():
         .order_by(Solicitacao.data.desc())
         .all()
     )
+
+    # carrega lista de pendências (itens faltantes) se existir
+    for sol in solicitacoes:
+        try:
+            sol.pendencias_list = json.loads(sol.pendencias or "[]")
+        except json.JSONDecodeError:
+            sol.pendencias_list = []
+
     return render_template('compras.html', solicitacoes=solicitacoes)
 
 
