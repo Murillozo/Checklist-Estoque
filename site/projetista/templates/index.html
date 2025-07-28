@@ -8,6 +8,7 @@
       <option value="analise">Em análise</option>
       <option value="aprovado">Aprovado</option>
       <option value="compras">Compras</option>
+      <option value="concluido">Concluído</option>
     </select>
   </div>
   <table id="status-table" class="table table-striped">
@@ -27,6 +28,8 @@
         <td>
           {% if sol.status == 'analise' %}
             Em análise
+          {% elif sol.status == 'concluido' %}
+            Concluído
           {% else %}
             {{ sol.status }}
           {% endif %}
