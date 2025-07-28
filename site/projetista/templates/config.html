@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block body %}
+<h1 class="h4 mb-4">Configurar Usuários</h1>
+<form method="post">
+  <div class="mb-4">
+    <h2 class="h6">Projetista (admin)</h2>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label for="admin_username" class="form-label">Usuário</label>
+        <input type="text" class="form-control" id="admin_username" name="admin_username" value="{{ admin_user.username if admin_user else '' }}" required>
+      </div>
+      <div class="col-md-4">
+        <label for="admin_password" class="form-label">Senha</label>
+        <input type="password" class="form-control" id="admin_password" name="admin_password" placeholder="(deixar em branco para manter)">
+      </div>
+    </div>
+  </div>
+  <div class="mb-4">
+    <h2 class="h6">Compras</h2>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label for="compras_username" class="form-label">Usuário</label>
+        <input type="text" class="form-control" id="compras_username" name="compras_username" value="{{ compras_user.username if compras_user else '' }}" required>
+      </div>
+      <div class="col-md-4">
+        <label for="compras_password" class="form-label">Senha</label>
+        <input type="password" class="form-control" id="compras_password" name="compras_password" placeholder="(deixar em branco para manter)">
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Salvar</button>
+</form>
+{% endblock %}
