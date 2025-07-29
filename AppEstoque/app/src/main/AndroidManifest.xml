@@ -24,6 +24,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".checklist.ChecklistActivity"/>
+        <activity android:name=".checklist.PendenciasActivity"/>
     </application>
 
 </manifest>
