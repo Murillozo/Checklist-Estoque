@@ -62,7 +62,7 @@
 
   <script>
     const tbody = document.querySelector('#compras-table tbody');
-    const statusOptions = {{ status_options|tojson }};
+    const statusOptions = {{ status_options|tojson|safe }};
 
     function renderPendencias(list, itens) {
       if (!list || !list.length) {
