@@ -47,7 +47,7 @@
         </td>
         <td>
           <form method="post" action="{{ url_for('compras.concluir', id=sol.id) }}">
-            <button type="submit" class="btn btn-sm btn-success">Concluir</button>
+            <button type="submit" class="btn btn-sm btn-success btn-concluir" style="display:none;">Solicitação Concluida</button>
           </form>
         </td>
       </tr>
@@ -78,12 +78,24 @@
         '</ul>';
     }
 
-    function renderItens(itens) {
+  function renderItens(itens) {
       return '<ul class="mb-0">' +
         itens.map(it => {
           return `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span></li>`;
         }).join('') +
         '</ul>';
+    }
+
+    function updateButtonState(row) {
+      const selects = row.querySelectorAll('.item-status');
+      const btn = row.querySelector('.btn-concluir');
+      if (!btn) return;
+      if (selects.length === 0) {
+        btn.style.display = 'inline-block';
+        return;
+      }
+      const allDelivered = Array.from(selects).every(s => s.value === 'Entregue');
+      btn.style.display = allDelivered ? 'inline-block' : 'none';
     }
 
     function attachListeners() {
@@ -96,6 +108,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status })
           });
+          updateButtonState(sel.closest('tr'));
         });
       });
     }
@@ -114,10 +127,11 @@
           <td>${renderPendencias(JSON.parse(sol.pendencias || '[]'), sol.itens)}</td>
           <td>
             <form method="post" action="/compras/${sol.id}/concluir">
-              <button type="submit" class="btn btn-sm btn-success">Solicitação Concluida</button>
+              <button type="submit" class="btn btn-sm btn-success btn-concluir" style="display:none;">Solicitação Concluida</button>
             </form>
           </td>`;
         tbody.appendChild(row);
+        updateButtonState(row);
       });
       attachListeners();
     }
