@@ -36,27 +36,47 @@ class PendenciasActivity : AppCompatActivity() {
 
         val container = findViewById<LinearLayout>(R.id.containerPendencias)
         val edits = itens.map { item ->
+            val editText = EditText(this).apply {
+                inputType = InputType.TYPE_CLASS_NUMBER
+                hint = "0"
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
             LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
+                orientation = LinearLayout.VERTICAL
 
                 addView(TextView(context).apply {
-                    text = item.referencia
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    text = "${item.referencia} - solicitado ${item.quantidade}"
                 })
 
-                addView(EditText(context).apply {
-                    inputType = InputType.TYPE_CLASS_NUMBER
-                    setText(item.quantidade.toString())
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                addView(TextView(context).apply {
+                    text = "Quantidade em estoque"
                 })
+
+                addView(editText)
             }.also { container.addView(it) }
+
+            editText
         }
 
         findViewById<Button>(R.id.btnEnviarPendencias).setOnClickListener {
-            val atualizados = itens.mapIndexed { index, it ->
-                val edit = (edits[index].getChildAt(1) as EditText)
-                val qt = edit.text.toString().toIntOrNull() ?: it.quantidade
-                Item(it.referencia, qt)
+            val atualizados = mutableListOf<Item>()
+
+            for (i in itens.indices) {
+                val item = itens[i]
+                val estoque = edits[i].text.toString().toIntOrNull() ?: 0
+                if (estoque > item.quantidade) {
+                    Toast.makeText(
+                        this,
+                        "Quantidade para ${item.referencia} maior que o solicitado",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
+                atualizados.add(Item(item.referencia, item.quantidade - estoque))
             }
 
             lifecycleScope.launch {
