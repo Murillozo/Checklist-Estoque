@@ -5,10 +5,9 @@
     <label for="status-filter" class="form-label">Filtrar por Status</label>
     <select id="status-filter" class="form-select">
       <option value="">Todos</option>
-      <option value="analise">Em análise</option>
-      <option value="aprovado">Aprovado</option>
-      <option value="compras">Compras</option>
-      <option value="concluido">Concluído</option>
+      <option value="analise">Aguardando solicitação</option>
+      <option value="aprovado">Separado</option>
+      <option value="compras">Pendente em compras</option>
     </select>
   </div>
   <table id="status-table" class="table table-striped">
@@ -63,10 +62,9 @@
 
     function renderStatus(status) {
       const map = {
-        analise: 'Em análise',
-        aprovado: 'Aprovado',
-        compras: 'Compras',
-        concluido: 'Concluído'
+        analise: 'Aguardando Solicitação',
+        aprovado: 'Separado',
+        compras: 'Pendente em compras',
       };
       return map[status] || status;
     }
