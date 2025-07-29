@@ -23,6 +23,7 @@ def index():
         except json.JSONDecodeError:
             sol.pendencias_list = []
 
+
     return render_template(
         'compras.html',
         solicitacoes=solicitacoes,
