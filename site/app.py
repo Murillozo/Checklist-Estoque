@@ -1,7 +1,7 @@
 # app.py
 import os
 
-from models import db, User, AuthorizedIP
+from models import db, User, AuthorizedIP, ITEM_STATUS_OPTIONS
 from projetista import bp as projetista_bp
 from compras import bp as compras_bp
 from auth import bp as auth_bp
