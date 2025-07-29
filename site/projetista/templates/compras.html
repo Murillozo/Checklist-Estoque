@@ -111,7 +111,7 @@
           <td>${renderPendencias(JSON.parse(sol.pendencias || '[]'), sol.itens)}</td>
           <td>
             <form method="post" action="/compras/${sol.id}/concluir">
-              <button type="submit" class="btn btn-sm btn-success">Concluir</button>
+              <button type="submit" class="btn btn-sm btn-success">Solicitação Concluida</button>
             </form>
           </td>`;
         tbody.appendChild(row);
