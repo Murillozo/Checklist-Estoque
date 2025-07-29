@@ -21,11 +21,6 @@
           {% for it in sol.itens %}
             <li>
               {{ it.referencia }} <span class="badge bg-secondary">{{ it.quantidade }}</span>
-              <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ it.id }}">
-                {% for s in status_options %}
-                  <option value="{{ s }}" {% if it.status == s %}selected{% endif %}>{{ s }}</option>
-                {% endfor %}
-              </select>
             </li>
           {% endfor %}
           </ul>
@@ -83,11 +78,7 @@
     function renderItens(itens) {
       return '<ul class="mb-0">' +
         itens.map(it => {
-          const opts = statusOptions
-            .map(s => `<option value="${s}" ${it.status === s ? 'selected' : ''}>${s}</option>`) 
-            .join('');
-          return `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span>` +
-                 `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id}">${opts}</select></li>`;
+          return `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span></li>`;
         }).join('') +
         '</ul>';
     }
