@@ -27,7 +27,14 @@
           {% if sol.pendencias_list %}
             <ul class="mb-0">
             {% for p in sol.pendencias_list %}
-              <li>{{ p.referencia }} <span class="badge bg-warning text-dark">{{ p.quantidade }}</span></li>
+              <li>
+                {{ p.referencia }} <span class="badge bg-warning text-dark">{{ p.quantidade }}</span>
+                <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ p.item_id }}">
+                  {% for s in status_options %}
+                    <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s }}</option>
+                  {% endfor %}
+                </select>
+              </li>
             {% endfor %}
             </ul>
           {% else %}
@@ -48,13 +55,21 @@
 
   <script>
     const tbody = document.querySelector('#compras-table tbody');
+    const statusOptions = {{ status_options|tojson }};
 
-    function renderPendencias(list) {
+    function renderPendencias(list, itens) {
       if (!list || !list.length) {
         return '<span class="text-success">Nenhuma</span>';
       }
       return '<ul class="mb-0">' +
-        list.map(p => `<li>${p.referencia} <span class="badge bg-warning text-dark">${p.quantidade}</span></li>`).join('') +
+        list.map(p => {
+          const it = itens.find(i => i.referencia === p.referencia) || {};
+          const opts = statusOptions
+            .map(s => `<option value="${s}" ${it.status === s ? 'selected' : ''}>${s}</option>`)
+            .join('');
+          return `<li>${p.referencia} <span class="badge bg-warning text-dark">${p.quantidade}</span>` +
+                 `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id || ''}">${opts}</select></li>`;
+        }).join('') +
         '</ul>';
     }
 
@@ -62,6 +77,20 @@
       return '<ul class="mb-0">' +
         itens.map(it => `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span></li>`).join('') +
         '</ul>';
+    }
+
+    function attachListeners() {
+      document.querySelectorAll('.item-status').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          const id = sel.dataset.itemId;
+          const status = sel.value;
+          await fetch(`/compras/item/${id}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+          });
+        });
+      });
     }
 
     async function fetchData() {
@@ -75,7 +104,7 @@
           <td>${sol.id}</td>
           <td>${sol.obra}</td>
           <td>${renderItens(sol.itens)}</td>
-          <td>${renderPendencias(JSON.parse(sol.pendencias || '[]'))}</td>
+          <td>${renderPendencias(JSON.parse(sol.pendencias || '[]'), sol.itens)}</td>
           <td>
             <form method="post" action="/compras/${sol.id}/concluir">
               <button type="submit" class="btn btn-sm btn-success">Concluir</button>
@@ -83,6 +112,7 @@
           </td>`;
         tbody.appendChild(row);
       });
+      attachListeners();
     }
 
     fetchData();

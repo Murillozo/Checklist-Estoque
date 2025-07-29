@@ -6,6 +6,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+# Opções de status individuais para cada item
+ITEM_STATUS_OPTIONS = [
+    'Nao iniciada',
+    'Em cotação',
+    'Fechado',
+    'Faturado',
+    'Entregue',
+    'Separado',
+    'Faturamento',
+    'Cancelado',
+]
+
 class Solicitacao(db.Model):
     __tablename__ = 'solicitacao'
     id = db.Column(db.Integer, primary_key=True)
@@ -22,6 +34,7 @@ class Item(db.Model):
     solicitacao_id = db.Column(db.Integer, db.ForeignKey('solicitacao.id'), nullable=False)
     referencia = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), default='Nao iniciada')
 
 
 class User(UserMixin, db.Model):

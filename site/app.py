@@ -1,12 +1,13 @@
 # app.py
 import os
 
-from models import db, User, AuthorizedIP
+from models import db, User, AuthorizedIP, ITEM_STATUS_OPTIONS
 from projetista import bp as projetista_bp
 from compras import bp as compras_bp
 from auth import bp as auth_bp
 from flask_login import LoginManager, login_user, current_user
 from flask import Flask, request
+from sqlalchemy import inspect
 
 def create_app():
     app = Flask(__name__, template_folder="projetista/templates")
@@ -49,6 +50,17 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
+        # garante coluna 'status' na tabela item para bancos antigos
+        insp = inspect(db.engine)
+        if 'item' in insp.get_table_names():
+            cols = [c['name'] for c in insp.get_columns('item')]
+            if 'status' not in cols:
+                db.session.execute(
+                    "ALTER TABLE item ADD COLUMN status VARCHAR(20) DEFAULT 'Nao iniciada'"
+                )
+                db.session.commit()
+
         if not User.query.filter_by(username='admin').first():
             admin = User(username='admin', role='admin')
             admin.set_password('admin')
