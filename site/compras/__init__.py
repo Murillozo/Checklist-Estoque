@@ -23,12 +23,6 @@ def index():
         except json.JSONDecodeError:
             sol.pendencias_list = []
 
-        # associa id e status do item correspondente em cada pendência
-        for p in sol.pendencias_list:
-            item = next((it for it in sol.itens if it.referencia == p.get("referencia")), None)
-            if item:
-                p["item_id"] = item.id
-                p["status"] = item.status
 
     return render_template(
         'compras.html',
