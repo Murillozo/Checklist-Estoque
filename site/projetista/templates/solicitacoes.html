@@ -28,9 +28,10 @@
           <small class="d-block">{{ sol.local_time.strftime('%d/%m/%Y %H:%M') }}</small>
         </div>
         <ul class="list-group list-group-flush">
-          {% for ref, total in sol.itens_agrupados %}
-            <li class="list-group-item" data-ref="{{ ref|lower }}">
-              {{ ref }} <span class="badge bg-secondary float-end">{{ total }}</span>
+          {% for it in sol.itens %}
+            <li class="list-group-item" data-ref="{{ it.referencia|lower }}">
+              {{ it.referencia }} <span class="badge bg-secondary float-end">{{ it.quantidade }}</span>
+              <small class="d-block text-muted">{{ it.status }}</small>
             </li>
           {% endfor %}
         </ul>

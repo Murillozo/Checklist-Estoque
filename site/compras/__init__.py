@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required
-from models import db, Solicitacao
+from models import db, Solicitacao, Item, ITEM_STATUS_OPTIONS
 import json
 
 bp = Blueprint('compras', __name__, template_folder='../projetista/templates')
@@ -23,7 +23,12 @@ def index():
         except json.JSONDecodeError:
             sol.pendencias_list = []
 
-    return render_template('compras.html', solicitacoes=solicitacoes, hide_navbar=True)
+    return render_template(
+        'compras.html',
+        solicitacoes=solicitacoes,
+        hide_navbar=True,
+        status_options=ITEM_STATUS_OPTIONS,
+    )
 
 
 @bp.route('/<int:id>/concluir', methods=['POST'])
@@ -35,3 +40,17 @@ def concluir(id: int):
     db.session.commit()
     flash('Solicitação aprovada.', 'success')
     return redirect(url_for('compras.index'))
+
+
+@bp.route('/item/<int:item_id>/status', methods=['POST'])
+@login_required
+def atualizar_item_status(item_id: int):
+    """Atualiza o status de um item individual."""
+    item = Item.query.get_or_404(item_id)
+    dados = request.get_json() or {}
+    status = dados.get('status')
+    if status not in ITEM_STATUS_OPTIONS:
+        return jsonify({'ok': False, 'error': 'status inválido'}), 400
+    item.status = status
+    db.session.commit()
+    return jsonify({'ok': True})

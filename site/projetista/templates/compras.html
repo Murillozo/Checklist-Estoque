@@ -19,7 +19,14 @@
         <td>
           <ul class="mb-0">
           {% for it in sol.itens %}
-            <li>{{ it.referencia }} <span class="badge bg-secondary">{{ it.quantidade }}</span></li>
+            <li>
+              {{ it.referencia }} <span class="badge bg-secondary">{{ it.quantidade }}</span>
+              <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ it.id }}">
+                {% for s in status_options %}
+                  <option value="{{ s }}" {% if it.status == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </li>
           {% endfor %}
           </ul>
         </td>
@@ -48,6 +55,7 @@
 
   <script>
     const tbody = document.querySelector('#compras-table tbody');
+    const statusOptions = {{ status_options|tojson }};
 
     function renderPendencias(list) {
       if (!list || !list.length) {
@@ -60,8 +68,28 @@
 
     function renderItens(itens) {
       return '<ul class="mb-0">' +
-        itens.map(it => `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span></li>`).join('') +
+        itens.map(it => {
+          const opts = statusOptions
+            .map(s => `<option value="${s}" ${it.status === s ? 'selected' : ''}>${s}</option>`) 
+            .join('');
+          return `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span>` +
+                 `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id}">${opts}</select></li>`;
+        }).join('') +
         '</ul>';
+    }
+
+    function attachListeners() {
+      document.querySelectorAll('.item-status').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          const id = sel.dataset.itemId;
+          const status = sel.value;
+          await fetch(`/compras/item/${id}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+          });
+        });
+      });
     }
 
     async function fetchData() {
@@ -83,6 +111,7 @@
           </td>`;
         tbody.appendChild(row);
       });
+      attachListeners();
     }
 
     fetchData();
