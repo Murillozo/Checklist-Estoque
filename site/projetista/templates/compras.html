@@ -27,18 +27,20 @@
         </td>
         <td>
           {% if sol.pendencias_list %}
-            <ul class="mb-0">
-            {% for p in sol.pendencias_list %}
-              <li>
-                {{ p.referencia }} <span class="badge bg-warning text-dark">{{ p.quantidade }}</span>
-                <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ p.item_id }}">
-                  {% for s in status_options %}
-                    <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s }}</option>
-                  {% endfor %}
-                </select>
-              </li>
-            {% endfor %}
-            </ul>
+              <ul class="mb-0">
+              {% for p in sol.pendencias_list %}
+                <li>
+                  {{ p.referencia }}
+                  <div class="small text-muted">Tem no estoque:</div>
+                  <span class="badge bg-warning text-dark">{{ p.quantidade }}</span>
+                  <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ p.item_id }}">
+                    {% for s in status_options %}
+                      <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                  </select>
+                </li>
+              {% endfor %}
+              </ul>
           {% else %}
             <span class="text-success">Nenhuma</span>
           {% endif %}
@@ -69,7 +71,8 @@
           const opts = statusOptions
             .map(s => `<option value="${s}" ${it.status === s ? 'selected' : ''}>${s}</option>`)
             .join('');
-          return `<li>${p.referencia} <span class="badge bg-warning text-dark">${p.quantidade}</span>` +
+          return `<li>${p.referencia}<div class="small text-muted">Tem no estoque:</div>` +
+                 `<span class="badge bg-warning text-dark">${p.quantidade}</span>` +
                  `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id || ''}">${opts}</select></li>`;
         }).join('') +
         '</ul>';
