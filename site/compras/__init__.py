@@ -24,6 +24,7 @@ def index():
             sol.pendencias_list = []
 
 
+
     return render_template(
         'compras.html',
         solicitacoes=solicitacoes,
