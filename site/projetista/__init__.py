@@ -69,7 +69,8 @@ def nova_solicitacao():
                 item = Item(
                     solicitacao_id=sol.id,
                     referencia=str(ref).strip(),
-                    quantidade=int(qt)
+                    quantidade=int(qt),
+                    status='Nao iniciada'
                 )
                 db.session.add(item)
 
@@ -84,7 +85,8 @@ def nova_solicitacao():
                 item = Item(
                     solicitacao_id=sol.id,
                     referencia=ref,
-                    quantidade=int(qt)
+                    quantidade=int(qt),
+                    status='Nao iniciada'
                 )
                 db.session.add(item)
 
@@ -210,7 +212,12 @@ def api_listar_solicitacoes():
     resultados = []
     for sol in Solicitacao.query.order_by(Solicitacao.id.desc()).all():
         itens = [
-            {"referencia": it.referencia, "quantidade": it.quantidade}
+            {
+                "id": it.id,
+                "referencia": it.referencia,
+                "quantidade": it.quantidade,
+                "status": it.status,
+            }
             for it in sol.itens
         ]
         resultados.append({
