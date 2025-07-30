@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required
+from datetime import datetime
 from models import db, Solicitacao, Item, ITEM_STATUS_OPTIONS, ItemStatusHistory
 import json
 
@@ -52,10 +53,18 @@ def atualizar_item_status(item_id: int):
     item = Item.query.get_or_404(item_id)
     dados = request.get_json() or {}
     status = dados.get('status')
+    previsao_raw = dados.get('previsao_entrega')
     if status not in ITEM_STATUS_OPTIONS:
         return jsonify({'ok': False, 'error': 'status inválido'}), 400
     old = item.status
     item.status = status
+    if status == 'Faturado' and previsao_raw:
+        try:
+            item.previsao_entrega = datetime.fromisoformat(previsao_raw).date()
+        except ValueError:
+            item.previsao_entrega = None
+    else:
+        item.previsao_entrega = None
     db.session.add(ItemStatusHistory(
         item_id=item.id,
         old_status=old,

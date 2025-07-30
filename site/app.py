@@ -51,13 +51,18 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-        # garante coluna 'status' na tabela item para bancos antigos
+        # garante colunas adicionais na tabela item para bancos antigos
         insp = inspect(db.engine)
         if 'item' in insp.get_table_names():
             cols = [c['name'] for c in insp.get_columns('item')]
             if 'status' not in cols:
                 db.session.execute(
                     "ALTER TABLE item ADD COLUMN status VARCHAR(20) DEFAULT 'Nao iniciada'"
+                )
+                db.session.commit()
+            if 'previsao_entrega' not in cols:
+                db.session.execute(
+                    "ALTER TABLE item ADD COLUMN previsao_entrega DATE"
                 )
                 db.session.commit()
 

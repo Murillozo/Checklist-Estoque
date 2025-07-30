@@ -36,7 +36,12 @@
           {% for it in sol.itens %}
             <li class="list-group-item" data-ref="{{ it.referencia|lower }}">
               {{ it.referencia }} <span class="badge bg-secondary float-end">{{ it.quantidade }}</span>
-              <small class="d-block text-muted">{{ it.status }}</small>
+              <small class="d-block text-muted">
+                {{ it.status }}
+                {% if it.previsao_entrega %}
+                  – Previsto: {{ it.previsao_entrega.strftime('%d/%m/%Y') }}
+                {% endif %}
+              </small>
             </li>
           {% endfor %}
         </ul>

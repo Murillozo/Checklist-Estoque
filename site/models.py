@@ -34,6 +34,7 @@ class Item(db.Model):
     referencia = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), default='Nao iniciada')
+    previsao_entrega = db.Column(db.Date)
 
 
 class ItemStatusHistory(db.Model):
