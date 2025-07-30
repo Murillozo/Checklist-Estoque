@@ -36,11 +36,12 @@ def index():
 @bp.route('/<int:id>/concluir', methods=['POST'])
 @login_required
 def concluir(id: int):
-    """Marca a solicitação como aprovada."""
+    """Reenvia a solicitação para o checklist."""
     sol = Solicitacao.query.get_or_404(id)
-    sol.status = 'aprovado'
+    sol.status = 'analise'
+    sol.pendencias = None
     db.session.commit()
-    flash('Solicitação aprovada.', 'success')
+    flash('Solicitação reenviada para checklist.', 'success')
     return redirect(url_for('compras.index'))
 
 

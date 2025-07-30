@@ -13,7 +13,6 @@ ITEM_STATUS_OPTIONS = [
     'Fechado',
     'Faturado',
     'Entregue',
-    'Separado',
     'Faturamento',
     'Cancelado',
 ]
