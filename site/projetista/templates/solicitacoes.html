@@ -23,7 +23,7 @@
          data-id="{{ sol.id|string }}"
          data-obra="{{ sol.obra|lower }}">
       <div class="card h-100 shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-start">
+        <div class="card-header text-white d-flex justify-content-between align-items-start {% if sol.status == 'aprovado' %}bg-success{% else %}bg-primary{% endif %}">
           <div>
             <strong>#{{ sol.id }}</strong> – {{ sol.obra }}
             <small class="d-block">{{ sol.local_time.strftime('%d/%m/%Y %H:%M') }}</small>
