@@ -17,17 +17,22 @@
   </div>
 </div>
 
-<div id="solicitacoes-container" class="row gy-4">
+  <div id="solicitacoes-container" class="row gy-4">
   {% for sol in solicitacoes %}
-    <div class="col-md-6 col-lg-4 solicitacao-card" 
-         data-id="{{ sol.id|string }}" 
+    <div class="col-md-6 col-lg-4 solicitacao-card"
+         data-id="{{ sol.id|string }}"
          data-obra="{{ sol.obra|lower }}">
       <div class="card h-100 shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <strong>#{{ sol.id }}</strong> – {{ sol.obra }}
-          <small class="d-block">{{ sol.local_time.strftime('%d/%m/%Y %H:%M') }}</small>
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-start">
+          <div>
+            <strong>#{{ sol.id }}</strong> – {{ sol.obra }}
+            <small class="d-block">{{ sol.local_time.strftime('%d/%m/%Y %H:%M') }}</small>
+          </div>
+          <button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#itens-{{ sol.id }}" aria-expanded="false" aria-controls="itens-{{ sol.id }}">
+            Detalhes
+          </button>
         </div>
-        <ul class="list-group list-group-flush">
+        <ul id="itens-{{ sol.id }}" class="list-group list-group-flush collapse">
           {% for it in sol.itens %}
             <li class="list-group-item" data-ref="{{ it.referencia|lower }}">
               {{ it.referencia }} <span class="badge bg-secondary float-end">{{ it.quantidade }}</span>
