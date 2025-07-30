@@ -37,6 +37,17 @@ class Item(db.Model):
     status = db.Column(db.String(20), default='Nao iniciada')
 
 
+class ItemStatusHistory(db.Model):
+    """Historico de mudancas de status de um item."""
+    __tablename__ = 'item_status_history'
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    old_status = db.Column(db.String(20), nullable=False)
+    new_status = db.Column(db.String(20), nullable=False)
+    changed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
