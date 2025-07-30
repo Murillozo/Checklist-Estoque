@@ -33,11 +33,18 @@
                   {{ p.referencia }}
                   <div class="small text-muted">Falta:</div>
                   <span class="badge bg-warning text-dark">{{ p.quantidade }}</span>
-                  <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ p.item_id }}">
+                  {% set item_id = None %}
+                  {% for it in sol.itens %}
+                    {% if it.referencia == p.referencia %}
+                      {% set item_id = it.id %}
+                    {% endif %}
+                  {% endfor %}
+                  <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ item_id }}">
                     {% for s in status_options %}
                       <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s }}</option>
                     {% endfor %}
                   </select>
+                  <button type="button" class="btn btn-sm btn-info ms-1 btn-history" data-item-id="{{ item_id }}">Histórico</button>
                 </li>
               {% endfor %}
               </ul>
@@ -57,6 +64,20 @@
     </tbody>
   </table>
 
+  <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="historyModalLabel">Histórico de Status</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ul id="historyList" class="list-group mb-0"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const tbody = document.querySelector('#compras-table tbody');
     const statusOptions = {{ status_options|tojson|safe }};
@@ -73,7 +94,9 @@
             .join('');
           return `<li>${p.referencia}<div class="small text-muted">Falta:</div>` +
                  `<span class="badge bg-warning text-dark">${p.quantidade}</span>` +
-                 `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id || ''}">${opts}</select></li>`;
+                 `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id || ''}">${opts}</select>` +
+                 `<button type="button" class="btn btn-sm btn-info ms-1 btn-history" data-item-id="${it.id || ''}">Histórico</button>` +
+                 `</li>`;
         }).join('') +
         '</ul>';
     }
@@ -111,6 +134,27 @@
           updateButtonState(sel.closest('tr'));
         });
       });
+
+      document.querySelectorAll('.btn-history').forEach(btn => {
+        btn.addEventListener('click', () => showHistory(btn.dataset.itemId));
+      });
+    }
+
+    async function showHistory(itemId) {
+      const resp = await fetch(`/compras/item/${itemId}/history`);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
+      data.forEach(h => {
+        const li = document.createElement('li');
+        const dt = new Date(h.changed_at);
+        li.className = 'list-group-item';
+        li.textContent = `${dt.toLocaleString()} : ${h.old_status} → ${h.new_status}`;
+        list.appendChild(li);
+      });
+      const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+      modal.show();
     }
 
     async function fetchData() {
