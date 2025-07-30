@@ -1,35 +1,26 @@
 {% extends 'base.html' %}
 {% block body %}
   <h1 class="mb-4">Solicitações em Compras</h1>
-  <table id="compras-table" class="table table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Obra</th>
-        <th>Itens</th>
-        <th>Pendências</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody>
+  <div id="compras-container" class="row gy-4">
     {% for sol in solicitacoes %}
-      <tr>
-        <td>{{ sol.id }}</td>
-        <td>{{ sol.obra }}</td>
-        <td>
-          <ul class="mb-0">
-          {% for it in sol.itens %}
-            <li>
-              {{ it.referencia }} <span class="badge bg-secondary">{{ it.quantidade }}</span>
-            </li>
-          {% endfor %}
-          </ul>
-        </td>
-        <td>
-          {% if sol.pendencias_list %}
-              <ul class="mb-0">
+      <div class="col-md-6 col-lg-4 compra-card">
+        <div class="card h-100 shadow-sm">
+          <div class="card-header bg-success text-white">
+            <strong>#{{ sol.id }}</strong> – {{ sol.obra }}
+            <small class="d-block">{{ sol.data.strftime('%d/%m/%Y %H:%M') }}</small>
+          </div>
+          <div class="card-body">
+            <h6 class="fw-bold">Itens</h6>
+            <ul class="list-unstyled mb-3">
+            {% for it in sol.itens %}
+              <li>{{ it.referencia }} <span class="badge bg-secondary">{{ it.quantidade }}</span></li>
+            {% endfor %}
+            </ul>
+            <h6 class="fw-bold">Pendências</h6>
+            {% if sol.pendencias_list %}
+              <ul class="mb-0 list-unstyled">
               {% for p in sol.pendencias_list %}
-                <li>
+                <li class="mb-1">
                   {{ p.referencia }}
                   <div class="small text-muted">Falta:</div>
                   <span class="badge bg-warning text-dark">{{ p.quantidade }}</span>
@@ -48,21 +39,21 @@
                 </li>
               {% endfor %}
               </ul>
-          {% else %}
-            <span class="text-success">Nenhuma</span>
-          {% endif %}
-        </td>
-        <td>
-          <form method="post" action="{{ url_for('compras.concluir', id=sol.id) }}">
-            <button type="submit" class="btn btn-sm btn-success btn-concluir" style="display:none;">Solicitação Concluida</button>
-          </form>
-        </td>
-      </tr>
+            {% else %}
+              <span class="text-success">Nenhuma</span>
+            {% endif %}
+          </div>
+          <div class="card-footer text-end">
+            <form method="post" action="{{ url_for('compras.concluir', id=sol.id) }}">
+              <button type="submit" class="btn btn-sm btn-success btn-concluir" style="display:none;">Solicitação Concluida</button>
+            </form>
+          </div>
+        </div>
+      </div>
     {% else %}
-      <tr><td colspan="5" class="text-muted">Nenhuma solicitação em compras.</td></tr>
+      <p class="text-muted">Nenhuma solicitação em compras.</p>
     {% endfor %}
-    </tbody>
-  </table>
+  </div>
 
   <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -79,20 +70,21 @@
   </div>
 
   <script>
-    const tbody = document.querySelector('#compras-table tbody');
+    const container = document.getElementById('compras-container');
     const statusOptions = {{ status_options|tojson|safe }};
+    let knownIds = new Set();
 
     function renderPendencias(list, itens) {
       if (!list || !list.length) {
         return '<span class="text-success">Nenhuma</span>';
       }
-      return '<ul class="mb-0">' +
+      return '<ul class="mb-0 list-unstyled">' +
         list.map(p => {
           const it = itens.find(i => i.referencia === p.referencia) || {};
           const opts = statusOptions
             .map(s => `<option value="${s}" ${it.status === s ? 'selected' : ''}>${s}</option>`)
             .join('');
-          return `<li>${p.referencia}<div class="small text-muted">Falta:</div>` +
+          return `<li class="mb-1">${p.referencia}<div class="small text-muted">Falta:</div>` +
                  `<span class="badge bg-warning text-dark">${p.quantidade}</span>` +
                  `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id || ''}">${opts}</select>` +
                  `<button type="button" class="btn btn-sm btn-info ms-1 btn-history" data-item-id="${it.id || ''}">Histórico</button>` +
@@ -101,17 +93,15 @@
         '</ul>';
     }
 
-  function renderItens(itens) {
-      return '<ul class="mb-0">' +
-        itens.map(it => {
-          return `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span></li>`;
-        }).join('') +
+    function renderItens(itens) {
+      return '<ul class="list-unstyled mb-3">' +
+        itens.map(it => `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span></li>`).join('') +
         '</ul>';
     }
 
-    function updateButtonState(row) {
-      const selects = row.querySelectorAll('.item-status');
-      const btn = row.querySelector('.btn-concluir');
+    function updateButtonState(card) {
+      const selects = card.querySelectorAll('.item-status');
+      const btn = card.querySelector('.btn-concluir');
       if (!btn) return;
       if (selects.length === 0) {
         btn.style.display = 'inline-block';
@@ -121,8 +111,8 @@
       btn.style.display = allDelivered ? 'inline-block' : 'none';
     }
 
-    function attachListeners() {
-      document.querySelectorAll('.item-status').forEach(sel => {
+    function attachListeners(card) {
+      card.querySelectorAll('.item-status').forEach(sel => {
         sel.addEventListener('change', async () => {
           const id = sel.dataset.itemId;
           const status = sel.value;
@@ -131,11 +121,11 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status })
           });
-          updateButtonState(sel.closest('tr'));
+          updateButtonState(card);
         });
       });
 
-      document.querySelectorAll('.btn-history').forEach(btn => {
+      card.querySelectorAll('.btn-history').forEach(btn => {
         btn.addEventListener('click', () => showHistory(btn.dataset.itemId));
       });
     }
@@ -157,27 +147,57 @@
       modal.show();
     }
 
+    function createCard(sol) {
+      const div = document.createElement('div');
+      div.className = 'col-md-6 col-lg-4 compra-card';
+      div.innerHTML = `
+        <div class="card h-100 shadow-sm">
+          <div class="card-header bg-success text-white">
+            <strong>#${sol.id}</strong> – ${sol.obra}
+            <small class="d-block">${new Date(sol.data).toLocaleString()}</small>
+          </div>
+          <div class="card-body">
+            <h6 class="fw-bold">Itens</h6>
+            ${renderItens(sol.itens)}
+            <h6 class="fw-bold">Pendências</h6>
+            ${renderPendencias(JSON.parse(sol.pendencias || '[]'), sol.itens)}
+          </div>
+          <div class="card-footer text-end">
+            <form method="post" action="/compras/${sol.id}/concluir">
+              <button type="submit" class="btn btn-sm btn-success btn-concluir" style="display:none;">Solicitação Concluida</button>
+            </form>
+          </div>
+        </div>`;
+      updateButtonState(div);
+      attachListeners(div);
+      return div;
+    }
+
     async function fetchData() {
       const resp = await fetch('/projetista/api/solicitacoes');
       if (!resp.ok) return;
       const data = await resp.json();
-      tbody.innerHTML = '';
-      data.filter(sol => sol.status === 'compras').forEach(sol => {
-        let row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${sol.id}</td>
-          <td>${sol.obra}</td>
-          <td>${renderItens(sol.itens)}</td>
-          <td>${renderPendencias(JSON.parse(sol.pendencias || '[]'), sol.itens)}</td>
-          <td>
-            <form method="post" action="/compras/${sol.id}/concluir">
-              <button type="submit" class="btn btn-sm btn-success btn-concluir" style="display:none;">Solicitação Concluida</button>
-            </form>
-          </td>`;
-        tbody.appendChild(row);
-        updateButtonState(row);
+      const compras = data.filter(sol => sol.status === 'compras');
+
+      const currentIds = compras.map(sol => sol.id);
+      const newIds = currentIds.filter(id => !knownIds.has(id));
+      if (newIds.length && Notification.permission === 'granted') {
+        newIds.forEach(id => {
+          const sol = compras.find(s => s.id === id);
+          new Notification('Nova solicitação em compras', { body: `#${sol.id} - ${sol.obra}` });
+        });
+      }
+      knownIds = new Set(currentIds);
+
+      container.innerHTML = '';
+      compras.forEach(sol => {
+        const card = createCard(sol);
+        container.appendChild(card);
       });
-      attachListeners();
+    }
+
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
     }
 
     fetchData();
