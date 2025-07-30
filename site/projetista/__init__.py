@@ -217,6 +217,7 @@ def api_listar_solicitacoes():
                 "referencia": it.referencia,
                 "quantidade": it.quantidade,
                 "status": it.status,
+                "previsao_entrega": it.previsao_entrega.isoformat() if it.previsao_entrega else None,
             }
             for it in sol.itens
         ]

@@ -41,18 +41,19 @@
                   {{ p.referencia }}
                   <div class="small text-muted">Falta:</div>
                   <span class="badge bg-warning text-dark">{{ p.quantidade }}</span>
-                  {% set item_id = None %}
+                  {% set item_obj = None %}
                   {% for it in sol.itens %}
                     {% if it.referencia == p.referencia %}
-                      {% set item_id = it.id %}
+                      {% set item_obj = it %}
                     {% endif %}
                   {% endfor %}
-                  <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ item_id }}">
+                  <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ item_obj.id }}">
                     {% for s in status_options %}
                       <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s }}</option>
                     {% endfor %}
                   </select>
-                  <button type="button" class="btn btn-sm btn-info ms-1 btn-history" data-item-id="{{ item_id }}">Histórico</button>
+                  <input type="date" class="form-control form-control-sm d-inline-block w-auto ms-2 previsao-input" data-item-id="{{ item_obj.id }}" value="{{ item_obj.previsao_entrega.strftime('%Y-%m-%d') if item_obj.previsao_entrega else '' }}" {% if item_obj.status != 'Faturado' %}style="display:none;"{% endif %}>
+                  <button type="button" class="btn btn-sm btn-info ms-1 btn-history" data-item-id="{{ item_obj.id }}">Histórico</button>
                 </li>
               {% endfor %}
               </ul>
@@ -101,9 +102,11 @@
           const opts = statusOptions
             .map(s => `<option value="${s}" ${it.status === s ? 'selected' : ''}>${s}</option>`)
             .join('');
+          const input = `<input type="date" class="form-control form-control-sm d-inline-block w-auto ms-2 previsao-input" data-item-id="${it.id || ''}" value="${(it.previsao_entrega || '').slice(0,10)}" ${it.status === 'Faturado' ? '' : 'style="display:none;"'}>`;
           return `<li class="mb-1">${p.referencia}<div class="small text-muted">Falta:</div>` +
                  `<span class="badge bg-warning text-dark">${p.quantidade}</span>` +
                  `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id || ''}">${opts}</select>` +
+                 input +
                  `<button type="button" class="btn btn-sm btn-info ms-1 btn-history" data-item-id="${it.id || ''}">Histórico</button>` +
                  `</li>`;
         }).join('') +
@@ -133,12 +136,31 @@
         sel.addEventListener('change', async () => {
           const id = sel.dataset.itemId;
           const status = sel.value;
+          const input = card.querySelector(`.previsao-input[data-item-id="${id}"]`);
+          if (status === 'Faturado') {
+            input.style.display = 'inline-block';
+          } else if (input) {
+            input.style.display = 'none';
+            input.value = '';
+          }
           await fetch(`/compras/item/${id}/status`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
+            body: JSON.stringify({ status, previsao_entrega: input ? input.value : null })
           });
           updateButtonState(card);
+        });
+      });
+
+      card.querySelectorAll('.previsao-input').forEach(inp => {
+        inp.addEventListener('change', async () => {
+          const id = inp.dataset.itemId;
+          const sel = card.querySelector(`.item-status[data-item-id="${id}"]`);
+          await fetch(`/compras/item/${id}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: sel.value, previsao_entrega: inp.value })
+          });
         });
       });
 
