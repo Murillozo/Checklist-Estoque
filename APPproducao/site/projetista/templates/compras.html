@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% block body %}
+  <style>
+    body {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+    .compra-card .card {
+      border-color: #ced4da;
+    }
+    .compra-card .card-header {
+      background-color: #0d6efd;
+      color: #fff;
+    }
+  </style>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Solicitações em Compras</h1>
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Sair</a>
+    {% endif %}
+  </div>
+  <div id="compras-container" class="row gy-4">
+    {% for sol in solicitacoes %}
+      <div class="col-md-6 col-lg-4 compra-card">
+        <div class="card h-100 shadow-sm border-light-subtle">
+          <div class="card-header text-white">
+            <strong>#{{ sol.id }}</strong> – {{ sol.obra }}
+            <small class="d-block">{{ sol.data.strftime('%d/%m/%Y %H:%M') }}</small>
+          </div>
+          <div class="card-body">
+            <h6 class="fw-bold">Itens</h6>
+            <ul class="list-unstyled mb-3">
+            {% for it in sol.itens %}
+              <li>{{ it.referencia }} <span class="badge bg-secondary">{{ it.quantidade }}</span></li>
+            {% endfor %}
+            </ul>
+            <h6 class="fw-bold">Pendências</h6>
+            {% if sol.pendencias_list %}
+              <ul class="mb-0 list-unstyled">
+              {% for p in sol.pendencias_list %}
+                <li class="mb-1">
+                  {{ p.referencia }}
+                  <div class="small text-muted">Falta:</div>
+                  <span class="badge bg-warning text-dark">{{ p.quantidade }}</span>
+                  {% set item_obj = None %}
+                  {% for it in sol.itens %}
+                    {% if it.referencia == p.referencia %}
+                      {% set item_obj = it %}
+                    {% endif %}
+                  {% endfor %}
+                  <select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="{{ item_obj.id }}">
+                    {% for s in status_options %}
+                      <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                  </select>
+                  <input type="date" class="form-control form-control-sm d-inline-block w-auto ms-2 previsao-input" data-item-id="{{ item_obj.id }}" value="{{ item_obj.previsao_entrega.strftime('%Y-%m-%d') if item_obj.previsao_entrega else '' }}" {% if item_obj.status != 'Faturado' %}style="display:none;"{% endif %}>
+                  <button type="button" class="btn btn-sm btn-info ms-1 btn-history" data-item-id="{{ item_obj.id }}">Histórico</button>
+                </li>
+              {% endfor %}
+              </ul>
+            {% else %}
+              <span class="text-success">Nenhuma</span>
+            {% endif %}
+          </div>
+          <div class="card-footer text-end">
+            <form method="post" action="{{ url_for('compras.concluir', id=sol.id) }}">
+              <button type="submit" class="btn btn-sm btn-success btn-concluir" style="display:none;">Solicitação Concluida</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-muted">Nenhuma solicitação em compras.</p>
+    {% endfor %}
+  </div>
+
+  <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="historyModalLabel">Histórico de Status</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ul id="historyList" class="list-group mb-0"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('compras-container');
+    const statusOptions = {{ status_options|tojson|safe }};
+    let knownIds = new Set();
+
+    function renderPendencias(list, itens) {
+      if (!list || !list.length) {
+        return '<span class="text-success">Nenhuma</span>';
+      }
+      return '<ul class="mb-0 list-unstyled">' +
+        list.map(p => {
+          const it = itens.find(i => i.referencia === p.referencia) || {};
+          const opts = statusOptions
+            .map(s => `<option value="${s}" ${it.status === s ? 'selected' : ''}>${s}</option>`)
+            .join('');
+          const input = `<input type="date" class="form-control form-control-sm d-inline-block w-auto ms-2 previsao-input" data-item-id="${it.id || ''}" value="${(it.previsao_entrega || '').slice(0,10)}" ${it.status === 'Faturado' ? '' : 'style="display:none;"'}>`;
+          return `<li class="mb-1">${p.referencia}<div class="small text-muted">Falta:</div>` +
+                 `<span class="badge bg-warning text-dark">${p.quantidade}</span>` +
+                 `<select class="form-select form-select-sm d-inline-block w-auto ms-2 item-status" data-item-id="${it.id || ''}">${opts}</select>` +
+                 input +
+                 `<button type="button" class="btn btn-sm btn-info ms-1 btn-history" data-item-id="${it.id || ''}">Histórico</button>` +
+                 `</li>`;
+        }).join('') +
+        '</ul>';
+    }
+
+    function renderItens(itens) {
+      return '<ul class="list-unstyled mb-3">' +
+        itens.map(it => `<li>${it.referencia} <span class="badge bg-secondary">${it.quantidade}</span></li>`).join('') +
+        '</ul>';
+    }
+
+    function updateButtonState(card) {
+      const selects = card.querySelectorAll('.item-status');
+      const btn = card.querySelector('.btn-concluir');
+      if (!btn) return;
+      if (selects.length === 0) {
+        btn.style.display = 'inline-block';
+        return;
+      }
+      const allDelivered = Array.from(selects).every(s => s.value === 'Entregue');
+      btn.style.display = allDelivered ? 'inline-block' : 'none';
+    }
+
+    function attachListeners(card) {
+      card.querySelectorAll('.item-status').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          const id = sel.dataset.itemId;
+          const status = sel.value;
+          const input = card.querySelector(`.previsao-input[data-item-id="${id}"]`);
+          if (status === 'Faturado') {
+            input.style.display = 'inline-block';
+          } else if (input) {
+            input.style.display = 'none';
+            input.value = '';
+          }
+          await fetch(`/compras/item/${id}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status, previsao_entrega: input ? input.value : null })
+          });
+          updateButtonState(card);
+        });
+      });
+
+      card.querySelectorAll('.previsao-input').forEach(inp => {
+        inp.addEventListener('change', async () => {
+          const id = inp.dataset.itemId;
+          const sel = card.querySelector(`.item-status[data-item-id="${id}"]`);
+          await fetch(`/compras/item/${id}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: sel.value, previsao_entrega: inp.value })
+          });
+        });
+      });
+
+      card.querySelectorAll('.btn-history').forEach(btn => {
+        btn.addEventListener('click', () => showHistory(btn.dataset.itemId));
+      });
+    }
+
+    async function showHistory(itemId) {
+      const resp = await fetch(`/compras/item/${itemId}/history`);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
+      data.forEach(h => {
+        const li = document.createElement('li');
+        const dt = new Date(h.changed_at);
+        li.className = 'list-group-item';
+        li.textContent = `${dt.toLocaleString()} : ${h.old_status} → ${h.new_status}`;
+        list.appendChild(li);
+      });
+      const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+      modal.show();
+    }
+
+    function createCard(sol) {
+      const div = document.createElement('div');
+      div.className = 'col-md-6 col-lg-4 compra-card';
+      div.innerHTML = `
+        <div class="card h-100 shadow-sm border-light-subtle">
+          <div class="card-header text-white">
+            <strong>#${sol.id}</strong> – ${sol.obra}
+            <small class="d-block">${new Date(sol.data).toLocaleString()}</small>
+          </div>
+          <div class="card-body">
+            <h6 class="fw-bold">Itens</h6>
+            ${renderItens(sol.itens)}
+            <h6 class="fw-bold">Pendências</h6>
+            ${renderPendencias(JSON.parse(sol.pendencias || '[]'), sol.itens)}
+          </div>
+          <div class="card-footer text-end">
+            <form method="post" action="/compras/${sol.id}/concluir">
+              <button type="submit" class="btn btn-sm btn-success btn-concluir" style="display:none;">Solicitação Concluida</button>
+            </form>
+          </div>
+        </div>`;
+      updateButtonState(div);
+      attachListeners(div);
+      return div;
+    }
+
+    async function fetchData() {
+      const resp = await fetch('/projetista/api/solicitacoes');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const compras = data.filter(sol => sol.status === 'compras');
+
+      const currentIds = compras.map(sol => sol.id);
+      const newIds = currentIds.filter(id => !knownIds.has(id));
+      if (newIds.length && Notification.permission === 'granted') {
+        newIds.forEach(id => {
+          const sol = compras.find(s => s.id === id);
+          new Notification('Nova solicitação em compras', { body: `#${sol.id} - ${sol.obra}` });
+        });
+      }
+      knownIds = new Set(currentIds);
+
+      container.innerHTML = '';
+      compras.forEach(sol => {
+        const card = createCard(sol);
+        container.appendChild(card);
+      });
+    }
+
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    fetchData();
+    setInterval(fetchData, 5000);
+  </script>
+{% endblock %}
