@@ -266,7 +266,8 @@ def api_compras(id):
     sol = Solicitacao.query.get_or_404(id)
     dados = request.get_json() or {}
     pendencias = dados.get('pendencias', [])
-    sol.status = 'compras'
+    if sol.status != 'aprovado':
+        sol.status = 'compras'
     sol.pendencias = json.dumps(pendencias)
     db.session.commit()
     return jsonify({'ok': True})
