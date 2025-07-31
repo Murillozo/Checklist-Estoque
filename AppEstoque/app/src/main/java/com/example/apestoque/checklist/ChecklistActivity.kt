@@ -50,10 +50,11 @@ class ChecklistActivity : AppCompatActivity() {
         btn.setOnClickListener {
             val pendentes = solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
 
+
             lifecycleScope.launch {
                 try {
                     withContext(Dispatchers.IO) {
-                        NetworkModule.api.aprovarSolicitacao(solicitacao.id)
+
                     }
 
                     if (pendentes.isEmpty()) {
