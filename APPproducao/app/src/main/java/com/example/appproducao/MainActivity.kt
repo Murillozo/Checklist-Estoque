@@ -81,7 +81,7 @@ fun IniciarScreen() {
             }
         }
         error != null -> {
-            Text("Erro: $error", modifier = Modifier.padding(16.dp))
+
         }
         else -> {
             LazyColumn {
