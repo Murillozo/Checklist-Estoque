@@ -65,7 +65,7 @@ fun IniciarScreen() {
         scope.launch {
             try {
                 val all = NetworkModule.api.listarSolicitacoes()
-
+                solicitacoes = all.filter { it.status == "Separado" }
             } catch (e: Exception) {
                 error = e.localizedMessage
             } finally {
