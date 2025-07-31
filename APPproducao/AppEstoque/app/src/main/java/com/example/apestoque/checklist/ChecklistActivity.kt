@@ -49,10 +49,14 @@ class ChecklistActivity : AppCompatActivity() {
         val btn = findViewById<Button>(R.id.btnConcluir)
         btn.setOnClickListener {
             val pendentes = solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
+
+            val checkedCount = checks.count { it.isChecked }
+            val completion = checkedCount.toDouble() / checks.size
+
             lifecycleScope.launch {
                 try {
                     withContext(Dispatchers.IO) {
-                        if (pendentes.isEmpty()) {
+                        if (completion >= 0.8) {
                             NetworkModule.api.aprovarSolicitacao(solicitacao.id)
                         }
                     }
