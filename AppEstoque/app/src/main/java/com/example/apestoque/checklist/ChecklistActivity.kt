@@ -50,16 +50,12 @@ class ChecklistActivity : AppCompatActivity() {
         btn.setOnClickListener {
             val pendentes = solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
 
-            // Calculate completion percentage
-            val checkedCount = checks.count { it.isChecked }
-            val completion = checkedCount.toDouble() / checks.size
+
 
             lifecycleScope.launch {
                 try {
                     withContext(Dispatchers.IO) {
-                        if (completion >= 0.8) {
-                            NetworkModule.api.aprovarSolicitacao(solicitacao.id)
-                        }
+
                     }
 
                     if (pendentes.isEmpty()) {
