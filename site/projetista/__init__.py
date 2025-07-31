@@ -268,10 +268,10 @@ def api_compras(id):
     pendencias = dados.get('pendencias', [])
     total = len(sol.itens)
     concluido = total - len(pendencias)
-    porcentagem = concluido / total if total else 0
-    if porcentagem >= 0.8:
+
+    if not pendencias:
         sol.status = 'aprovado'
-    elif sol.status != 'aprovado':
+    else:
         sol.status = 'compras'
     sol.pendencias = json.dumps(pendencias)
     db.session.commit()
