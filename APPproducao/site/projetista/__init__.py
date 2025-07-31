@@ -266,7 +266,12 @@ def api_compras(id):
     sol = Solicitacao.query.get_or_404(id)
     dados = request.get_json() or {}
     pendencias = dados.get('pendencias', [])
-    if sol.status != 'aprovado':
+    total = len(sol.itens)
+    concluido = total - len(pendencias)
+    porcentagem = concluido / total if total else 0
+    if porcentagem >= 0.8:
+        sol.status = 'aprovado'
+    elif sol.status != 'aprovado':
         sol.status = 'compras'
     sol.pendencias = json.dumps(pendencias)
     db.session.commit()
