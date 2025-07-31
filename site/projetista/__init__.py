@@ -47,6 +47,24 @@ def solicitacoes():
     return render_template('solicitacoes.html', solicitacoes=consulta)
 
 
+@bp.route('/iniciar_projeto')
+@login_required
+def iniciar_projeto():
+    """Exibe os projetos divididos por status."""
+    consulta = Solicitacao.query.order_by(Solicitacao.data.desc()).all()
+
+    analise = [s for s in consulta if s.status == 'analise']
+    aprovado = [s for s in consulta if s.status == 'aprovado']
+    compras = [s for s in consulta if s.status == 'compras']
+
+    return render_template(
+        'iniciar_projeto.html',
+        analise=analise,
+        aprovado=aprovado,
+        compras=compras,
+    )
+
+
 @bp.route('/solicitacao/nova', methods=['GET', 'POST'])
 @login_required
 def nova_solicitacao():
