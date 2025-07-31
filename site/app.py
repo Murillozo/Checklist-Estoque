@@ -51,8 +51,21 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-        # garante colunas adicionais na tabela item para bancos antigos
+        # garante colunas adicionais nas tabelas para bancos antigos
         insp = inspect(db.engine)
+        if 'solicitacao' in insp.get_table_names():
+            cols = [c['name'] for c in insp.get_columns('solicitacao')]
+            if 'status' not in cols:
+                db.session.execute(
+                    "ALTER TABLE solicitacao ADD COLUMN status VARCHAR(20) DEFAULT 'analise'"
+                )
+                db.session.commit()
+            if 'pendencias' not in cols:
+                db.session.execute(
+                    "ALTER TABLE solicitacao ADD COLUMN pendencias TEXT"
+                )
+                db.session.commit()
+
         if 'item' in insp.get_table_names():
             cols = [c['name'] for c in insp.get_columns('item')]
             if 'status' not in cols:
