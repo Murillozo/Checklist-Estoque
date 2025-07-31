@@ -51,6 +51,7 @@ class ChecklistActivity : AppCompatActivity() {
             val pendentes = solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
 
 
+
             lifecycleScope.launch {
                 try {
                     withContext(Dispatchers.IO) {
