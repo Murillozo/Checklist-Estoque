@@ -65,7 +65,7 @@ fun IniciarScreen() {
         scope.launch {
             try {
                 val all = NetworkModule.api.listarSolicitacoes()
-                solicitacoes = all.filter { it.status?.lowercase() == "aprovado" }
+
             } catch (e: Exception) {
                 error = e.localizedMessage
             } finally {
@@ -81,7 +81,7 @@ fun IniciarScreen() {
             }
         }
         error != null -> {
-            Text("Erro: $error", modifier = Modifier.padding(16.dp))
+
         }
         else -> {
             LazyColumn {
