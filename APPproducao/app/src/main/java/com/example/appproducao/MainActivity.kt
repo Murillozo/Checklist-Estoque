@@ -99,8 +99,72 @@ fun IniciarScreen() {
 
 @Composable
 fun EmProducaoScreen() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Em produção")
+    var lista80 by remember { mutableStateOf<List<Solicitacao>>(emptyList()) }
+    var listaCompleta by remember { mutableStateOf<List<Solicitacao>>(emptyList()) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var loading by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                val all = NetworkModule.api.listarSolicitacoes()
+                val aprovados = all.filter { it.status == "aprovado" }
+                lista80 = aprovados.filter { it.pendencias != null && it.pendencias != "[]" }
+                listaCompleta = aprovados.filter { it.pendencias == null || it.pendencias == "[]" }
+            } catch (e: Exception) {
+                error = e.localizedMessage
+            } finally {
+                loading = false
+            }
+        }
+    }
+
+    when {
+        loading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        error != null -> {
+
+        }
+        else -> {
+            LazyColumn {
+                if (lista80.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Material Separado com 80% da lista",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    items(lista80) { sol ->
+                        Text(
+                            text = "${'$'}{sol.obra} - id ${'$'}{sol.id}",
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                        Divider()
+                    }
+                }
+                if (listaCompleta.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Material separado completo",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                    items(listaCompleta) { sol ->
+                        Text(
+                            text = "${'$'}{sol.obra} - id ${'$'}{sol.id}",
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                        Divider()
+                    }
+                }
+            }
+        }
     }
 }
 
