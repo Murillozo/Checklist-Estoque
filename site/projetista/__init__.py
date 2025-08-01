@@ -25,6 +25,13 @@ def index():
             unicas.append(sol)
             vistas.add(sol.obra)
 
+    # prepara lista de pendências para exibição
+    for sol in unicas:
+        try:
+            sol.pendencias_list = json.loads(sol.pendencias or "[]")
+        except json.JSONDecodeError:
+            sol.pendencias_list = []
+
     return render_template('index.html', solicitacoes=unicas)
 
 @bp.route('/solicitacoes')
@@ -52,6 +59,12 @@ def solicitacoes():
 def iniciar_projeto():
     """Exibe os projetos divididos por status."""
     consulta = Solicitacao.query.order_by(Solicitacao.data.desc()).all()
+
+    for sol in consulta:
+        try:
+            sol.pendencias_list = json.loads(sol.pendencias or "[]")
+        except json.JSONDecodeError:
+            sol.pendencias_list = []
 
     analise = [s for s in consulta if s.status == 'analise']
     aprovado = [s for s in consulta if s.status == 'aprovado']
