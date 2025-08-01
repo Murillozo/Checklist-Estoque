@@ -87,7 +87,7 @@ fun AprovadasScreen() {
             LazyColumn {
                 items(solicitacoes) { sol ->
                     Text(
-                        text = "${'$'}{sol.obra} - id ${'$'}{sol.id}",
+                        text = "${sol.obra} - id ${sol.id}",
                         modifier = Modifier.padding(16.dp)
                     )
                     Divider()
@@ -141,7 +141,7 @@ fun EmProducaoScreen() {
                     }
                     items(lista80) { sol ->
                         Text(
-                            text = "${'$'}{sol.obra} - id ${'$'}{sol.id}",
+                            text = "${sol.obra} - id ${sol.id}",
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                         Divider()
@@ -157,7 +157,7 @@ fun EmProducaoScreen() {
                     }
                     items(listaCompleta) { sol ->
                         Text(
-                            text = "${'$'}{sol.obra} - id ${'$'}{sol.id}",
+                            text = "${sol.obra} - id ${sol.id}",
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                         Divider()
