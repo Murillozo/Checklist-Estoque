@@ -216,7 +216,10 @@
       const resp = await fetch('/projetista/api/solicitacoes');
       if (!resp.ok) return;
       const data = await resp.json();
-      const compras = data.filter(sol => sol.status === 'compras');
+      const compras = data.filter(sol =>
+        sol.status === 'compras' ||
+        (sol.status === 'aprovado' && sol.pendencias && sol.pendencias !== '[]')
+      );
 
       const currentIds = compras.map(sol => sol.id);
       const newIds = currentIds.filter(id => !knownIds.has(id));

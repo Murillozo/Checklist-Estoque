@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required
 from datetime import datetime
 from models import db, Solicitacao, Item, ITEM_STATUS_OPTIONS, ItemStatusHistory
+from sqlalchemy import or_, and_
 import json
 
 bp = Blueprint('compras', __name__, template_folder='../projetista/templates')
@@ -9,10 +10,22 @@ bp = Blueprint('compras', __name__, template_folder='../projetista/templates')
 @bp.route('/')
 @login_required
 def index():
-    """Lista apenas as solicitações que estão com status 'compras'."""
+    """Lista solicitações pendentes de compras.
+
+    Inclui aquelas já aprovadas mas que ainda possuem pendências (80%).
+    """
     solicitacoes = (
         Solicitacao.query
-        .filter_by(status='compras')
+        .filter(
+            or_(
+                Solicitacao.status == 'compras',
+                and_(
+                    Solicitacao.status == 'aprovado',
+                    Solicitacao.pendencias.isnot(None),
+                    Solicitacao.pendencias != '[]'
+                ),
+            )
+        )
         .order_by(Solicitacao.data.desc())
         .all()
     )
