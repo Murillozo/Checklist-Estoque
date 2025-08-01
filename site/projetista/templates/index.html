@@ -27,8 +27,14 @@
         <td>
           {% if sol.status == 'analise' %}
             Em análise
-          {% elif sol.status == 'concluido' %}
-            Concluído
+          {% elif sol.status == 'aprovado' %}
+            {% if sol.pendencias_list %}
+              Material Separado com 80% da lista
+            {% else %}
+              Material separado completo
+            {% endif %}
+          {% elif sol.status == 'compras' %}
+            Pendente em compras
           {% else %}
             {{ sol.status }}
           {% endif %}
@@ -60,10 +66,15 @@
 
     select.addEventListener('change', applyFilter);
 
-    function renderStatus(status) {
+    function renderStatus(status, pendencias) {
+      if (status === 'aprovado') {
+        if (pendencias && pendencias !== '[]') {
+          return 'Material Separado com 80% da lista';
+        }
+        return 'Material separado completo';
+      }
       const map = {
         analise: 'Aguardando Andamento',
-        aprovado: 'Separado',
         compras: 'Pendente em compras',
       };
       return map[status] || status;
@@ -80,7 +91,7 @@
         tr.innerHTML = `
           <td>${sol.id}</td>
           <td>${sol.obra}</td>
-          <td>${renderStatus(sol.status)}</td>
+          <td>${renderStatus(sol.status, sol.pendencias)}</td>
           <td>
             <form method="post" action="/projetista/solicitacao/${sol.id}/delete" onsubmit="return confirm('Confirma apagar?');">
               <button type="submit" class="btn btn-sm btn-danger">Apagar</button>

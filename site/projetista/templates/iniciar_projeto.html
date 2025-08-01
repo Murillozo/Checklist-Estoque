@@ -16,7 +16,14 @@
     <h4>Separado</h4>
     <ul class="list-group mb-4">
       {% for s in aprovado %}
-      <li class="list-group-item">#{{ s.id }} - {{ s.obra }}</li>
+      <li class="list-group-item">
+        #{{ s.id }} - {{ s.obra }}
+        {% if s.pendencias_list %}
+        <small class="d-block text-muted">Material Separado com 80% da lista</small>
+        {% else %}
+        <small class="d-block text-muted">Material separado completo</small>
+        {% endif %}
+      </li>
       {% else %}
       <li class="list-group-item text-muted">Nenhum projeto.</li>
       {% endfor %}
