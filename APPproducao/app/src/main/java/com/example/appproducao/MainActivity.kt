@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     var selected by remember { mutableStateOf(0) }
-    val tabs = listOf("Iniciar", "Em produção")
+    val tabs = listOf("Aprovadas", "Em produção")
     Column {
         TabRow(selectedTabIndex = selected) {
             tabs.forEachIndexed { index, title ->
@@ -48,14 +48,14 @@ fun MainScreen() {
             }
         }
         when (selected) {
-            0 -> IniciarScreen()
+            0 -> AprovadasScreen()
             else -> EmProducaoScreen()
         }
     }
 }
 
 @Composable
-fun IniciarScreen() {
+fun AprovadasScreen() {
     var solicitacoes by remember { mutableStateOf<List<Solicitacao>>(emptyList()) }
     var error by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -65,7 +65,7 @@ fun IniciarScreen() {
         scope.launch {
             try {
                 val all = NetworkModule.api.listarSolicitacoes()
-                solicitacoes = all.filter { it.status == "Separado" }
+                solicitacoes = all.filter { it.status == "aprovado" }
             } catch (e: Exception) {
                 error = e.localizedMessage
             } finally {
