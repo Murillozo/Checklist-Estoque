@@ -9,8 +9,23 @@ import openpyxl
 import pytz
 from collections import Counter
 from flask import jsonify
+import os
+from datetime import datetime
 
 bp = Blueprint('projetista', __name__)
+
+# Diretório base onde os projetos são armazenados no servidor
+BASE_PRODUCAO = r"Z:\03 - ENGENHARIA\03 - PRODUCAO"
+
+# Subpastas que devem ser criadas para cada obra
+SUBPASTAS_OBRA = [
+    'AS BUILT',
+    'CHECKLIST',
+    'FOTOS',
+    'IDENTIFICAÇÕES',
+    'LAYOUT',
+    'PROJETO ELETROMECÂNICO',
+]
 
 @bp.route('/')
 @login_required
@@ -81,21 +96,36 @@ def iniciar_projeto():
 @bp.route('/solicitacao/nova', methods=['GET', 'POST'])
 @login_required
 def nova_solicitacao():
+    # tenta descobrir os anos disponíveis no servidor
+    try:
+        anos = [d for d in os.listdir(BASE_PRODUCAO)
+                if os.path.isdir(os.path.join(BASE_PRODUCAO, d))]
+    except OSError:
+        # se o diretório não estiver acessível, usa o ano atual
+        anos = [str(datetime.now().year)]
+
     if request.method == 'POST':
         obra = request.form['obra'].strip()
+        ano = request.form.get('ano', '').strip()
+        subpastas_raw = request.form.get('subpastas', '0').strip()
+        try:
+            qtd_subpastas = int(subpastas_raw)
+        except ValueError:
+            qtd_subpastas = 0
+
         sol = Solicitacao(obra=obra)
         db.session.add(sol)
         db.session.flush()
 
         # 1) Se enviou um arquivo .xlsx, use ele:
         file = request.files.get('xlsx_file')
-        if file and file.filename.lower().endswith(('.xls','.xlsx')):
+        if file and file.filename.lower().endswith(('.xls', '.xlsx')):
             wb = openpyxl.load_workbook(io.BytesIO(file.read()), data_only=True)
             ws = wb.active
             # espera cabeçalho em linha 1: Referência | Quantidade
             for row in ws.iter_rows(min_row=2, values_only=True):
                 ref, qt = row[0], row[1]
-                if not ref or not qt: 
+                if not ref or not qt:
                     continue
                 item = Item(
                     solicitacao_id=sol.id,
@@ -107,11 +137,11 @@ def nova_solicitacao():
 
         # 2) Caso não tenha enviado arquivo, tenta textareas (legacy)
         else:
-            refs = request.form.get('referencias','').strip().splitlines()
-            qts  = request.form.get('quantidades','').strip().splitlines()
+            refs = request.form.get('referencias', '').strip().splitlines()
+            qts = request.form.get('quantidades', '').strip().splitlines()
             for ref, qt in zip(refs, qts):
                 ref, qt = ref.strip(), qt.strip()
-                if not ref or not qt: 
+                if not ref or not qt:
                     continue
                 item = Item(
                     solicitacao_id=sol.id,
@@ -122,10 +152,30 @@ def nova_solicitacao():
                 db.session.add(item)
 
         db.session.commit()
+
+        # cria as pastas da obra no servidor, se possível
+        if ano:
+            try:
+                obra_dir = os.path.join(BASE_PRODUCAO, ano, obra)
+                os.makedirs(obra_dir, exist_ok=True)
+
+                # subpastas da obra principal
+                for nome in SUBPASTAS_OBRA:
+                    os.makedirs(os.path.join(obra_dir, nome), exist_ok=True)
+
+                # cria subpastas PROxxx.1, PROxxx.2, ...
+                for i in range(1, qtd_subpastas + 1):
+                    sub_dir = os.path.join(obra_dir, f"{obra}.{i}")
+                    for nome in SUBPASTAS_OBRA:
+                        os.makedirs(os.path.join(sub_dir, nome), exist_ok=True)
+            except OSError:
+                # ignora falhas de criação de diretório
+                pass
+
         flash('Solicitação criada com sucesso!', 'success')
         return redirect(url_for('projetista.solicitacoes'))
 
-    return render_template('nova_solicitacao.html')
+    return render_template('nova_solicitacao.html', anos=anos)
 
 
 
