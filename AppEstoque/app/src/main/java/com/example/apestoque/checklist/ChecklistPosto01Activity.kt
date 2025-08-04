@@ -1,10 +1,13 @@
 package com.example.apestoque.checklist
 
 import android.app.Activity
+import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
+import android.graphics.pdf.PdfRenderer
 import android.os.Bundle
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
@@ -59,8 +62,8 @@ class ChecklistPosto01Activity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 try {
-                    gerarPdf(obra, isC)
                     withContext(Dispatchers.IO) {
+                        gerarPdf(obra, isC)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
                         } else {
@@ -77,26 +80,51 @@ class ChecklistPosto01Activity : AppCompatActivity() {
     }
 
     private fun gerarPdf(obra: String, marcadoC: Boolean) {
+        // Carrega o template a partir dos assets
+        val templateName = "checklistttt.pdf"
+        val tempFile = File.createTempFile("template", ".pdf", cacheDir)
+        assets.open(templateName).use { input ->
+            FileOutputStream(tempFile).use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        val renderer = PdfRenderer(
+            ParcelFileDescriptor.open(tempFile, ParcelFileDescriptor.MODE_READ_ONLY)
+        )
+        val templatePage = renderer.openPage(0)
+
         val pdf = PdfDocument()
-        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+        val pageInfo = PdfDocument.PageInfo.Builder(templatePage.width, templatePage.height, 1).create()
         val page = pdf.startPage(pageInfo)
         val canvas = page.canvas
+
+        // desenha o template na nova página
+        val bitmap = Bitmap.createBitmap(templatePage.width, templatePage.height, Bitmap.Config.ARGB_8888)
+        templatePage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
+        canvas.drawBitmap(bitmap, 0f, 0f, null)
+
         val paint = Paint().apply { textSize = 12f }
         val xC = 94.78f
         val yC = 125.4f
         val xNC = 150.78f
         val yNC = 125.4f
-        val x = if (marcadoC) xC else xNC
-        val y = if (marcadoC) yC else yNC
+        val (x, y) = if (marcadoC) xC to yC else xNC to yNC
         canvas.drawText("X", x, y, paint)
+
         pdf.finishPage(page)
+        templatePage.close()
+        renderer.close()
+        tempFile.delete()
 
         val ano = Calendar.getInstance().get(Calendar.YEAR)
         val base = File(
-            Environment.getExternalStorageDirectory(),
+            getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
             "03 - ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST"
         )
-        base.mkdirs()
+        if (!base.exists()) {
+            base.mkdirs()
+        }
         val file = File(base, "checklist_posto01.pdf")
         FileOutputStream(file).use { fos -> pdf.writeTo(fos) }
         pdf.close()
