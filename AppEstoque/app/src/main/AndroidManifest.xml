@@ -25,6 +25,7 @@
         </activity>
         <activity android:name=".checklist.ChecklistActivity"/>
         <activity android:name=".checklist.PendenciasActivity"/>
+        <activity android:name=".checklist.ChecklistPosto01Activity"/>
     </application>
 
 </manifest>
