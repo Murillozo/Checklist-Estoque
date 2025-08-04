@@ -107,11 +107,6 @@ def nova_solicitacao():
     if request.method == 'POST':
         obra = request.form['obra'].strip()
         ano = request.form.get('ano', '').strip()
-        subpastas_raw = request.form.get('subpastas', '0').strip()
-        try:
-            qtd_subpastas = int(subpastas_raw)
-        except ValueError:
-            qtd_subpastas = 0
 
         sol = Solicitacao(obra=obra)
         db.session.add(sol)
@@ -162,12 +157,6 @@ def nova_solicitacao():
                 # subpastas da obra principal
                 for nome in SUBPASTAS_OBRA:
                     os.makedirs(os.path.join(obra_dir, nome), exist_ok=True)
-
-                # cria subpastas PROxxx.1, PROxxx.2, ...
-                for i in range(1, qtd_subpastas + 1):
-                    sub_dir = os.path.join(obra_dir, f"{obra}.{i}")
-                    for nome in SUBPASTAS_OBRA:
-                        os.makedirs(os.path.join(sub_dir, nome), exist_ok=True)
             except OSError:
                 # ignora falhas de criação de diretório
                 pass
@@ -176,6 +165,41 @@ def nova_solicitacao():
         return redirect(url_for('projetista.solicitacoes'))
 
     return render_template('nova_solicitacao.html', anos=anos)
+
+
+@bp.route('/subpastas', methods=['GET', 'POST'])
+@login_required
+def criar_subpastas():
+    try:
+        anos = [d for d in os.listdir(BASE_PRODUCAO)
+                if os.path.isdir(os.path.join(BASE_PRODUCAO, d))]
+    except OSError:
+        anos = [str(datetime.now().year)]
+
+    if request.method == 'POST':
+        obra = request.form['obra'].strip()
+        ano = request.form.get('ano', '').strip()
+        subpastas_raw = request.form.get('subpastas', '0').strip()
+        try:
+            qtd_subpastas = int(subpastas_raw)
+        except ValueError:
+            qtd_subpastas = 0
+
+        if ano and obra and qtd_subpastas > 0:
+            try:
+                obra_dir = os.path.join(BASE_PRODUCAO, ano, obra)
+                for i in range(1, qtd_subpastas + 1):
+                    sub_dir = os.path.join(obra_dir, f"{obra}.{i}")
+                    for nome in SUBPASTAS_OBRA:
+                        os.makedirs(os.path.join(sub_dir, nome), exist_ok=True)
+                flash('Subpastas criadas com sucesso!', 'success')
+            except OSError:
+                flash('Falha ao criar subpastas.', 'danger')
+        else:
+            flash('Dados inválidos.', 'warning')
+        return redirect(url_for('projetista.criar_subpastas'))
+
+    return render_template('subpastas.html', anos=anos)
 
 
 @bp.route('/comparador', methods=['GET', 'POST'])
