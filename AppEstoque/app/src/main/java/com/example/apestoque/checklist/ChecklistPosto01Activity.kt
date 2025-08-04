@@ -81,7 +81,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
 
     private fun gerarPdf(obra: String, marcadoC: Boolean) {
         // Carrega o template a partir dos assets
-        val templateName = "checklist_posto01_template.pdf"
+        val templateName = "checklistttt.pdf"
         val tempFile = File.createTempFile("template", ".pdf", cacheDir)
         assets.open(templateName).use { input ->
             FileOutputStream(tempFile).use { output ->
@@ -107,24 +107,3 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val paint = Paint().apply { textSize = 12f }
         val xC = 94.78f
         val yC = 125.4f
-        val xNC = 150.78f
-        val yNC = 125.4f
-        val (x, y) = if (marcadoC) xC to yC else xNC to yNC
-        canvas.drawText("X", x, y, paint)
-
-        pdf.finishPage(page)
-        templatePage.close()
-        renderer.close()
-        tempFile.delete()
-
-        val ano = Calendar.getInstance().get(Calendar.YEAR)
-        val base = File(
-            Environment.getExternalStorageDirectory(),
-            "03 - ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST"
-        )
-        base.mkdirs()
-        val file = File(base, "checklist_posto01.pdf")
-        FileOutputStream(file).use { fos -> pdf.writeTo(fos) }
-        pdf.close()
-    }
-}
