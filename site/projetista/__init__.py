@@ -24,7 +24,7 @@ SUBPASTAS_OBRA = [
     'FOTOS',
     'IDENTIFICAÇÕES',
     'LAYOUT',
-    'PROJETO ELETROMEANICO',
+    'PROJETO ELETROMECÂNICO',
 ]
 
 @bp.route('/')
@@ -107,6 +107,12 @@ def nova_solicitacao():
     if request.method == 'POST':
         obra = request.form['obra'].strip()
         ano = request.form.get('ano', '').strip()
+        subpastas_raw = request.form.get('subpastas', '0').strip()
+        try:
+            qtd_subpastas = int(subpastas_raw)
+        except ValueError:
+            qtd_subpastas = 0
+
         sol = Solicitacao(obra=obra)
         db.session.add(sol)
         db.session.flush()
@@ -151,8 +157,17 @@ def nova_solicitacao():
         if ano:
             try:
                 obra_dir = os.path.join(BASE_PRODUCAO, ano, obra)
+                os.makedirs(obra_dir, exist_ok=True)
+
+                # subpastas da obra principal
                 for nome in SUBPASTAS_OBRA:
                     os.makedirs(os.path.join(obra_dir, nome), exist_ok=True)
+
+                # cria subpastas PROxxx.1, PROxxx.2, ...
+                for i in range(1, qtd_subpastas + 1):
+                    sub_dir = os.path.join(obra_dir, f"{obra}.{i}")
+                    for nome in SUBPASTAS_OBRA:
+                        os.makedirs(os.path.join(sub_dir, nome), exist_ok=True)
             except OSError:
                 # ignora falhas de criação de diretório
                 pass
@@ -161,7 +176,6 @@ def nova_solicitacao():
         return redirect(url_for('projetista.solicitacoes'))
 
     return render_template('nova_solicitacao.html', anos=anos)
-
 
 
 @bp.route('/comparador', methods=['GET', 'POST'])
