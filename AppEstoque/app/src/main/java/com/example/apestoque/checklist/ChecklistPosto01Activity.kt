@@ -66,6 +66,10 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                         gerarPdf(obra, isC)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
+                            
+                            
+                            
+                         
                         } else {
                             NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
                         }
@@ -103,6 +107,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val bitmap = Bitmap.createBitmap(templatePage.width, templatePage.height, Bitmap.Config.ARGB_8888)
         templatePage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
         canvas.drawBitmap(bitmap, 0f, 0f, null)
+
 
         val paint = Paint().apply { textSize = 12f }
         val xC = 94.78f
