@@ -11,16 +11,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
-import com.example.apestoque.data.NetworkModule
 import com.example.apestoque.data.Solicitacao
-import com.example.apestoque.data.ComprasRequest
 import com.squareup.moshi.Types
 import com.example.apestoque.data.Item
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ChecklistActivity : AppCompatActivity() {
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -57,21 +53,20 @@ class ChecklistActivity : AppCompatActivity() {
                 try {
                     when {
                         pendentes.isEmpty() -> {
-                            withContext(Dispatchers.IO) {
-                                NetworkModule.api.aprovarSolicitacao(solicitacao.id)
-                            }
-                            setResult(Activity.RESULT_OK)
-                            finish()
+                            val intent = Intent(this@ChecklistActivity, ChecklistPosto01Activity::class.java)
+                            intent.putExtra("id", solicitacao.id)
+                            intent.putExtra("obra", solicitacao.obra)
+                            launcher.launch(intent)
                         }
                         completion >= 0.8 -> {
-                            withContext(Dispatchers.IO) {
-                                NetworkModule.api.marcarCompras(
-                                    solicitacao.id,
-                                    ComprasRequest(pendentes)
-                                )
-                            }
-                            setResult(Activity.RESULT_OK)
-                            finish()
+                            val jsonPend = moshi.adapter<List<Item>>(
+                                Types.newParameterizedType(List::class.java, Item::class.java)
+                            ).toJson(pendentes)
+                            val intent = Intent(this@ChecklistActivity, ChecklistPosto01Activity::class.java)
+                            intent.putExtra("id", solicitacao.id)
+                            intent.putExtra("obra", solicitacao.obra)
+                            intent.putExtra("pendentes", jsonPend)
+                            launcher.launch(intent)
                         }
                         else -> {
                             val jsonPend = moshi.adapter<List<Item>>(
