@@ -62,10 +62,14 @@ class ChecklistPosto01Activity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 try {
-                    gerarPdf(obra, isC)
                     withContext(Dispatchers.IO) {
+                        gerarPdf(obra, isC)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
+                            
+                            
+                            
+                         
                         } else {
                             NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
                         }
@@ -104,6 +108,30 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         templatePage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
         canvas.drawBitmap(bitmap, 0f, 0f, null)
 
+
         val paint = Paint().apply { textSize = 12f }
         val xC = 94.78f
         val yC = 125.4f
+        val xNC = 150.78f
+        val yNC = 125.4f
+        val (x, y) = if (marcadoC) xC to yC else xNC to yNC
+        canvas.drawText("X", x, y, paint)
+
+        pdf.finishPage(page)
+        templatePage.close()
+        renderer.close()
+        tempFile.delete()
+
+        val ano = Calendar.getInstance().get(Calendar.YEAR)
+        val base = File(
+            getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+            "03 - ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST"
+        )
+        if (!base.exists()) {
+            base.mkdirs()
+        }
+        val file = File(base, "checklist_posto01.pdf")
+        FileOutputStream(file).use { fos -> pdf.writeTo(fos) }
+        pdf.close()
+    }
+}
