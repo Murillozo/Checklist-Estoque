@@ -1,6 +1,7 @@
 package com.example.apestoque.checklist
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
@@ -12,13 +13,14 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
 import com.example.apestoque.data.ComprasRequest
 import com.example.apestoque.data.Item
 import com.example.apestoque.data.NetworkModule
-import com.squareup.moshi.Types
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,18 +64,21 @@ class ChecklistPosto01Activity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 try {
-                    withContext(Dispatchers.IO) {
-                        gerarPdf(obra, isC)
+                    val file = withContext(Dispatchers.IO) {
+                        val pdfFile = gerarPdf(obra, isC)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
-                            
-                            
-                            
-                         
                         } else {
                             NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
                         }
+                        pdfFile
                     }
+                    Toast.makeText(
+                        this@ChecklistPosto01Activity,
+                        "PDF salvo em: ${'$'}{file.absolutePath}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    previewPdf(file)
                     setResult(Activity.RESULT_OK)
                     finish()
                 } catch (e: Exception) {
@@ -83,7 +88,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         }
     }
 
-    private fun gerarPdf(obra: String, marcadoC: Boolean) {
+    private fun gerarPdf(obra: String, marcadoC: Boolean): File {
         // Carrega o template a partir dos assets
         val templateName = "checklistttt.pdf"
         val tempFile = File.createTempFile("template", ".pdf", cacheDir)
@@ -108,7 +113,6 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         templatePage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
         canvas.drawBitmap(bitmap, 0f, 0f, null)
 
-
         val paint = Paint().apply { textSize = 12f }
         val xC = 94.78f
         val yC = 125.4f
@@ -125,7 +129,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val ano = Calendar.getInstance().get(Calendar.YEAR)
         val base = File(
             getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-            "03 - ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST"
+            "03 - ENGENHARIA/03 - PRODUCAO/${'$'}ano/${'$'}obra/CHECKLIST"
         )
         if (!base.exists()) {
             base.mkdirs()
@@ -133,5 +137,19 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val file = File(base, "checklist_posto01.pdf")
         FileOutputStream(file).use { fos -> pdf.writeTo(fos) }
         pdf.close()
+        return file
+    }
+
+    private fun previewPdf(file: File) {
+        val uri = FileProvider.getUriForFile(
+            this,
+            "${'$'}packageName.fileprovider",
+            file
+        )
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+        startActivity(intent)
     }
 }
