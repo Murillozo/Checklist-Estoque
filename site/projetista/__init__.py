@@ -15,7 +15,7 @@ from datetime import datetime
 bp = Blueprint('projetista', __name__)
 
 # Diretório base onde os projetos são armazenados no servidor
-BASE_PRODUCAO = r"Z:\03 - ENGENHARIA\03 - PRODUCAO"
+BASE_PRODUCAO = r"F:\03 - ENGENHARIA\03 - PRODUCAO"
 
 # Subpastas que devem ser criadas para cada obra
 SUBPASTAS_OBRA = [
