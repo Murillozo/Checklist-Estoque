@@ -178,7 +178,6 @@ def nova_solicitacao():
     return render_template('nova_solicitacao.html', anos=anos)
 
 
-
 @bp.route('/comparador', methods=['GET', 'POST'])
 @login_required
 def comparador():
