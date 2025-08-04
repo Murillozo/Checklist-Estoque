@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Calendar
 
 class ChecklistPosto01Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +41,13 @@ class ChecklistPosto01Activity : AppCompatActivity() {
 
         val cbC = findViewById<CheckBox>(R.id.cbC)
         val cbNC = findViewById<CheckBox>(R.id.cbNC)
+
+        cbC.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) cbNC.isChecked = false
+        }
+        cbNC.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) cbC.isChecked = false
+        }
 
         findViewById<Button>(R.id.btnConcluirPosto01).setOnClickListener {
             val isC = cbC.isChecked
@@ -73,23 +81,24 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
         val page = pdf.startPage(pageInfo)
         val canvas = page.canvas
-        val paint = Paint()
-        paint.textSize = 12f
+        val paint = Paint().apply { textSize = 12f }
         val xC = 94.78f
         val yC = 125.4f
-        val xNC = 94.78f
+        val xNC = 150.78f
         val yNC = 125.4f
         val x = if (marcadoC) xC else xNC
         val y = if (marcadoC) yC else yNC
         canvas.drawText("X", x, y, paint)
         pdf.finishPage(page)
 
-        val dirDocs = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-        val dir = File(dirDocs, "$obra/CHECKLIST")
-        dir.mkdirs()
-        val file = File(dir, "checklist_posto01.pdf")
+        val ano = Calendar.getInstance().get(Calendar.YEAR)
+        val base = File(
+            Environment.getExternalStorageDirectory(),
+            "03 - ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST"
+        )
+        base.mkdirs()
+        val file = File(base, "checklist_posto01.pdf")
         FileOutputStream(file).use { fos -> pdf.writeTo(fos) }
         pdf.close()
     }
 }
-
