@@ -102,4 +102,3 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         pdf.close()
     }
 }
-
