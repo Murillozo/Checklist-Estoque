@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
-import java.util.Calendar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
@@ -59,14 +58,13 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                     val filePath = withContext(Dispatchers.IO) {
                         val type = Types.newParameterizedType(List::class.java, String::class.java)
                         val json = moshi.adapter<List<String>>(type).toJson(marcados)
-                        val ano = Calendar.getInstance().get(Calendar.YEAR)
-                        NetworkModule.api.salvarChecklist(id, ChecklistRequest(obra, json))
+                        val response = NetworkModule.api.salvarChecklist(id, ChecklistRequest(obra, json))
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
                         } else {
                             NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
                         }
-                        "ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST/checklist_posto01.json"
+                        response.caminho
                     }
                     Toast.makeText(
                         this@ChecklistPosto01Activity,

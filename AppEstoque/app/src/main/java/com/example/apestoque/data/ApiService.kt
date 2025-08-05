@@ -22,5 +22,5 @@ interface ApiService {
     suspend fun salvarChecklist(
         @Path("id") id: Int,
         @Body body: ChecklistRequest
-    )
+    ): ChecklistResponse
 }
