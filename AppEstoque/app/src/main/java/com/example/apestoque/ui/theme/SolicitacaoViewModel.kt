@@ -17,12 +17,7 @@ class SolicitacaoViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            try {
-                _lista.value = repo.fetchSolicitacoes()
-            } catch (e: Exception) {
-                // Trate erro aqui, ex.: log ou estado de erro
-                _lista.value = emptyList()
-            }
+            _lista.value = repo.fetchSolicitacoes().getOrElse { emptyList() }
         }
     }
 }

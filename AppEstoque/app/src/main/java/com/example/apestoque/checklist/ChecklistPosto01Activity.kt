@@ -89,3 +89,4 @@ class ChecklistPosto01Activity : AppCompatActivity() {
             }
         }
     }
+}
