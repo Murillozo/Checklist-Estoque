@@ -7,11 +7,6 @@
         <h2 class="card-title mb-4 text-center">Nova Solicitação</h2>
         <form method="post" enctype="multipart/form-data">
           <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="obra" name="obra" placeholder="Obra" required>
-            <label for="obra">Número da Obra</label>
-          </div>
-          
-          <div class="form-floating mb-3">
             <select class="form-select" id="ano" name="ano" required>
               <option value="" disabled selected>Selecione o ano</option>
               {% for ano in anos %}
@@ -19,6 +14,12 @@
               {% endfor %}
             </select>
             <label for="ano">Ano</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input list="obras_lista" class="form-control" id="obra" name="obra" placeholder="Obra" required>
+            <label for="obra">Número da Obra</label>
+            <datalist id="obras_lista"></datalist>
           </div>
 
           <div class="mb-4">
@@ -52,4 +53,21 @@
     </div>
   </div>
 </div>
+<script>
+const obrasPorAno = {{ obras_por_ano | tojson }};
+const anoSelect = document.getElementById('ano');
+const obrasDatalist = document.getElementById('obras_lista');
+
+function atualizarObras() {
+  const ano = anoSelect.value;
+  obrasDatalist.innerHTML = '';
+  (obrasPorAno[ano] || []).forEach(function(obra) {
+    const option = document.createElement('option');
+    option.value = obra;
+    obrasDatalist.appendChild(option);
+  });
+}
+
+anoSelect.addEventListener('change', atualizarObras);
+</script>
 {% endblock %}
