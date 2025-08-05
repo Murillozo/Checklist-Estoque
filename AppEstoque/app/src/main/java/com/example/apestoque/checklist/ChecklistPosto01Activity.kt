@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
@@ -12,12 +13,14 @@ import com.example.apestoque.data.ChecklistRequest
 import com.example.apestoque.data.ComprasRequest
 import com.example.apestoque.data.Item
 import com.example.apestoque.data.NetworkModule
+import com.example.apestoque.data.JsonNetworkModule
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 class ChecklistPosto01Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +39,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
 
         val cbC = findViewById<CheckBox>(R.id.cbC)
         val cbNC = findViewById<CheckBox>(R.id.cbNC)
+        val tvPergunta = findViewById<TextView>(R.id.tvPergunta)
 
         cbC.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) cbNC.isChecked = false
@@ -53,12 +57,14 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val pergunta = tvPergunta.text.toString()
+            val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
+
             lifecycleScope.launch {
                 try {
                     val filePath = withContext(Dispatchers.IO) {
-                        val type = Types.newParameterizedType(List::class.java, String::class.java)
-                        val json = moshi.adapter<List<String>>(type).toJson(marcados)
-                        val response = NetworkModule.api.salvarChecklist(id, ChecklistRequest(obra, json))
+                        val request = ChecklistRequest(obra, ano, pergunta, marcados)
+                        val response = JsonNetworkModule.api.salvarChecklist(request)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
                         } else {
