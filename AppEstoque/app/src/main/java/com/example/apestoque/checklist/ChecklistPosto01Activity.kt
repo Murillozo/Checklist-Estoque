@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
+import java.io.File
+import java.util.Calendar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
@@ -26,6 +28,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val id = intent.getIntExtra("id", -1)
         if (id == -1) return finish()
         val jsonPend = intent.getStringExtra("pendentes")
+        val obra = intent.getStringExtra("obra") ?: ""
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val pendentes = jsonPend?.let {
             val type = Types.newParameterizedType(List::class.java, Item::class.java)
@@ -43,9 +46,10 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnConcluirPosto01).setOnClickListener {
-            val isC = cbC.isChecked
-            val isNC = cbNC.isChecked
-            if (!isC && !isNC) {
+            val marcados = mutableListOf<String>()
+            if (cbC.isChecked) marcados.add("C")
+            if (cbNC.isChecked) marcados.add("NC")
+            if (marcados.isEmpty()) {
                 Toast.makeText(this, "Selecione uma opção", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -53,6 +57,14 @@ class ChecklistPosto01Activity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     withContext(Dispatchers.IO) {
+                        // Salva os campos marcados em JSON
+                        val type = Types.newParameterizedType(List::class.java, String::class.java)
+                        val json = moshi.adapter<List<String>>(type).toJson(marcados)
+                        val ano = Calendar.getInstance().get(Calendar.YEAR)
+                        val dir = File(getExternalFilesDir(null), "ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST")
+                        dir.mkdirs()
+                        File(dir, "checklist_posto01.json").writeText(json)
+
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
                         } else {
