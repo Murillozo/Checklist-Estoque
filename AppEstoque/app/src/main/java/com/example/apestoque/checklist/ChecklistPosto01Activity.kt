@@ -5,11 +5,11 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
-import java.io.File
 import java.util.Calendar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
+import com.example.apestoque.data.ChecklistRequest
 import com.example.apestoque.data.ComprasRequest
 import com.example.apestoque.data.Item
 import com.example.apestoque.data.NetworkModule
@@ -56,30 +56,31 @@ class ChecklistPosto01Activity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 try {
-                    withContext(Dispatchers.IO) {
-                        // Salva os campos marcados em JSON
+                    val filePath = withContext(Dispatchers.IO) {
                         val type = Types.newParameterizedType(List::class.java, String::class.java)
                         val json = moshi.adapter<List<String>>(type).toJson(marcados)
                         val ano = Calendar.getInstance().get(Calendar.YEAR)
-                        val dir = File(getExternalFilesDir(null), "ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST")
-                        dir.mkdirs()
-                        File(dir, "checklist_posto01.json").writeText(json)
-
+                        NetworkModule.api.salvarChecklist(id, ChecklistRequest(obra, json))
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
                         } else {
                             NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
                         }
+                        "ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST/checklist_posto01.json"
                     }
                     Toast.makeText(
                         this@ChecklistPosto01Activity,
-                        "Checklist concluído",
+                        "Checklist concluído. Arquivo salvo em:\n$filePath",
                         Toast.LENGTH_LONG
                     ).show()
                     setResult(Activity.RESULT_OK)
                     finish()
                 } catch (e: Exception) {
-                    Toast.makeText(this@ChecklistPosto01Activity, "Erro ao concluir", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@ChecklistPosto01Activity,
+                        "Erro ao concluir",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
