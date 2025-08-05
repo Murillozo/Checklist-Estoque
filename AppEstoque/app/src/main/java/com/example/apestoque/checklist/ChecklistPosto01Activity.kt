@@ -56,30 +56,39 @@ class ChecklistPosto01Activity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 try {
-                    withContext(Dispatchers.IO) {
+                    val filePath = withContext(Dispatchers.IO) {
                         // Salva os campos marcados em JSON
                         val type = Types.newParameterizedType(List::class.java, String::class.java)
                         val json = moshi.adapter<List<String>>(type).toJson(marcados)
                         val ano = Calendar.getInstance().get(Calendar.YEAR)
-                        val dir = File(getExternalFilesDir(null), "ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST")
+                        val dir = File(
+                            getExternalFilesDir(null),
+                            "ENGENHARIA/03 - PRODUCAO/$ano/$obra/CHECKLIST"
+                        )
                         dir.mkdirs()
-                        File(dir, "checklist_posto01.json").writeText(json)
+                        val file = File(dir, "checklist_posto01.json")
+                        file.writeText(json)
 
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
                         } else {
                             NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
                         }
+                        file.absolutePath
                     }
                     Toast.makeText(
                         this@ChecklistPosto01Activity,
-                        "Checklist concluído",
+                        "Checklist concluído. Arquivo salvo em:\n$filePath",
                         Toast.LENGTH_LONG
                     ).show()
                     setResult(Activity.RESULT_OK)
                     finish()
                 } catch (e: Exception) {
-                    Toast.makeText(this@ChecklistPosto01Activity, "Erro ao concluir", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@ChecklistPosto01Activity,
+                        "Erro ao concluir",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
