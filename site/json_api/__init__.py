@@ -11,11 +11,6 @@ BASE_DIR = os.path.dirname(__file__)
 def salvar_checklist():
     data = request.get_json() or {}
     obra = data.get('obra', 'desconhecida')
-    conteudo = data.get('conteudo', '[]')
-    try:
-        conteudo_json = json.loads(conteudo)
-    except json.JSONDecodeError:
-        conteudo_json = conteudo
 
     os.makedirs(BASE_DIR, exist_ok=True)
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
@@ -24,6 +19,6 @@ def salvar_checklist():
     file_path = os.path.join(BASE_DIR, filename)
 
     with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump({"obra": obra, "conteudo": conteudo_json}, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
     return jsonify({'caminho': file_path})
