@@ -96,13 +96,23 @@ def iniciar_projeto():
 @bp.route('/solicitacao/nova', methods=['GET', 'POST'])
 @login_required
 def nova_solicitacao():
-    # tenta descobrir os anos disponíveis no servidor
+    # tenta descobrir os anos e obras disponíveis no servidor
     try:
         anos = [d for d in os.listdir(BASE_PRODUCAO)
                 if os.path.isdir(os.path.join(BASE_PRODUCAO, d))]
+        anos.sort()
+        obras_por_ano = {}
+        for ano in anos:
+            ano_dir = os.path.join(BASE_PRODUCAO, ano)
+            obras = [d for d in os.listdir(ano_dir)
+                     if os.path.isdir(os.path.join(ano_dir, d))]
+            obras.sort()
+            obras_por_ano[ano] = obras
     except OSError:
         # se o diretório não estiver acessível, usa o ano atual
-        anos = [str(datetime.now().year)]
+        ano_atual = str(datetime.now().year)
+        anos = [ano_atual]
+        obras_por_ano = {ano_atual: []}
 
     if request.method == 'POST':
         obra = request.form['obra'].strip()
@@ -164,7 +174,7 @@ def nova_solicitacao():
         flash('Solicitação criada com sucesso!', 'success')
         return redirect(url_for('projetista.solicitacoes'))
 
-    return render_template('nova_solicitacao.html', anos=anos)
+    return render_template('nova_solicitacao.html', anos=anos, obras_por_ano=obras_por_ano)
 
 
 @bp.route('/subpastas', methods=['GET', 'POST'])
