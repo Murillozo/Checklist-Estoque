@@ -5,6 +5,7 @@ from models import db, User, AuthorizedIP, ITEM_STATUS_OPTIONS
 from projetista import bp as projetista_bp
 from compras import bp as compras_bp
 from auth import bp as auth_bp
+from json_api import bp as json_api_bp
 from flask_login import LoginManager, login_user, current_user
 from flask import Flask, request
 from sqlalchemy import inspect
@@ -44,6 +45,7 @@ def create_app():
 
     app.register_blueprint(projetista_bp, url_prefix='/projetista')
     app.register_blueprint(compras_bp, url_prefix='/compras')
+    app.register_blueprint(json_api_bp, url_prefix='/json_api')
     app.register_blueprint(auth_bp)
 
 

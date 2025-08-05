@@ -12,6 +12,7 @@ import com.example.apestoque.data.ChecklistRequest
 import com.example.apestoque.data.ComprasRequest
 import com.example.apestoque.data.Item
 import com.example.apestoque.data.NetworkModule
+import com.example.apestoque.data.JsonNetworkModule
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -58,7 +59,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                     val filePath = withContext(Dispatchers.IO) {
                         val type = Types.newParameterizedType(List::class.java, String::class.java)
                         val json = moshi.adapter<List<String>>(type).toJson(marcados)
-                        val response = NetworkModule.api.salvarChecklist(id, ChecklistRequest(obra, json))
+                        val response = JsonNetworkModule.api.salvarChecklist(ChecklistRequest(obra, json))
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
                         } else {

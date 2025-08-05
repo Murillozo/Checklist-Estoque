@@ -18,9 +18,4 @@ interface ApiService {
         @Body body: ComprasRequest
     )
 
-    @POST("api/solicitacoes/{id}/checklist")
-    suspend fun salvarChecklist(
-        @Path("id") id: Int,
-        @Body body: ChecklistRequest
-    ): ChecklistResponse
 }
