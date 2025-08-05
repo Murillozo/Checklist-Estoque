@@ -1,12 +1,12 @@
 package com.example.apestoque.data
 
 class SolicitacaoRepository(private val api: ApiService) {
-    suspend fun fetchSolicitacoes(): List<Solicitacao> =
-        api.listarSolicitacoes()
+    suspend fun fetchSolicitacoes(): Result<List<Solicitacao>> =
+        runCatching { api.listarSolicitacoes() }
 
-    suspend fun aprovarSolicitacao(id: Int) =
-        api.aprovarSolicitacao(id)
+    suspend fun aprovarSolicitacao(id: Int): Result<Unit> =
+        runCatching { api.aprovarSolicitacao(id) }
 
-    suspend fun marcarCompras(id: Int, body: ComprasRequest) =
-        api.marcarCompras(id, body)
+    suspend fun marcarCompras(id: Int, body: ComprasRequest): Result<Unit> =
+        runCatching { api.marcarCompras(id, body) }
 }
