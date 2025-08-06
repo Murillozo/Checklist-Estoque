@@ -21,11 +21,17 @@ import kotlinx.coroutines.launch
 
 class ChecklistActivity : AppCompatActivity() {
     private lateinit var solicitacao: Solicitacao
+    private var continueAfterPendencias: Boolean = false
 
     private val pendenciasLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                launchPosto01()
+                if (continueAfterPendencias) {
+                    launchPosto01()
+                } else {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
             } else {
                 finish()
             }
@@ -60,12 +66,15 @@ class ChecklistActivity : AppCompatActivity() {
         btn.setOnClickListener {
             val pendentes: List<Item> =
                 solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
+            val checked = checks.count { it.isChecked }
+            val percent = checked.toDouble() / checks.size
 
             lifecycleScope.launch {
                 try {
                     if (pendentes.isEmpty()) {
                         launchPosto01()
                     } else {
+                        continueAfterPendencias = percent >= 0.8
                         val jsonPend = moshi.adapter<List<Item>>(
                             Types.newParameterizedType(List::class.java, Item::class.java)
                         ).toJson(pendentes)
