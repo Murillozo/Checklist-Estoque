@@ -12,7 +12,6 @@ data class ChecklistItem(
 data class ChecklistRequest(
     val obra: String,
     val ano: String,
-    val operador: String,
+    val suprimento: String,
     val itens: List<ChecklistItem>
 )
-

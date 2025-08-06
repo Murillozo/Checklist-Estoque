@@ -34,7 +34,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val obra = intent.getStringExtra("obra") ?: ""
         val prevJson = intent.getStringExtra("itens") ?: "[]"
         val prefs = getSharedPreferences("app", Context.MODE_PRIVATE)
-        val operador = prefs.getString("operador_suprimentos", "") ?: ""
+        val suprimento = prefs.getString("operador_suprimentos", "") ?: ""
 
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val pendentes = jsonPend?.let {
@@ -116,7 +116,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     val filePath = withContext(Dispatchers.IO) {
-                        val request = ChecklistRequest(obra, ano, operador, itensChecklist)
+                        val request = ChecklistRequest(obra, ano, suprimento, itensChecklist)
                         val response = JsonNetworkModule.api.salvarChecklist(request)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
@@ -142,4 +142,3 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             }
         }
     }
-}
