@@ -38,6 +38,7 @@
             <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.iniciar_projeto') }}">Iniciar Projeto</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.criar_subpastas') }}">Subpastas</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.comparador') }}">Comparador</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.checklist_list') }}">Checklist</a></li>
             {% if current_user.is_authenticated and current_user.role == 'admin' %}
               <li class="nav-item"><a class="nav-link" href="{{ url_for('projetista.config') }}">Configurações</a></li>
             {% endif %}

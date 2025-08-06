@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>Checklists</h1>
+<ul class="list-group">
+  {% for arq in arquivos %}
+  <li class="list-group-item">
+    <a href="{{ url_for('projetista.checklist_view', filename=arq) }}">{{ arq }}</a>
+  </li>
+  {% else %}
+  <li class="list-group-item">Nenhum checklist disponível.</li>
+  {% endfor %}
+</ul>
+{% endblock %}
+
