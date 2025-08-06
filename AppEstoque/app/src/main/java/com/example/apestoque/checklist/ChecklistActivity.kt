@@ -12,17 +12,32 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
-import com.example.apestoque.data.Solicitacao
-import com.squareup.moshi.Types
 import com.example.apestoque.data.Item
+import com.example.apestoque.data.Solicitacao
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.launch
 
 class ChecklistActivity : AppCompatActivity() {
     private lateinit var solicitacao: Solicitacao
+    private var continueAfterPendencias: Boolean = false
 
-    private val launcher: ActivityResultLauncher<Intent> =
+    private val pendenciasLauncher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                if (continueAfterPendencias) {
+                    launchPosto01()
+                } else {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
+            } else {
+                finish()
+            }
+        }
+
+    private val postoLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 setResult(Activity.RESULT_OK)
@@ -51,16 +66,15 @@ class ChecklistActivity : AppCompatActivity() {
         btn.setOnClickListener {
             val pendentes: List<Item> =
                 solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
+            val checked = checks.count { it.isChecked }
+            val percent = checked.toDouble() / checks.size
 
             lifecycleScope.launch {
                 try {
                     if (pendentes.isEmpty()) {
-                        val intent = Intent(this@ChecklistActivity, ChecklistPosto01Activity::class.java).apply {
-                            putExtra("id", solicitacao.id)
-                            putExtra("obra", solicitacao.obra)
-                        }
-                        launcher.launch(intent)
+                        launchPosto01()
                     } else {
+                        continueAfterPendencias = percent >= 0.8
                         val jsonPend = moshi.adapter<List<Item>>(
                             Types.newParameterizedType(List::class.java, Item::class.java)
                         ).toJson(pendentes)
@@ -68,12 +82,20 @@ class ChecklistActivity : AppCompatActivity() {
                             putExtra("id", solicitacao.id)
                             putExtra("pendencias", jsonPend)
                         }
-                        launcher.launch(intent)
+                        pendenciasLauncher.launch(intent)
                     }
                 } catch (e: Exception) {
                     Toast.makeText(this@ChecklistActivity, "Erro ao enviar", Toast.LENGTH_SHORT).show()
                 }
             }
         }
+    }
+
+    private fun launchPosto01() {
+        val intent = Intent(this, ChecklistPosto01Activity::class.java).apply {
+            putExtra("id", solicitacao.id)
+            putExtra("obra", solicitacao.obra)
+        }
+        postoLauncher.launch(intent)
     }
 }
