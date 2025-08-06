@@ -13,10 +13,33 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/purple_500"
-            app:title="Checklist Solicitações"
-            app:titleTextColor="@android:color/white"/>
+            android:layout_height="wrap_content"
+            android:background="@color/purple_500">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Checklist Solicitações"
+                    android:textColor="@android:color/white"
+                    android:textSize="20sp"/>
+
+                <EditText
+                    android:id="@+id/etOperadorSuprimentos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@android:color/white"
+                    android:hint="Nome do operador Sumprimetos"
+                    android:maxLines="1"/>
+
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayout"
