@@ -51,34 +51,24 @@ class ChecklistActivity : AppCompatActivity() {
         btn.setOnClickListener {
             val pendentes: List<Item> =
                 solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
-            val checkedCount = checks.count { it.isChecked }
-            val completion = checkedCount.toDouble() / checks.size
 
             lifecycleScope.launch {
                 try {
-                    when {
-                        pendentes.isEmpty() || completion >= 0.8 -> {
-                            val intent = Intent(this@ChecklistActivity, ChecklistPosto01Activity::class.java).apply {
-                                putExtra("id", solicitacao.id)
-                                putExtra("obra", solicitacao.obra)
-                                if (pendentes.isNotEmpty()) {
-                                    val type = Types.newParameterizedType(List::class.java, Item::class.java)
-                                    val jsonPend = moshi.adapter<List<Item>>(type).toJson(pendentes)
-                                    putExtra("pendentes", jsonPend)
-                                }
-                            }
-                            launcher.launch(intent)
+                    if (pendentes.isEmpty()) {
+                        val intent = Intent(this@ChecklistActivity, ChecklistPosto01Activity::class.java).apply {
+                            putExtra("id", solicitacao.id)
+                            putExtra("obra", solicitacao.obra)
                         }
-                        else -> {
-                            val jsonPend = moshi.adapter<List<Item>>(
-                                Types.newParameterizedType(List::class.java, Item::class.java)
-                            ).toJson(pendentes)
-                            val intent = Intent(this@ChecklistActivity, PendenciasActivity::class.java).apply {
-                                putExtra("id", solicitacao.id)
-                                putExtra("pendencias", jsonPend)
-                            }
-                            launcher.launch(intent)
+                        launcher.launch(intent)
+                    } else {
+                        val jsonPend = moshi.adapter<List<Item>>(
+                            Types.newParameterizedType(List::class.java, Item::class.java)
+                        ).toJson(pendentes)
+                        val intent = Intent(this@ChecklistActivity, PendenciasActivity::class.java).apply {
+                            putExtra("id", solicitacao.id)
+                            putExtra("pendencias", jsonPend)
                         }
+                        launcher.launch(intent)
                     }
                 } catch (e: Exception) {
                     Toast.makeText(this@ChecklistActivity, "Erro ao enviar", Toast.LENGTH_SHORT).show()
