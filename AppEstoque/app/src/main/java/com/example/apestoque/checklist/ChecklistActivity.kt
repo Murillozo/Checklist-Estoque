@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -20,24 +21,14 @@ import kotlinx.coroutines.launch
 
 class ChecklistActivity : AppCompatActivity() {
     private lateinit var solicitacao: Solicitacao
-    private var startChecklist = false
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            if (startChecklist) {
-                val intent = Intent(this, ChecklistPosto01Activity::class.java)
-                intent.putExtra("id", solicitacao.id)
-                intent.putExtra("obra", solicitacao.obra)
-                startChecklist = false
-                launcher.launch(intent)
-            } else {
+    private val launcher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
                 setResult(Activity.RESULT_OK)
-                finish()
             }
-        } else {
-            startChecklist = false
+            finish()
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +40,7 @@ class ChecklistActivity : AppCompatActivity() {
         solicitacao = adapter.fromJson(json ?: "") ?: return finish()
 
         val container = findViewById<LinearLayout>(R.id.containerChecklist)
-        val checks = solicitacao.itens.map { item ->
+        val checks: List<CheckBox> = solicitacao.itens.map { item ->
             CheckBox(this).apply {
                 text = "${item.referencia} × ${item.quantidade}"
             }
@@ -58,24 +49,36 @@ class ChecklistActivity : AppCompatActivity() {
 
         val btn = findViewById<Button>(R.id.btnConcluir)
         btn.setOnClickListener {
-            val pendentes = solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
+            val pendentes: List<Item> =
+                solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
+            val checkedCount = checks.count { it.isChecked }
+            val completion = checkedCount.toDouble() / checks.size
 
             lifecycleScope.launch {
                 try {
-                    if (pendentes.isEmpty()) {
-                        val intent = Intent(this@ChecklistActivity, ChecklistPosto01Activity::class.java)
-                        intent.putExtra("id", solicitacao.id)
-                        intent.putExtra("obra", solicitacao.obra)
-                        launcher.launch(intent)
-                    } else {
-                        val jsonPend = moshi.adapter<List<Item>>(
-                            Types.newParameterizedType(List::class.java, Item::class.java)
-                        ).toJson(pendentes)
-                        val intent = Intent(this@ChecklistActivity, PendenciasActivity::class.java)
-                        intent.putExtra("id", solicitacao.id)
-                        intent.putExtra("pendencias", jsonPend)
-                        startChecklist = true
-                        launcher.launch(intent)
+                    when {
+                        pendentes.isEmpty() || completion >= 0.8 -> {
+                            val intent = Intent(this@ChecklistActivity, ChecklistPosto01Activity::class.java).apply {
+                                putExtra("id", solicitacao.id)
+                                putExtra("obra", solicitacao.obra)
+                                if (pendentes.isNotEmpty()) {
+                                    val type = Types.newParameterizedType(List::class.java, Item::class.java)
+                                    val jsonPend = moshi.adapter<List<Item>>(type).toJson(pendentes)
+                                    putExtra("pendentes", jsonPend)
+                                }
+                            }
+                            launcher.launch(intent)
+                        }
+                        else -> {
+                            val jsonPend = moshi.adapter<List<Item>>(
+                                Types.newParameterizedType(List::class.java, Item::class.java)
+                            ).toJson(pendentes)
+                            val intent = Intent(this@ChecklistActivity, PendenciasActivity::class.java).apply {
+                                putExtra("id", solicitacao.id)
+                                putExtra("pendencias", jsonPend)
+                            }
+                            launcher.launch(intent)
+                        }
                     }
                 } catch (e: Exception) {
                     Toast.makeText(this@ChecklistActivity, "Erro ao enviar", Toast.LENGTH_SHORT).show()
