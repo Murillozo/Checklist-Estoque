@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -22,22 +23,24 @@ class ChecklistActivity : AppCompatActivity() {
     private lateinit var solicitacao: Solicitacao
     private var startChecklist = false
 
-    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            if (startChecklist) {
-                val intent = Intent(this, ChecklistPosto01Activity::class.java)
-                intent.putExtra("id", solicitacao.id)
-                intent.putExtra("obra", solicitacao.obra)
-                startChecklist = false
-                launcher.launch(intent)
+    private val launcher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                if (startChecklist) {
+                    val intent = Intent(this, ChecklistPosto01Activity::class.java).apply {
+                        putExtra("id", solicitacao.id)
+                        putExtra("obra", solicitacao.obra)
+                    }
+                    startChecklist = false
+                    launcher.launch(intent)
+                } else {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
             } else {
-                setResult(Activity.RESULT_OK)
-                finish()
+                startChecklist = false
             }
-        } else {
-            startChecklist = false
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +52,7 @@ class ChecklistActivity : AppCompatActivity() {
         solicitacao = adapter.fromJson(json ?: "") ?: return finish()
 
         val container = findViewById<LinearLayout>(R.id.containerChecklist)
-        val checks = solicitacao.itens.map { item ->
+        val checks: List<CheckBox> = solicitacao.itens.map { item ->
             CheckBox(this).apply {
                 text = "${item.referencia} × ${item.quantidade}"
             }
@@ -58,7 +61,8 @@ class ChecklistActivity : AppCompatActivity() {
 
         val btn = findViewById<Button>(R.id.btnConcluir)
         btn.setOnClickListener {
-            val pendentes = solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
+            val pendentes: List<Item> =
+                solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
 
             lifecycleScope.launch {
                 try {
