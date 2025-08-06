@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
+import com.example.apestoque.data.ChecklistItem
 import com.example.apestoque.data.ChecklistRequest
 import com.example.apestoque.data.ComprasRequest
 import com.example.apestoque.data.Item
@@ -99,23 +100,23 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                 marcados
             }
 
+            val itensChecklist = questions.indices.map { i ->
+                ChecklistItem(questions[i], respostas[i])
+            }
+
             val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
 
             lifecycleScope.launch {
                 try {
                     val filePath = withContext(Dispatchers.IO) {
-                        var caminho = ""
-                        for (i in questions.indices) {
-                            val request = ChecklistRequest(obra, ano, questions[i], respostas[i])
-                            val response = JsonNetworkModule.api.salvarChecklist(request)
-                            caminho = response.caminho
-                        }
+                        val request = ChecklistRequest(obra, ano, itensChecklist)
+                        val response = JsonNetworkModule.api.salvarChecklist(request)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
                         } else {
                             NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
                         }
-                        caminho
+                        response.caminho
                     }
                     Toast.makeText(
                         this@ChecklistPosto01Activity,
