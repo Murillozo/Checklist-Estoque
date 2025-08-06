@@ -19,10 +19,23 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.launch
 
 class ChecklistActivity : AppCompatActivity() {
+    private lateinit var solicitacao: Solicitacao
+    private var startChecklist = false
+
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) {
-            setResult(Activity.RESULT_OK)
-            finish()
+            if (startChecklist) {
+                val intent = Intent(this, ChecklistPosto01Activity::class.java)
+                intent.putExtra("id", solicitacao.id)
+                intent.putExtra("obra", solicitacao.obra)
+                startChecklist = false
+                launcher.launch(intent)
+            } else {
+                setResult(Activity.RESULT_OK)
+                finish()
+            }
+        } else {
+            startChecklist = false
         }
     }
 
@@ -33,7 +46,7 @@ class ChecklistActivity : AppCompatActivity() {
         val json = intent.getStringExtra("solicitacao")
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val adapter = moshi.adapter(Solicitacao::class.java)
-        val solicitacao = adapter.fromJson(json ?: "") ?: return finish()
+        solicitacao = adapter.fromJson(json ?: "") ?: return finish()
 
         val container = findViewById<LinearLayout>(R.id.containerChecklist)
         val checks = solicitacao.itens.map { item ->
@@ -61,6 +74,7 @@ class ChecklistActivity : AppCompatActivity() {
                         val intent = Intent(this@ChecklistActivity, PendenciasActivity::class.java)
                         intent.putExtra("id", solicitacao.id)
                         intent.putExtra("pendencias", jsonPend)
+                        startChecklist = true
                         launcher.launch(intent)
                     }
                 } catch (e: Exception) {
