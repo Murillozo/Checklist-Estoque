@@ -15,4 +15,3 @@ data class ChecklistRequest(
     val suprimento: String,
     val itens: List<ChecklistItem>
 )
-
