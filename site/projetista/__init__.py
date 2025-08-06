@@ -14,6 +14,9 @@ from datetime import datetime
 
 bp = Blueprint('projetista', __name__)
 
+# Diretório onde os arquivos de checklist (JSON) são salvos
+CHECKLIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'json_api'))
+
 # Diretório base onde os projetos são armazenados no servidor
 BASE_PRODUCAO = r"F:\03 - ENGENHARIA\03 - PRODUCAO"
 
@@ -373,6 +376,28 @@ def api_compras(id):
     sol.pendencias = json.dumps(pendencias)
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@bp.route('/checklist')
+@login_required
+def checklist_list():
+    arquivos = []
+    if os.path.isdir(CHECKLIST_DIR):
+        arquivos = [f for f in os.listdir(CHECKLIST_DIR) if f.endswith('.json')]
+        arquivos.sort()
+    return render_template('checklist_list.html', arquivos=arquivos)
+
+
+@bp.route('/checklist/<path:filename>')
+@login_required
+def checklist_view(filename):
+    caminho = os.path.join(CHECKLIST_DIR, filename)
+    if not os.path.isfile(caminho):
+        flash('Arquivo não encontrado.', 'danger')
+        return redirect(url_for('projetista.checklist_list'))
+    with open(caminho, encoding='utf-8') as f:
+        dados = json.load(f)
+    return render_template('checklist_view.html', filename=filename, dados=dados)
 
 
 @bp.route('/solicitacao/<int:id>/delete', methods=['POST'])
