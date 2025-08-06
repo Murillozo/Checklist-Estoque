@@ -1,28 +1,27 @@
 package com.example.apestoque.checklist
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
 import com.example.apestoque.data.ChecklistItem
-import com.example.apestoque.data.ChecklistRequest
-import com.example.apestoque.data.ComprasRequest
-import com.example.apestoque.data.Item
-import com.example.apestoque.data.NetworkModule
-import com.example.apestoque.data.JsonNetworkModule
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Calendar
 
 class ChecklistPosto01Activity : AppCompatActivity() {
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            setResult(Activity.RESULT_OK)
+            finish()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_checklist_posto01)
@@ -32,10 +31,6 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val jsonPend = intent.getStringExtra("pendentes")
         val obra = intent.getStringExtra("obra") ?: ""
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-        val pendentes = jsonPend?.let {
-            val type = Types.newParameterizedType(List::class.java, Item::class.java)
-            moshi.adapter<List<Item>>(type).fromJson(it)
-        }
 
         val pairs = listOf(
             R.id.cbQ1C to R.id.cbQ1NC,
@@ -172,35 +167,14 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                 ChecklistItem(questions[i], respostas[i])
             }
 
-            val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
-
-            lifecycleScope.launch {
-                try {
-                    val filePath = withContext(Dispatchers.IO) {
-                        val request = ChecklistRequest(obra, ano, itensChecklist)
-                        val response = JsonNetworkModule.api.salvarChecklist(request)
-                        if (pendentes == null) {
-                            NetworkModule.api.aprovarSolicitacao(id)
-                        } else {
-                            NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
-                        }
-                        response.caminho
-                    }
-                    Toast.makeText(
-                        this@ChecklistPosto01Activity,
-                        "Checklist concluído. Arquivo salvo em:\n$filePath",
-                        Toast.LENGTH_LONG,
-                    ).show()
-                    setResult(Activity.RESULT_OK)
-                    finish()
-                } catch (e: Exception) {
-                    Toast.makeText(
-                        this@ChecklistPosto01Activity,
-                        "Erro ao concluir",
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                }
-            }
+            val type = Types.newParameterizedType(List::class.java, ChecklistItem::class.java)
+            val jsonItens = moshi.adapter<List<ChecklistItem>>(type).toJson(itensChecklist)
+            val intent = Intent(this, ChecklistPosto01Parte2Activity::class.java)
+            intent.putExtra("id", id)
+            intent.putExtra("obra", obra)
+            jsonPend?.let { intent.putExtra("pendentes", it) }
+            intent.putExtra("itens", jsonItens)
+            launcher.launch(intent)
         }
     }
 }
