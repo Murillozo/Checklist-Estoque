@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
+import android.content.Context
 
 class ChecklistPosto01Parte2Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +33,8 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val jsonPend = intent.getStringExtra("pendentes")
         val obra = intent.getStringExtra("obra") ?: ""
         val prevJson = intent.getStringExtra("itens") ?: "[]"
+        val prefs = getSharedPreferences("app", Context.MODE_PRIVATE)
+        val suprimento = prefs.getString("operador_suprimentos", "") ?: ""
 
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val pendentes = jsonPend?.let {
@@ -113,7 +116,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     val filePath = withContext(Dispatchers.IO) {
-                        val request = ChecklistRequest(obra, ano, itensChecklist)
+                        val request = ChecklistRequest(obra, ano, suprimento, itensChecklist)
                         val response = JsonNetworkModule.api.salvarChecklist(request)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
