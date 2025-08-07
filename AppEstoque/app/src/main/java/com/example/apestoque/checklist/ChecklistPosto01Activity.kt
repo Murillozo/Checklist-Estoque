@@ -51,62 +51,11 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
         val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
-        val pairs = listOf(
-            R.id.cbQ1C to R.id.cbQ1NC,
-            R.id.cbQ2C to R.id.cbQ2NC,
-            R.id.cbQ3C to R.id.cbQ3NC,
-            R.id.cbQ4C to R.id.cbQ4NC,
-            R.id.cbQ5C to R.id.cbQ5NC,
-            R.id.cbQ6C to R.id.cbQ6NC,
-            R.id.cbQ7C to R.id.cbQ7NC,
-            R.id.cbQ8C to R.id.cbQ8NC,
-            R.id.cbQ9C to R.id.cbQ9NC,
-            R.id.cbQ10C to R.id.cbQ10NC,
-            R.id.cbQ11C to R.id.cbQ11NC,
-            R.id.cbQ12C to R.id.cbQ12NC,
-            R.id.cbQ13C to R.id.cbQ13NC,
-            R.id.cbQ14C to R.id.cbQ14NC,
-            R.id.cbQ15C to R.id.cbQ15NC,
-            R.id.cbQ16C to R.id.cbQ16NC,
-            R.id.cbQ17C to R.id.cbQ17NC,
-            R.id.cbQ18C to R.id.cbQ18NC,
-            R.id.cbQ19C to R.id.cbQ19NC,
-            R.id.cbQ20C to R.id.cbQ20NC,
-            R.id.cbQ21C to R.id.cbQ21NC,
-            R.id.cbQ22C to R.id.cbQ22NC,
-            R.id.cbQ23C to R.id.cbQ23NC,
-            R.id.cbQ24C to R.id.cbQ24NC,
-            R.id.cbQ25C to R.id.cbQ25NC,
-            R.id.cbQ26C to R.id.cbQ26NC,
-            R.id.cbQ27C to R.id.cbQ27NC,
-            R.id.cbQ28C to R.id.cbQ28NC,
-            R.id.cbQ29C to R.id.cbQ29NC,
-            R.id.cbQ30C to R.id.cbQ30NC,
-            R.id.cbQ31C to R.id.cbQ31NC,
-            R.id.cbQ32C to R.id.cbQ32NC,
-            R.id.cbQ33C to R.id.cbQ33NC,
-            R.id.cbQ34C to R.id.cbQ34NC,
-            R.id.cbQ35C to R.id.cbQ35NC,
-            R.id.cbQ36C to R.id.cbQ36NC,
-            R.id.cbQ37C to R.id.cbQ37NC,
-            R.id.cbQ38C to R.id.cbQ38NC,
-            R.id.cbQ39C to R.id.cbQ39NC,
-            R.id.cbQ40C to R.id.cbQ40NC,
-            R.id.cbQ41C to R.id.cbQ41NC,
-            R.id.cbQ42C to R.id.cbQ42NC,
-            R.id.cbQ43C to R.id.cbQ43NC,
-            R.id.cbQ44C to R.id.cbQ44NC,
-            R.id.cbQ45C to R.id.cbQ45NC,
-            R.id.cbQ46C to R.id.cbQ46NC,
-            R.id.cbQ47C to R.id.cbQ47NC,
-            R.id.cbQ48C to R.id.cbQ48NC,
-            R.id.cbQ49C to R.id.cbQ49NC,
-            R.id.cbQ50C to R.id.cbQ50NC,
-            R.id.cbQ51C to R.id.cbQ51NC,
-            R.id.cbQ52C to R.id.cbQ52NC,
-            R.id.cbQ53C to R.id.cbQ53NC,
-            R.id.cbQ54C to R.id.cbQ54NC,
-        ).map { (c, nc) -> findViewById<CheckBox>(c) to findViewById<CheckBox>(nc) }
+        val pairs = (1..54).map { i ->
+            val c = resources.getIdentifier("cbQ${i}C", "id", packageName)
+            val nc = resources.getIdentifier("cbQ${i}NC", "id", packageName)
+            findViewById<CheckBox>(c) to findViewById<CheckBox>(nc)
+        }
 
         pairs.forEach { (cbC, cbNC) ->
             cbC.setOnCheckedChangeListener { _, isChecked -> if (isChecked) cbNC.isChecked = false }
@@ -183,7 +132,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
             }
 
             val itensChecklist = questions.indices.map { i ->
-                ChecklistItem(questions[i], respostas[i])
+                ChecklistItem(i + 1, questions[i], respostas[i])
             }
 
             if (respostas.any { it.contains("NC") }) {
