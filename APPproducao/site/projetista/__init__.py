@@ -16,8 +16,9 @@ bp = Blueprint('projetista', __name__)
 
 # Diretório onde os arquivos de checklist (JSON) são salvos
 CHECKLIST_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', '..', 'site', 'json_api')
+    os.path.join(os.path.dirname(__file__), '..', 'json_api')
 )
+
 
 @bp.route('/')
 @login_required
