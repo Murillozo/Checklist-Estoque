@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
+import com.example.apestoque.data.ChecklistMaterial
 import com.example.apestoque.data.Item
 import com.example.apestoque.data.Solicitacao
 import com.squareup.moshi.Moshi
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 class ChecklistActivity : AppCompatActivity() {
     private lateinit var solicitacao: Solicitacao
     private var continueAfterPendencias: Boolean = false
+    private lateinit var materiaisJson: String
 
     private val pendenciasLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -64,10 +66,20 @@ class ChecklistActivity : AppCompatActivity() {
 
         val btn = findViewById<Button>(R.id.btnConcluir)
         btn.setOnClickListener {
+            val checkedStatus = checks.map { it.isChecked }
             val pendentes: List<Item> =
-                solicitacao.itens.filterIndexed { index, _ -> !checks[index].isChecked }
-            val checked = checks.count { it.isChecked }
+                solicitacao.itens.filterIndexed { index, _ -> !checkedStatus[index] }
+            val materiais = solicitacao.itens.mapIndexed { index, item ->
+                ChecklistMaterial(
+                    material = item.referencia,
+                    quantidade = item.quantidade,
+                    completo = checkedStatus[index]
+                )
+            }
+            val checked = checkedStatus.count { it }
             val percent = checked.toDouble() / checks.size
+            val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
+            materiaisJson = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).toJson(materiais)
 
             lifecycleScope.launch {
                 try {
@@ -95,6 +107,7 @@ class ChecklistActivity : AppCompatActivity() {
         val intent = Intent(this, ChecklistPosto01Activity::class.java).apply {
             putExtra("id", solicitacao.id)
             putExtra("obra", solicitacao.obra)
+            putExtra("materiais", materiaisJson)
         }
         postoLauncher.launch(intent)
     }
