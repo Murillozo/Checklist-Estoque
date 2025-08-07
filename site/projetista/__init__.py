@@ -356,6 +356,13 @@ def api_listar_solicitacoes():
 @login_required
 def api_aprovar(id):
     sol = Solicitacao.query.get_or_404(id)
+    # Evita sobrescrever pendências já existentes quando a rota
+    # de aprovação é chamada inadvertidamente. Assim, a solicitação
+    # permanece com o status atual até que as pendências sejam
+    # tratadas pelo setor responsável.
+    if sol.pendencias and sol.pendencias != '[]':
+        return jsonify({'ok': True})
+
     sol.status = 'aprovado'
     sol.pendencias = None
     db.session.commit()
