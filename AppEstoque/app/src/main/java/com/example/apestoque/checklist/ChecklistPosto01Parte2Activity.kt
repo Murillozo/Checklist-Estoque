@@ -48,28 +48,11 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
         val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
-        val pairs = listOf(
-            R.id.cbQ55C to R.id.cbQ55NC,
-            R.id.cbQ56C to R.id.cbQ56NC,
-            R.id.cbQ57C to R.id.cbQ57NC,
-            R.id.cbQ58C to R.id.cbQ58NC,
-            R.id.cbQ59C to R.id.cbQ59NC,
-            R.id.cbQ60C to R.id.cbQ60NC,
-            R.id.cbQ61C to R.id.cbQ61NC,
-            R.id.cbQ62C to R.id.cbQ62NC,
-            R.id.cbQ63C to R.id.cbQ63NC,
-            R.id.cbQ64C to R.id.cbQ64NC,
-            R.id.cbQ65C to R.id.cbQ65NC,
-            R.id.cbQ66C to R.id.cbQ66NC,
-            R.id.cbQ67C to R.id.cbQ67NC,
-            R.id.cbQ68C to R.id.cbQ68NC,
-            R.id.cbQ69C to R.id.cbQ69NC,
-            R.id.cbQ70C to R.id.cbQ70NC,
-            R.id.cbQ71C to R.id.cbQ71NC,
-            R.id.cbQ72C to R.id.cbQ72NC,
-            R.id.cbQ73C to R.id.cbQ73NC,
-            R.id.cbQ74C to R.id.cbQ74NC,
-        ).map { (c, nc) -> findViewById<CheckBox>(c) to findViewById<CheckBox>(nc) }
+        val pairs = (55..74).map { i ->
+            val c = resources.getIdentifier("cbQ${i}C", "id", packageName)
+            val nc = resources.getIdentifier("cbQ${i}NC", "id", packageName)
+            findViewById<CheckBox>(c) to findViewById<CheckBox>(nc)
+        }
 
         pairs.forEach { (cbC, cbNC) ->
             cbC.setOnCheckedChangeListener { _, isChecked -> if (isChecked) cbNC.isChecked = false }
