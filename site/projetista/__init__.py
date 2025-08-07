@@ -420,8 +420,10 @@ def checklist_list():
     # Ordena os arquivos de cada obra e define o checklist anterior
     for obra, arquivos in projetos.items():
         arquivos.sort(key=lambda a: a['filename'])
-        for i in range(1, len(arquivos)):
-            arquivos[i]['diff'] = arquivos[i-1]['filename']
+        for idx, arq in enumerate(arquivos, start=1):
+            arq['revisao'] = idx
+            if idx > 1:
+                arq['diff'] = arquivos[idx - 1]['filename']
 
     return render_template('checklist_list.html', projetos=projetos)
 
@@ -435,7 +437,20 @@ def checklist_view(filename):
         return redirect(url_for('projetista.checklist_list'))
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
-    return render_template('checklist_view.html', filename=filename, dados=dados)
+    # verifica se existe revisão anterior para comparação
+    obra = dados.get('obra', 'Desconhecida') or 'Desconhecida'
+    safe_obra = "".join(c for c in obra if c.isalnum() or c in ('-','_')) or 'obra'
+    todos = [n for n in os.listdir(CHECKLIST_DIR)
+             if n.endswith('.json') and n.startswith(f"checklist_{safe_obra}_")]
+    todos.sort()
+    try:
+        idx = todos.index(filename)
+        prev_filename = todos[idx - 1] if idx > 0 else None
+    except ValueError:
+        prev_filename = None
+    return render_template(
+        'checklist_view.html', filename=filename, dados=dados, prev_filename=prev_filename
+    )
 
 
 @bp.route('/checklist/diff/<path:filename>')

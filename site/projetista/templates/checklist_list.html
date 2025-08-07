@@ -6,16 +6,29 @@
 {% if projetos %}
   {% for obra, arquivos in projetos.items() %}
   <h2>{{ obra }}</h2>
-  <ul class="list-group mb-4">
-    {% for arq in arquivos %}
-    <li class="list-group-item">
-      <a href="{{ url_for('projetista.checklist_view', filename=arq.filename) }}">{{ arq.filename }}</a>
-      {% if arq.diff %}
-      <a class="ms-2" href="{{ url_for('projetista.checklist_diff', filename=arq.filename) }}">Diferenças</a>
-      {% endif %}
-    </li>
-    {% endfor %}
-  </ul>
+  <table class="table table-striped mb-4">
+    <thead>
+      <tr>
+        <th>Revisão</th>
+        <th>Arquivo</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for arq in arquivos %}
+      <tr>
+        <td>{{ arq.revisao }}</td>
+        <td>{{ arq.filename }}</td>
+        <td>
+          <a href="{{ url_for('projetista.checklist_view', filename=arq.filename) }}">Ver</a>
+          {% if arq.diff %}
+          | <a href="{{ url_for('projetista.checklist_diff', filename=arq.filename) }}">Diferenças</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
   {% endfor %}
 {% else %}
 <p>Nenhum checklist disponível.</p>

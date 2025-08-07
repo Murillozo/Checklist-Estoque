@@ -19,6 +19,7 @@ CHECKLIST_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', 'json_api')
 )
 
+
 @bp.route('/')
 @login_required
 def index():
