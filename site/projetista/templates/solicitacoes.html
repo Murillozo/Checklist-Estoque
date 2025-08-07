@@ -27,6 +27,7 @@
           <div>
             <strong>#{{ sol.id }}</strong> – {{ sol.obra }}
             <small class="d-block">{{ sol.local_time.strftime('%d/%m/%Y %H:%M') }}</small>
+            <small class="d-block">Entrega: {{ sol.data_entrega.strftime('%d/%m/%Y') }}</small>
           </div>
           <button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#itens-{{ sol.id }}" aria-expanded="false" aria-controls="itens-{{ sol.id }}">
             Detalhes

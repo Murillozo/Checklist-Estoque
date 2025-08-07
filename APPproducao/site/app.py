@@ -65,6 +65,11 @@ def create_app():
                     "ALTER TABLE solicitacao ADD COLUMN pendencias TEXT"
                 )
                 db.session.commit()
+            if 'data_entrega' not in cols:
+                db.session.execute(
+                    "ALTER TABLE solicitacao ADD COLUMN data_entrega DATE"
+                )
+                db.session.commit()
 
         if 'item' in insp.get_table_names():
             cols = [c['name'] for c in insp.get_columns('item')]

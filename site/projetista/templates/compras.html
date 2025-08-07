@@ -25,6 +25,7 @@
           <div class="card-header text-white">
             <strong>#{{ sol.id }}</strong> – {{ sol.obra }}
             <small class="d-block">{{ sol.data.strftime('%d/%m/%Y %H:%M') }}</small>
+            <small class="d-block">Entrega: {{ sol.data_entrega.strftime('%d/%m/%Y') }}</small>
           </div>
           <div class="card-body">
             <h6 class="fw-bold">Itens</h6>
@@ -194,6 +195,7 @@
           <div class="card-header text-white">
             <strong>#${sol.id}</strong> – ${sol.obra}
             <small class="d-block">${new Date(sol.data).toLocaleString()}</small>
+            <small class="d-block">Entrega: ${sol.data_entrega ? new Date(sol.data_entrega).toLocaleDateString() : ''}</small>
           </div>
           <div class="card-body">
             <h6 class="fw-bold">Itens</h6>
