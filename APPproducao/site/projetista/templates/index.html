@@ -15,6 +15,7 @@
       <tr>
         <th>ID</th>
         <th>Obra</th>
+        <th>Entrega</th>
         <th>Status</th>
         <th>Ações</th>
       </tr>
@@ -24,6 +25,7 @@
       <tr data-status="{{ sol.status }}">
         <td>{{ sol.id }}</td>
         <td>{{ sol.obra }}</td>
+        <td>{{ sol.data_entrega.strftime('%d/%m/%Y') }}</td>
         <td>
           {% if sol.status == 'analise' %}
             Em análise
@@ -41,7 +43,7 @@
       </tr>
     {% else %}
       <tr>
-        <td colspan="4" class="text-muted">Nenhuma solicitação registrada.</td>
+        <td colspan="5" class="text-muted">Nenhuma solicitação registrada.</td>
       </tr>
     {% endfor %}
     </tbody>
@@ -80,6 +82,7 @@
         tr.innerHTML = `
           <td>${sol.id}</td>
           <td>${sol.obra}</td>
+          <td>${sol.data_entrega ? new Date(sol.data_entrega).toLocaleDateString() : ''}</td>
           <td>${renderStatus(sol.status)}</td>
           <td>
             <form method="post" action="/projetista/solicitacao/${sol.id}/delete" onsubmit="return confirm('Confirma apagar?');">

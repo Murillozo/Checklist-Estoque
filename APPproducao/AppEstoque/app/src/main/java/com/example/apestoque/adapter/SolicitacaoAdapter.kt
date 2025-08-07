@@ -32,7 +32,9 @@ class SolicitacaoAdapter(
         val sol = lista[position]
         holder.tvId.text   = "#${sol.id}"
         holder.tvObra.text = sol.obra
-        holder.tvData.text = sol.data.replace("T","  ")  // formata legível
+        val criado = sol.data.replace("T","  ")
+        val entrega = sol.dataEntrega ?: ""
+        holder.tvData.text = "Criado: $criado\nEntrega: $entrega"  // mostra datas
         val itensTexto = sol.itens.joinToString("\n") {
             "• ${it.referencia} × ${it.quantidade}"
         }

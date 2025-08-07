@@ -120,8 +120,10 @@ def nova_solicitacao():
     if request.method == 'POST':
         obra = request.form['obra'].strip()
         ano = request.form.get('ano', '').strip()
+        data_entrega_str = request.form['data_entrega']
+        data_entrega = datetime.strptime(data_entrega_str, '%Y-%m-%d').date()
 
-        sol = Solicitacao(obra=obra)
+        sol = Solicitacao(obra=obra, data_entrega=data_entrega)
         db.session.add(sol)
         db.session.flush()
 
@@ -342,6 +344,7 @@ def api_listar_solicitacoes():
             "id": sol.id,
             "obra": sol.obra,
             "data": sol.data.isoformat(),
+            "data_entrega": sol.data_entrega.isoformat(),
             "itens": itens,
             "status": sol.status,
             "pendencias": sol.pendencias
