@@ -142,3 +142,4 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             }
         }
     }
+}
