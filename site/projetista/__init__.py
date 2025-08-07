@@ -368,6 +368,13 @@ def api_compras(id):
     sol = Solicitacao.query.get_or_404(id)
     dados = request.get_json() or {}
     pendencias = dados.get('pendencias', [])
+
+    # Se nenhuma pendência for enviada mas já existirem pendências
+    # registradas, mantemos o status atual para evitar que a
+    # solicitação seja marcada como completa de forma inadvertida.
+    if not pendencias and sol.pendencias and sol.pendencias != '[]':
+        return jsonify({'ok': True})
+
     total = len(sol.itens)
     concluido = total - len(pendencias)
     porcentagem = concluido / total if total else 0
