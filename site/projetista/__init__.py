@@ -381,11 +381,32 @@ def api_compras(id):
 @bp.route('/checklist')
 @login_required
 def checklist_list():
-    arquivos = []
+    """Lista os checklists agrupados por obra.
+
+    Também identifica o checklist anterior de cada obra para que o
+    usuário possa visualizar as diferenças entre versões.
+    """
+    projetos = {}
     if os.path.isdir(CHECKLIST_DIR):
-        arquivos = [f for f in os.listdir(CHECKLIST_DIR) if f.endswith('.json')]
-        arquivos.sort()
-    return render_template('checklist_list.html', arquivos=arquivos)
+        for nome in os.listdir(CHECKLIST_DIR):
+            if not nome.endswith('.json'):
+                continue
+            caminho = os.path.join(CHECKLIST_DIR, nome)
+            try:
+                with open(caminho, encoding='utf-8') as f:
+                    dados = json.load(f)
+                obra = dados.get('obra', 'Desconhecida') or 'Desconhecida'
+            except Exception:
+                obra = 'Desconhecida'
+            projetos.setdefault(obra, []).append({'filename': nome})
+
+    # Ordena os arquivos de cada obra e define o checklist anterior
+    for obra, arquivos in projetos.items():
+        arquivos.sort(key=lambda a: a['filename'])
+        for i in range(1, len(arquivos)):
+            arquivos[i]['diff'] = arquivos[i-1]['filename']
+
+    return render_template('checklist_list.html', projetos=projetos)
 
 
 @bp.route('/checklist/<path:filename>')
@@ -398,6 +419,65 @@ def checklist_view(filename):
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
     return render_template('checklist_view.html', filename=filename, dados=dados)
+
+
+@bp.route('/checklist/diff/<path:filename>')
+@login_required
+def checklist_diff(filename):
+    """Exibe as diferenças entre o checklist selecionado e o anterior."""
+    caminho = os.path.join(CHECKLIST_DIR, filename)
+    if not os.path.isfile(caminho):
+        flash('Arquivo não encontrado.', 'danger')
+        return redirect(url_for('projetista.checklist_list'))
+
+    with open(caminho, encoding='utf-8') as f:
+        atual = json.load(f)
+
+    obra = atual.get('obra', 'Desconhecida') or 'Desconhecida'
+    safe_obra = "".join(c for c in obra if c.isalnum() or c in ('-','_')) or 'obra'
+
+    # Localiza o checklist anterior para a mesma obra
+    todos = [n for n in os.listdir(CHECKLIST_DIR)
+             if n.endswith('.json') and n.startswith(f"checklist_{safe_obra}_")]
+    todos.sort()
+    try:
+        idx = todos.index(filename)
+    except ValueError:
+        idx = -1
+
+    if idx <= 0:
+        flash('Não há checklist anterior para comparação.', 'warning')
+        return redirect(url_for('projetista.checklist_view', filename=filename))
+
+    anterior_nome = todos[idx - 1]
+    caminho_ant = os.path.join(CHECKLIST_DIR, anterior_nome)
+    with open(caminho_ant, encoding='utf-8') as f:
+        anterior = json.load(f)
+
+    antigos = {i['pergunta']: i.get('resposta', [])
+               for i in anterior.get('itens', [])}
+    novos = {i['pergunta']: i.get('resposta', [])
+             for i in atual.get('itens', [])}
+
+    diff = []
+    perguntas = sorted(set(antigos) | set(novos))
+    for pergunta in perguntas:
+        resp_ant = antigos.get(pergunta, [])
+        resp_novo = novos.get(pergunta, [])
+        if resp_ant != resp_novo:
+            diff.append({
+                'pergunta': pergunta,
+                'antigo': ', '.join(map(str, resp_ant)),
+                'novo': ', '.join(map(str, resp_novo))
+            })
+
+    return render_template(
+        'checklist_diff.html',
+        filename=filename,
+        anterior=anterior_nome,
+        diff=diff,
+        obra=obra,
+    )
 
 
 @bp.route('/solicitacao/<int:id>/delete', methods=['POST'])

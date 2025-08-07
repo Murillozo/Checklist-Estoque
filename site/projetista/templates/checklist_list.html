@@ -2,14 +2,24 @@
 
 {% block body %}
 <h1>Checklists</h1>
-<ul class="list-group">
-  {% for arq in arquivos %}
-  <li class="list-group-item">
-    <a href="{{ url_for('projetista.checklist_view', filename=arq) }}">{{ arq }}</a>
-  </li>
-  {% else %}
-  <li class="list-group-item">Nenhum checklist disponível.</li>
+
+{% if projetos %}
+  {% for obra, arquivos in projetos.items() %}
+  <h2>{{ obra }}</h2>
+  <ul class="list-group mb-4">
+    {% for arq in arquivos %}
+    <li class="list-group-item">
+      <a href="{{ url_for('projetista.checklist_view', filename=arq.filename) }}">{{ arq.filename }}</a>
+      {% if arq.diff %}
+      <a class="ms-2" href="{{ url_for('projetista.checklist_diff', filename=arq.filename) }}">Diferenças</a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
   {% endfor %}
-</ul>
+{% else %}
+<p>Nenhum checklist disponível.</p>
+{% endif %}
+
 {% endblock %}
 
