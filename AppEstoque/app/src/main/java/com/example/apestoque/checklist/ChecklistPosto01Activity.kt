@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
 import com.example.apestoque.data.ChecklistItem
 import com.example.apestoque.data.ChecklistRequest
+import com.example.apestoque.data.ChecklistMaterial
 import com.example.apestoque.data.ComprasRequest
 import com.example.apestoque.data.Item
 import com.example.apestoque.data.JsonNetworkModule
@@ -40,12 +41,15 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val id = intent.getIntExtra("id", -1)
         if (id == -1) return finish()
         val jsonPend = intent.getStringExtra("pendentes")
+        val jsonMateriais = intent.getStringExtra("materiais") ?: "[]"
         val obra = intent.getStringExtra("obra") ?: ""
         val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
         val pendentes = jsonPend?.let {
             val typePend = Types.newParameterizedType(List::class.java, Item::class.java)
             moshi.adapter<List<Item>>(typePend).fromJson(it)
         }
+        val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
+        val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
         val pairs = listOf(
             R.id.cbQ1C to R.id.cbQ1NC,
@@ -190,7 +194,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                 lifecycleScope.launch {
                     try {
                         withContext(Dispatchers.IO) {
-                            val request = ChecklistRequest(obra, ano, suprimento, itensChecklist)
+                            val request = ChecklistRequest(obra, ano, suprimento, itensChecklist, materiais)
                             JsonNetworkModule.api.salvarChecklist(request)
                             if (pendentes == null) {
                                 NetworkModule.api.aprovarSolicitacao(id)
@@ -213,6 +217,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                 intent.putExtra("obra", obra)
                 jsonPend?.let { intent.putExtra("pendentes", it) }
                 intent.putExtra("itens", jsonItens)
+                intent.putExtra("materiais", jsonMateriais)
                 launcher.launch(intent)
             }
         }

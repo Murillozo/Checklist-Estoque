@@ -9,9 +9,17 @@ data class ChecklistItem(
 )
 
 @JsonClass(generateAdapter = true)
+data class ChecklistMaterial(
+    val material: String,
+    val quantidade: Int,
+    val completo: Boolean
+)
+
+@JsonClass(generateAdapter = true)
 data class ChecklistRequest(
     val obra: String,
     val ano: String,
     val suprimento: String,
-    val itens: List<ChecklistItem>
+    val itens: List<ChecklistItem>,
+    val materiais: List<ChecklistMaterial>
 )

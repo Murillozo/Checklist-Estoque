@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
 import com.example.apestoque.data.ChecklistItem
 import com.example.apestoque.data.ChecklistRequest
+import com.example.apestoque.data.ChecklistMaterial
 import com.example.apestoque.data.ComprasRequest
 import com.example.apestoque.data.Item
 import com.example.apestoque.data.NetworkModule
@@ -33,6 +34,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val jsonPend = intent.getStringExtra("pendentes")
         val obra = intent.getStringExtra("obra") ?: ""
         val prevJson = intent.getStringExtra("itens") ?: "[]"
+        val jsonMateriais = intent.getStringExtra("materiais") ?: "[]"
         val prefs = getSharedPreferences("app", Context.MODE_PRIVATE)
         val suprimento = prefs.getString("operador_suprimentos", "") ?: ""
 
@@ -43,6 +45,8 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         }
         val checklistType = Types.newParameterizedType(List::class.java, ChecklistItem::class.java)
         val prevItems = moshi.adapter<List<ChecklistItem>>(checklistType).fromJson(prevJson) ?: emptyList()
+        val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
+        val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
         val pairs = listOf(
             R.id.cbQ55C to R.id.cbQ55NC,
@@ -116,7 +120,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     val filePath = withContext(Dispatchers.IO) {
-                        val request = ChecklistRequest(obra, ano, suprimento, itensChecklist)
+                        val request = ChecklistRequest(obra, ano, suprimento, itensChecklist, materiais)
                         val response = JsonNetworkModule.api.salvarChecklist(request)
                         if (pendentes == null) {
                             NetworkModule.api.aprovarSolicitacao(id)
