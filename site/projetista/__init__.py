@@ -356,6 +356,13 @@ def api_listar_solicitacoes():
 @login_required
 def api_aprovar(id):
     sol = Solicitacao.query.get_or_404(id)
+    # Evita sobrescrever pendências já existentes quando a rota
+    # de aprovação é chamada inadvertidamente. Assim, a solicitação
+    # permanece com o status atual até que as pendências sejam
+    # tratadas pelo setor responsável.
+    if sol.pendencias and sol.pendencias != '[]':
+        return jsonify({'ok': True})
+
     sol.status = 'aprovado'
     sol.pendencias = None
     db.session.commit()
@@ -368,6 +375,13 @@ def api_compras(id):
     sol = Solicitacao.query.get_or_404(id)
     dados = request.get_json() or {}
     pendencias = dados.get('pendencias', [])
+
+    # Se nenhuma pendência for enviada mas já existirem pendências
+    # registradas, mantemos o status atual para evitar que a
+    # solicitação seja marcada como completa de forma inadvertida.
+    if not pendencias and sol.pendencias and sol.pendencias != '[]':
+        return jsonify({'ok': True})
+
     total = len(sol.itens)
     concluido = total - len(pendencias)
     porcentagem = concluido / total if total else 0
