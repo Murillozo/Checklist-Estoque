@@ -132,7 +132,7 @@ class ChecklistPosto01Activity : AppCompatActivity() {
             }
 
             val itensChecklist = questions.indices.map { i ->
-                ChecklistItem(questions[i], respostas[i])
+                ChecklistItem(i + 1, questions[i], respostas[i])
             }
 
             if (respostas.any { it.contains("NC") }) {

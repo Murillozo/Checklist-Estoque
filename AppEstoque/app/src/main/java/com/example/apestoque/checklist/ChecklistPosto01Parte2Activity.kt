@@ -95,7 +95,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             }
 
             val itensChecklist = prevItems + questions.indices.map { i ->
-                ChecklistItem(questions[i], respostas[i])
+                ChecklistItem(i + 55, questions[i], respostas[i])
             }
 
             val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
