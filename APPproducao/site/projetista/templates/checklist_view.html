@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>{{ filename }}</h1>
+
+<p><strong>Obra:</strong> {{ dados.obra }}</p>
+<p><strong>Ano:</strong> {{ dados.ano }}</p>
+<p><strong>Suprimento:</strong> {{ dados.suprimento }}</p>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Pergunta</th>
+      <th>Resposta</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in dados.itens %}
+    <tr>
+      <td>{{ item.pergunta }}</td>
+      <td>{{ item.resposta | join(', ') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
