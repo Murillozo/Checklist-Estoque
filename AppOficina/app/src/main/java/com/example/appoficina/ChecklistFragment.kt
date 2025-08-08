@@ -44,20 +44,23 @@ class ChecklistFragment : Fragment() {
     }
 
     private fun loadProjectsFromServer(): Map<String, List<String>> {
-        val baseUrl = "http://192.168.0.135:5000/site/json_api/"
-        val listingHtml = URL(baseUrl).readText()
-        val fileRegex = Regex("href=\\\"([^\\\"]+\\.json)\\\")
-        val files = fileRegex.findAll(listingHtml).map { it.groupValues[1] }.toList()
+        val url = "http://192.168.0.135:5000/json_api/projects"
+        val jsonStr = URL(url).readText()
+        val obj = JSONObject(jsonStr)
+        val projectsObj = obj.optJSONObject("projects")
         val result = mutableMapOf<String, List<String>>()
-        for (file in files) {
-            val jsonStr = URL(baseUrl + file).readText()
-            val obj = JSONObject(jsonStr)
-            val array = obj.optJSONArray("items")
-            val items = mutableListOf<String>()
-            if (array != null) {
-                for (i in 0 until array.length()) {
-                    items.add(array.optString(i))
+        if (projectsObj != null) {
+            val keys = projectsObj.keys()
+            while (keys.hasNext()) {
+                val name = keys.next()
+                val array = projectsObj.optJSONArray(name)
+                val items = mutableListOf<String>()
+                if (array != null) {
+                    for (i in 0 until array.length()) {
+                        items.add(array.optString(i))
+                    }
                 }
+                result[name] = items
             }
             result[file] = items
         }
