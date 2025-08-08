@@ -4,13 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.graphics.Typeface
 import android.widget.CheckBox
-import android.widget.TextView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import android.graphics.Typeface
 import org.json.JSONObject
 import java.net.URL
 import android.os.Handler
@@ -62,7 +58,6 @@ class ChecklistFragment : Fragment() {
                 }
                 result[name] = items
             }
-            result[file] = items
         }
         return result
     }
