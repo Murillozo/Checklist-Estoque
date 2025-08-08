@@ -7,8 +7,10 @@ bp = Blueprint('json_api', __name__)
 
 BASE_DIR = os.path.dirname(__file__)
 
+
 @bp.route('/checklist', methods=['POST'])
 def salvar_checklist():
+    """Save a checklist payload to a timestamped JSON file."""
     data = request.get_json() or {}
     obra = data.get('obra', 'desconhecida')
 
@@ -22,3 +24,21 @@ def salvar_checklist():
         json.dump(data, f, ensure_ascii=False, indent=2)
 
     return jsonify({'caminho': file_path})
+
+
+@bp.route('/projects', methods=['GET'])
+def listar_projetos():
+    """Return names and items of all checklist JSON files."""
+    files = [f for f in os.listdir(BASE_DIR) if f.endswith('.json')]
+    projetos = {}
+    for nome in files:
+        caminho = os.path.join(BASE_DIR, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                itens = data.get('items', [])
+            projetos[nome] = itens
+        except Exception:
+            continue
+    return jsonify({'projects': projetos})
+
