@@ -28,9 +28,9 @@ class ChecklistFragment : Fragment() {
             val projects = loadProjectsFromServer()
             Handler(Looper.getMainLooper()).post {
                 for ((name, items) in projects) {
-                    val title = TextView(requireContext())
+                    val title = android.widget.TextView(requireContext())
                     title.text = name
-                    title.setTypeface(null, Typeface.BOLD)
+                    title.setTypeface(null, android.graphics.Typeface.BOLD)
                     checklistContainer.addView(title)
                     for (item in items) {
                         val checkBox = CheckBox(requireContext())
