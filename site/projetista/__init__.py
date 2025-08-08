@@ -14,8 +14,12 @@ from datetime import datetime
 
 bp = Blueprint('projetista', __name__)
 
-# Diretório onde os arquivos de checklist (JSON) são salvos
-CHECKLIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'json_api'))
+# Diretório onde os arquivos de checklist (JSON) são salvos.
+# Permite sobrepor via variável de ambiente CHECKLIST_DIR.
+CHECKLIST_DIR = os.environ.get(
+    "CHECKLIST_DIR",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'json_api')),
+)
 
 # Diretório base onde os projetos são armazenados no servidor
 BASE_PRODUCAO = r"F:\03 - ENGENHARIA\03 - PRODUCAO"
@@ -406,7 +410,7 @@ def checklist_list():
     projetos = {}
     if os.path.isdir(CHECKLIST_DIR):
         for nome in os.listdir(CHECKLIST_DIR):
-            if not nome.endswith('.json'):
+            if not nome.lower().endswith('.json'):
                 continue
             caminho = os.path.join(CHECKLIST_DIR, nome)
             try:
