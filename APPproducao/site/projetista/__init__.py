@@ -331,6 +331,8 @@ def checklist_diff(filename):
     )
 
 
+
+
 @bp.route('/api/solicitacoes')
 @login_required
 def api_listar_solicitacoes():
