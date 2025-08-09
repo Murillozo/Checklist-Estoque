@@ -17,6 +17,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
 
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
+        val producao = intent.getStringExtra("producao") ?: ""
 
         val pairs = (55..74).map { i ->
             val cId = resources.getIdentifier("cbQ${i}C", "id", packageName)
@@ -29,21 +30,50 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             nc.setOnCheckedChangeListener { _, isChecked -> if (isChecked) c.isChecked = false }
         }
 
+        val perguntas = listOf(
+            "Identificação do projeto",
+            "Separação - POSTO - 01",
+            "Referências x Projeto",
+            "Material em bom estado",
+            "Identificação do projeto",
+            "Separação - POSTO - 07",
+            "Referências x Projeto",
+            "Material em bom estado",
+            "Identificação do projeto",
+            "Separação - POSTO - 07",
+            "Referências x Projeto",
+            "Material em bom estado",
+            "Identificação do projeto",
+            "Separação - POSTO - 07",
+            "Referências x Projeto",
+            "Material em bom estado",
+            "Identificação do projeto",
+            "Separação - POSTO - 03",
+            "Referências x Projeto",
+            "Material em bom estado"
+        )
+
         findViewById<Button>(R.id.btnConcluirPosto01Parte2).setOnClickListener {
             val itens = JSONArray()
             pairs.forEachIndexed { idx, (c, nc) ->
                 val obj = JSONObject()
-                obj.put("id", 55 + idx)
-                obj.put("resposta", when {
-                    c.isChecked -> "C"
-                    nc.isChecked -> "NC"
-                    else -> ""
-                })
+                obj.put("numero", 55 + idx)
+                obj.put("pergunta", perguntas[idx])
+                val resp = JSONArray()
+                resp.put(
+                    when {
+                        c.isChecked -> "C"
+                        nc.isChecked -> "NC"
+                        else -> ""
+                    }
+                )
+                obj.put("resposta", resp)
                 itens.put(obj)
             }
             val payload = JSONObject()
             payload.put("obra", obra)
             payload.put("ano", ano)
+            payload.put("produção", producao)
             payload.put("itens", itens)
             Thread { enviarChecklist(payload) }.start()
             finish()

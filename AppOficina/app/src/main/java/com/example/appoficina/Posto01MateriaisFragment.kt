@@ -5,8 +5,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import org.json.JSONArray
 import org.json.JSONObject
@@ -46,11 +48,21 @@ class Posto01MateriaisFragment : Fragment() {
                             val tv = TextView(requireContext())
                             tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
                             tv.setPadding(0, 0, 0, 16)
-                            tv.setOnClickListener { _: View ->
-                                val intent: Intent = Intent(requireContext(), ChecklistPosto01Parte2Activity::class.java)
-                                intent.putExtra("obra", obra)
-                                intent.putExtra("ano", ano)
-                                startActivity(intent)
+                            tv.setOnClickListener {
+                                val input = EditText(requireContext())
+                                AlertDialog.Builder(requireContext())
+                                    .setTitle("Nome do conferente da produção")
+                                    .setView(input)
+                                    .setPositiveButton("OK") { _, _ ->
+                                        val producao = input.text.toString()
+                                        val intent = Intent(requireContext(), ChecklistPosto01Parte2Activity::class.java)
+                                        intent.putExtra("obra", obra)
+                                        intent.putExtra("ano", ano)
+                                        intent.putExtra("producao", producao)
+                                        startActivity(intent)
+                                    }
+                                    .setNegativeButton("Cancelar", null)
+                                    .show()
                             }
                             listContainer.addView(tv)
                         }
