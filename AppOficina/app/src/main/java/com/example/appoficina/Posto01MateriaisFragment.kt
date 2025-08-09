@@ -54,4 +54,3 @@ class Posto01MateriaisFragment : Fragment() {
         return view
     }
 }
-
