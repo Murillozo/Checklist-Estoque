@@ -24,7 +24,7 @@ class Posto01MateriaisFragment : Fragment() {
 
         Thread {
             try {
-                val url = URL("http://192.168.0.135:5000/json_api/projects")
+                val url = URL("http://10.0.2.2:5000/json_api/projects")
                 val conn = url.openConnection() as HttpURLConnection
                 val response = conn.inputStream.bufferedReader().use { it.readText() }
                 conn.disconnect()
