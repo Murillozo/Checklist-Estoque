@@ -81,16 +81,25 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
     }
 
     private fun enviarChecklist(json: JSONObject) {
-        try {
-            val url = URL("http://192.168.0.135:5000/json_api/upload")
-            val conn = url.openConnection() as HttpURLConnection
-            conn.requestMethod = "POST"
-            conn.doOutput = true
-            conn.setRequestProperty("Content-Type", "application/json")
-            OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
-            conn.responseCode
-            conn.disconnect()
-        } catch (_: Exception) {
+        val urls = listOf(
+            "http://10.0.2.2:5000/json_api/upload",
+            "http://192.168.0.151:5000/json_api/upload",
+            "http://192.168.0.135:5000/json_api/upload"
+        )
+        for (addr in urls) {
+            try {
+                val url = URL(addr)
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.doOutput = true
+                conn.setRequestProperty("Content-Type", "application/json")
+                OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
+                val code = conn.responseCode
+                conn.disconnect()
+                if (code in 200..299) break
+            } catch (_: Exception) {
+                // tenta próximo endereço
+            }
         }
     }
 }
