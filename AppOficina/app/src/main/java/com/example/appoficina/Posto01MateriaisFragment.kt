@@ -25,7 +25,7 @@ class Posto01MateriaisFragment : Fragment() {
         Thread {
             val urls = listOf(
                 "http://10.0.2.2:5000/json_api/projects",
-                "http://192.168.0.135:5000/json_api/projects"
+                "http://192.168.0.151:5000/json_api/projects"
             )
             for (address in urls) {
                 try {
@@ -44,8 +44,8 @@ class Posto01MateriaisFragment : Fragment() {
                             val tv = TextView(requireContext())
                             tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
                             tv.setPadding(0, 0, 0, 16)
-                            tv.setOnClickListener {
-                                val intent = Intent(requireContext(), ChecklistPosto01Parte2Activity::class.java)
+                            tv.setOnClickListener { _: View ->
+                                val intent: Intent = Intent(requireContext(), ChecklistPosto01Parte2Activity::class.java)
                                 intent.putExtra("obra", obra)
                                 intent.putExtra("ano", ano)
                                 startActivity(intent)
