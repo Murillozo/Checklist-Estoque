@@ -25,13 +25,27 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             findViewById<CheckBox>(cId) to findViewById<CheckBox>(ncId)
         }
 
-        pairs.forEach { (c, nc) ->
-            c.setOnCheckedChangeListener { _, isChecked -> if (isChecked) nc.isChecked = false }
-            nc.setOnCheckedChangeListener { _, isChecked -> if (isChecked) c.isChecked = false }
+        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto01Parte2)
+
+        fun updateButtonState() {
+            concluirButton.isEnabled = pairs.all { (c, nc) -> c.isChecked || nc.isChecked }
         }
 
+        pairs.forEach { (c, nc) ->
+            c.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) nc.isChecked = false
+                updateButtonState()
+            }
+            nc.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) c.isChecked = false
+                updateButtonState()
+            }
+        }
+
+        updateButtonState()
+
         val perguntas = listOf(
-             "1.1 - COMPONENTES: Identificação do projeto",
+            "1.1 - COMPONENTES: Identificação do projeto",
             "1.1 - COMPONENTES: Separação - POSTO - 01",
             "1.1 - COMPONENTES: Referências x Projeto",
             "1.1 - COMPONENTES: Material em bom estado",
@@ -53,7 +67,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             "1.15 - POLICARBONATO: Material em bom estado",
         )
 
-        findViewById<Button>(R.id.btnConcluirPosto01Parte2).setOnClickListener {
+        concluirButton.setOnClickListener {
             val itens = JSONArray()
             pairs.forEachIndexed { idx, (c, nc) ->
                 val obj = JSONObject()
@@ -103,4 +117,3 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         }
     }
 }
-
