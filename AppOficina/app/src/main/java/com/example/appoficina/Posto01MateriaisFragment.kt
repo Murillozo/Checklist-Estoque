@@ -25,8 +25,10 @@ class Posto01MateriaisFragment : Fragment() {
         Thread {
             val urls = listOf(
                 "http://10.0.2.2:5000/json_api/projects",
-                "http://192.168.0.151:5000/json_api/projects"
+                "http://192.168.0.151:5000/json_api/projects",
+                "http://192.168.0.135:5000/json_api/projects"
             )
+            var loaded = false
             for (address in urls) {
                 try {
                     val url = URL(address)
@@ -53,9 +55,18 @@ class Posto01MateriaisFragment : Fragment() {
                             listContainer.addView(tv)
                         }
                     }
+                    loaded = true
                     break
                 } catch (_: Exception) {
                     // tenta proximo endereco
+                }
+            }
+            if (!loaded) {
+                requireActivity().runOnUiThread {
+                    listContainer.removeAllViews()
+                    val tv = TextView(requireContext())
+                    tv.text = "Não foi possível carregar os projetos"
+                    listContainer.addView(tv)
                 }
             }
         }.start()
