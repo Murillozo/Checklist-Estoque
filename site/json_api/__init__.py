@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 import os
 import json
 from datetime import datetime
+from os import path
 
 bp = Blueprint('json_api', __name__)
 
@@ -28,17 +29,23 @@ def salvar_checklist():
 
 @bp.route('/projects', methods=['GET'])
 def listar_projetos():
-    """Return names and items of all checklist JSON files."""
-    files = [f for f in os.listdir(BASE_DIR) if f.endswith('.json')]
-    projetos = {}
-    for nome in files:
-        caminho = os.path.join(BASE_DIR, nome)
+    """Return obra/ano info for each checklist JSON file."""
+    arquivos = [f for f in os.listdir(BASE_DIR) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(BASE_DIR, nome)
         try:
             with open(caminho, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                itens = data.get('items', [])
-            projetos[nome] = itens
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', '')
+            })
         except Exception:
             continue
-    return jsonify({'projects': projetos})
+    return jsonify({'projetos': projetos})
+
+# legacy alias
+bp.add_url_rule('/upload', view_func=salvar_checklist, methods=['POST'])
 

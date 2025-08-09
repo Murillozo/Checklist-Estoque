@@ -2,15 +2,16 @@ package com.example.appoficina
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 
 class Posto01MateriaisFragment : Fragment() {
     override fun onCreateView(
@@ -21,29 +22,35 @@ class Posto01MateriaisFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_posto01_materiais, container, false)
         val listContainer: LinearLayout = view.findViewById(R.id.projetos_container)
 
-        val baseDir = Environment.getExternalStorageDirectory()
-        val jsonDir = File(baseDir, "site/json_api")
-        if (jsonDir.exists()) {
-            jsonDir.listFiles { file -> file.extension == "json" }?.sorted()?.forEach { file ->
-                try {
-                    val obj = JSONObject(file.readText())
-                    val obra = obj.optString("obra", file.nameWithoutExtension)
-                    val ano = obj.optString("ano", "")
-                    val tv = TextView(requireContext())
-                    tv.text = "$obra - $ano"
-                    tv.setPadding(0, 0, 0, 16)
-                    tv.setOnClickListener {
-                        val intent = Intent(requireContext(), ChecklistPosto01Parte2Activity::class.java)
-                        intent.putExtra("obra", obra)
-                        intent.putExtra("ano", ano)
-                        startActivity(intent)
+        Thread {
+            try {
+                val url = URL("http://192.168.0.135:5000/json_api/projects")
+                val conn = url.openConnection() as HttpURLConnection
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                conn.disconnect()
+
+                val projetos = JSONObject(response).optJSONArray("projetos") ?: JSONArray()
+                requireActivity().runOnUiThread {
+                    for (i in 0 until projetos.length()) {
+                        val obj = projetos.getJSONObject(i)
+                        val obra = obj.optString("obra")
+                        val ano = obj.optString("ano")
+                        val tv = TextView(requireContext())
+                        tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
+                        tv.setPadding(0, 0, 0, 16)
+                        tv.setOnClickListener {
+                            val intent = Intent(requireContext(), ChecklistPosto01Parte2Activity::class.java)
+                            intent.putExtra("obra", obra)
+                            intent.putExtra("ano", ano)
+                            startActivity(intent)
+                        }
+                        listContainer.addView(tv)
                     }
-                    listContainer.addView(tv)
-                } catch (_: Exception) {
                 }
+            } catch (_: Exception) {
             }
-        }
+        }.start()
+
         return view
     }
 }
-
