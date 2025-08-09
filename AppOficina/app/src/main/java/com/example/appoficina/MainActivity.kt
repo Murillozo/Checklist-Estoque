@@ -16,8 +16,11 @@ class MainActivity : AppCompatActivity() {
         val viewPager: ViewPager2 = findViewById(R.id.view_pager)
         val tabLayout: TabLayout = findViewById(R.id.tab_layout)
 
-        val fragments: List<Fragment> = listOf(HomeFragment(), ChecklistFragment())
-        val titles = listOf("Home", "Checklist")
+        val fragments: List<Fragment> = listOf(
+            Posto01MateriaisFragment(),
+            Posto02OficinaFragment()
+        )
+        val titles = listOf("01 - Posto 01 - Materiais", "02 - POSTO - 02 OFICINA")
 
         viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int = fragments.size
