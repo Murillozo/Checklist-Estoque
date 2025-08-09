@@ -17,40 +17,29 @@ class ChecklistDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_checklist_detail)
 
         val container: LinearLayout = findViewById(R.id.checklist_detail_container)
-        val fileName = intent.getStringExtra("file_name")
-        val jsonStr = if (fileName != null) {
-            assets.open(fileName).bufferedReader().use { it.readText() }
-        } else {
-            "{}"
-        }
-        val obj = JSONObject(jsonStr)
-        val itensArray = obj.optJSONArray("itens")
+        val itemsJson = intent.getStringExtra("items_json")
+        val itensArray = if (itemsJson != null) JSONArray(itemsJson) else JSONArray()
         val checkBoxes = mutableListOf<CheckBox>()
-        if (itensArray != null) {
-            for (i in 0 until itensArray.length()) {
-                val itemObj = itensArray.getJSONObject(i)
-                val pergunta = itemObj.optString("pergunta")
-                val respostaArray = itemObj.optJSONArray("resposta")
-                val checkBox = CheckBox(this)
-                checkBox.text = pergunta
-                if (respostaArray != null && respostaArray.toString().contains("C")) {
-                    checkBox.isChecked = true
-                }
-                container.addView(checkBox)
-                checkBoxes.add(checkBox)
-            }
+        for (i in 0 until itensArray.length()) {
+            val pergunta = itensArray.getString(i)
+            val checkBox = CheckBox(this)
+            checkBox.text = pergunta
+            container.addView(checkBox)
+            checkBoxes.add(checkBox)
         }
 
         val saveButton: Button = findViewById(R.id.save_button)
         saveButton.setOnClickListener {
-            if (itensArray != null) {
-                for (i in 0 until itensArray.length()) {
-                    val itemObj = itensArray.getJSONObject(i)
-                    val cb = checkBoxes[i]
-                    val newRes = if (cb.isChecked) JSONArray(listOf("C")) else JSONArray()
-                    itemObj.put("resposta", newRes)
-                }
+            val resultArray = JSONArray()
+            for (i in 0 until itensArray.length()) {
+                val cb = checkBoxes[i]
+                val itemObj = JSONObject()
+                itemObj.put("item", itensArray.getString(i))
+                itemObj.put("checked", cb.isChecked)
+                resultArray.put(itemObj)
             }
+            val obj = JSONObject()
+            obj.put("items", resultArray)
             Thread {
                 sendChecklistToServer(obj)
             }.start()
