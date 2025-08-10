@@ -48,6 +48,7 @@ def listar_projetos():
     return jsonify({'projetos': projetos})
 
 
+
 @bp.route('/revisao', methods=['GET'])
 def listar_revisao():
     """Return checklists whose answers diverge between departments."""
@@ -62,4 +63,3 @@ bp.add_url_rule('/upload', view_func=salvar_checklist, methods=['POST'])
 
 # utilidades de mesclagem
 from .merge_checklists import merge_checklists, merge_directory, find_mismatches
-
