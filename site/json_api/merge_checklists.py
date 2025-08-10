@@ -87,6 +87,7 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
     """Merge checklist pairs found in ``base_dir`` grouped by ``obra``.
 
     ``output_dir`` defaults to ``base_dir/Posto01_Oficina``.
+    The original JSON files used in the merge are removed from ``base_dir``.
     Returns a list of merged checklist objects.
     """
     files = [f for f in os.listdir(base_dir) if f.endswith(".json")]
@@ -101,19 +102,24 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
         obra = data.get("obra")
         if not obra:
             continue
-        by_obra.setdefault(obra, []).append(data)
+        by_obra.setdefault(obra, []).append({"data": data, "path": path})
     output_dir = output_dir or os.path.join(base_dir, "Posto01_Oficina")
     os.makedirs(output_dir, exist_ok=True)
     merged: List[Dict[str, Any]] = []
     for obra, entries in by_obra.items():
-        sup = next((e for e in entries if "suprimento" in e), None)
-        prod = next((e for e in entries if "produção" in e), None)
+        sup = next((e for e in entries if "suprimento" in e["data"]), None)
+        prod = next((e for e in entries if "produção" in e["data"]), None)
         if not (sup and prod):
             continue
-        result = merge_checklists(sup, prod)
+        result = merge_checklists(sup["data"], prod["data"])
         out_path = os.path.join(output_dir, f"checklist_{obra}.json")
         with open(out_path, "w", encoding="utf-8") as fp:
             json.dump(result, fp, ensure_ascii=False, indent=2)
+        try:
+            os.remove(sup["path"])
+            os.remove(prod["path"])
+        except OSError:
+            pass
         merged.append(result)
     return merged
 
