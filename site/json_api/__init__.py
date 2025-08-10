@@ -23,6 +23,7 @@ def salvar_checklist():
 
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    merge_directory(BASE_DIR)
 
     return jsonify({'caminho': file_path})
 
@@ -48,4 +49,7 @@ def listar_projetos():
 
 # legacy alias
 bp.add_url_rule('/upload', view_func=salvar_checklist, methods=['POST'])
+
+# utilidades de mesclagem
+from .merge_checklists import merge_checklists, merge_directory
 
