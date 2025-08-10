@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- 2.1 - PORTAS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2.1 - PORTAS"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Identificação do projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ200C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ200NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ200NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Marcação"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ201C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ201NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ201NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Furos"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ202C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ202NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ202NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cortes"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ203C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ203NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ203NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rebarbas"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ204C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ204NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ204NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Acabamento"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ205C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ205NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ205NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Porta documentos"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ206C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ206NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ206NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Montagem no invólucro"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ207C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ207NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ207NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <!-- 2.2 - PLACAS DE MONTAGEM -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2.2 - PLACAS DE MONTAGEM"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Identificação do projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ208C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ208NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ208NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Marcação"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ209C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ209NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ209NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Furos"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ210C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ210NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ210NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cortes"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ211C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ211NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ211NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rebarbas"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ212C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ212NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ212NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Acabamento"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ213C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ213NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ213NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <!-- 2.3 - CANALETAS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2.3 - CANALETAS"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Corte" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ214C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ214NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ214NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Identificação do projeto"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ215C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ215NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ215NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Separação POSTO - 07"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ216C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ216NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ216NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <!-- 2.3 - TRILHOS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2.3 - TRILHOS"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Corte" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ217C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ217NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ217NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fixação"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ218C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ218NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ218NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <!-- 2.3 - COMPONENTES FIXAÇÃO DIRETA -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2.3 - COMPONENTES FIXAÇÃO DIRETA"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Marcação" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ219C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ219NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ219NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Furos"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ220C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ220NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ220NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cortes"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ221C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ221NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ221NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rebarbas"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ222C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ222NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ222NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Acabamento"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ223C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ223NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ223NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fixação"
+            android:layout_marginTop="8dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ224C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ224NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ224NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnConcluirPosto02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Concluir" />
+
+    </LinearLayout>
+</ScrollView>
+
