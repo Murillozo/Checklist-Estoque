@@ -23,6 +23,7 @@ def salvar_checklist():
 
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    merge_directory(BASE_DIR)
 
     return jsonify({'caminho': file_path})
 
