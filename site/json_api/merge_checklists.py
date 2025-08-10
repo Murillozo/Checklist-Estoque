@@ -1,5 +1,7 @@
 import os
 import json
+import os
+import shutil
 from typing import Any, Dict, List, Optional
 
 
@@ -166,6 +168,42 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
             )
 
     return resultados
+
+
+def move_matching_checklists(base_dir: str) -> List[str]:
+    """Move merged checklists with matching answers to the next stage.
+
+    Looks into ``Posto01_Oficina`` inside ``base_dir`` and moves any
+    ``checklist_*.json`` files where all ``suprimento`` and ``produção``
+    answers are identical to ``Posto02_Oficina``. Returns a list of moved
+    filenames.
+    """
+
+    src_dir = os.path.join(base_dir, "Posto01_Oficina")
+    if not os.path.isdir(src_dir):
+        return []
+    dest_dir = os.path.join(base_dir, "Posto02_Oficina")
+    os.makedirs(dest_dir, exist_ok=True)
+
+    # determine which obras still have divergences
+    divergentes = {entry["obra"] for entry in find_mismatches(src_dir)}
+
+    moved: List[str] = []
+    for fname in os.listdir(src_dir):
+        if not (fname.startswith("checklist_") and fname.endswith(".json")):
+            continue
+        path = os.path.join(src_dir, fname)
+        try:
+            with open(path, "r", encoding="utf-8") as fp:
+                data = json.load(fp)
+        except Exception:
+            continue
+        obra = data.get("obra", "")
+        if obra in divergentes:
+            continue
+        shutil.move(path, os.path.join(dest_dir, fname))
+        moved.append(fname)
+    return moved
 
 
 def main() -> None:

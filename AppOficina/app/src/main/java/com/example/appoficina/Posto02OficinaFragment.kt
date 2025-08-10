@@ -26,9 +26,9 @@ class Posto02OficinaFragment : Fragment() {
 
         Thread {
             val urls = listOf(
-                "http://10.0.2.2:5000/json_api/projects",
-                "http://192.168.0.151:5000/json_api/projects",
-                "http://192.168.0.135:5000/json_api/projects",
+                "http://10.0.2.2:5000/json_api/posto02/projects",
+                "http://192.168.0.151:5000/json_api/posto02/projects",
+                "http://192.168.0.135:5000/json_api/posto02/projects",
             )
             var loaded = false
             for (address in urls) {
