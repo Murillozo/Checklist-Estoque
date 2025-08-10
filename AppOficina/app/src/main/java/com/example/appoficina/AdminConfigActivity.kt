@@ -17,6 +17,7 @@ class AdminConfigActivity : AppCompatActivity() {
 
         val adminUser = findViewById<EditText>(R.id.edit_admin_user)
         val adminPass = findViewById<EditText>(R.id.edit_admin_pass)
+        val inspetorPass = findViewById<EditText>(R.id.edit_pass_inspetor)
         val pass02 = findViewById<EditText>(R.id.edit_pass_tab02)
         val pass03 = findViewById<EditText>(R.id.edit_pass_tab03)
         val pass04 = findViewById<EditText>(R.id.edit_pass_tab04)
@@ -30,6 +31,7 @@ class AdminConfigActivity : AppCompatActivity() {
 
         adminUser.setText(prefs.getString("admin_user", "admin"))
         adminPass.setText(prefs.getString("admin_pass", "admin"))
+        inspetorPass.setText(prefs.getString("pass_inspetor", "inspetor"))
         pass02.setText(prefs.getString("pass_02", ""))
         pass03.setText(prefs.getString("pass_03", ""))
         pass04.setText(prefs.getString("pass_04", ""))
@@ -45,6 +47,7 @@ class AdminConfigActivity : AppCompatActivity() {
             prefs.edit().apply {
                 putString("admin_user", adminUser.text.toString())
                 putString("admin_pass", adminPass.text.toString())
+                putString("pass_inspetor", inspetorPass.text.toString())
                 putString("pass_02", pass02.text.toString())
                 putString("pass_03", pass03.text.toString())
                 putString("pass_04", pass04.text.toString())

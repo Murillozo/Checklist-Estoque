@@ -7,6 +7,7 @@ import android.text.InputType
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -26,7 +27,8 @@ class MainActivity : AppCompatActivity() {
 
         prefs = getSharedPreferences("config", MODE_PRIVATE)
 
-        val adminButton: Button = findViewById(R.id.admin_button)
+        val adminButton: TextView = findViewById(R.id.admin_button)
+        val inspetorButton: Button = findViewById(R.id.inspetor_button)
         val viewPager: ViewPager2 = findViewById(R.id.view_pager)
         val tabLayout: TabLayout = findViewById(R.id.tab_layout)
 
@@ -50,6 +52,25 @@ class MainActivity : AppCompatActivity() {
                         startActivity(Intent(this, AdminConfigActivity::class.java))
                     } else {
                         Toast.makeText(this, "Credenciais inválidas", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancelar", null)
+                .show()
+        }
+
+        inspetorButton.setOnClickListener {
+            val requiredPass = prefs.getString("pass_inspetor", "inspetor")
+            val input = EditText(this).apply {
+                inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            }
+            AlertDialog.Builder(this)
+                .setTitle("Senha Inspetor")
+                .setView(input)
+                .setPositiveButton("OK") { _, _ ->
+                    if (input.text.toString() == requiredPass) {
+                        startActivity(Intent(this, InspetorActivity::class.java))
+                    } else {
+                        Toast.makeText(this, "Senha incorreta", Toast.LENGTH_SHORT).show()
                     }
                 }
                 .setNegativeButton("Cancelar", null)
