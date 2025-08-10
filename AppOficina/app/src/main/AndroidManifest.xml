@@ -24,6 +24,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ChecklistPosto01Parte2Activity" android:exported="false" />
+        <activity android:name=".AdminConfigActivity" android:exported="false" />
+        <activity android:name=".InspetorActivity" android:exported="false" />
     </application>
 
 </manifest>
