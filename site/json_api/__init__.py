@@ -47,9 +47,20 @@ def listar_projetos():
             continue
     return jsonify({'projetos': projetos})
 
+
+
+@bp.route('/revisao', methods=['GET'])
+def listar_revisao():
+    """Return checklists whose answers diverge between departments."""
+    dir_path = os.path.join(BASE_DIR, 'Posto01_Oficina')
+    if not os.path.isdir(dir_path):
+        return jsonify([])
+    dados = find_mismatches(dir_path)
+    return jsonify(dados)
+
 # legacy alias
 bp.add_url_rule('/upload', view_func=salvar_checklist, methods=['POST'])
 
 # utilidades de mesclagem
-from .merge_checklists import merge_checklists, merge_directory
+from .merge_checklists import merge_checklists, merge_directory, find_mismatches
 

@@ -124,6 +124,50 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
     return merged
 
 
+def find_mismatches(directory: str) -> List[Dict[str, Any]]:
+    """Return merged checklists that have differing answers.
+
+    Looks for ``checklist_*.json`` files inside ``directory`` and checks each
+    item where both ``suprimento`` and ``produção`` answers are present but
+    differ. Only checklists containing at least one divergence are returned.
+    """
+
+    resultados: List[Dict[str, Any]] = []
+    files = [f for f in os.listdir(directory) if f.startswith("checklist_") and f.endswith(".json")]
+    for fname in files:
+        path = os.path.join(directory, fname)
+        try:
+            with open(path, "r", encoding="utf-8") as fp:
+                data = json.load(fp)
+        except Exception:
+            continue
+
+        divergencias: List[Dict[str, Any]] = []
+        for item in data.get("itens", []):
+            resp = item.get("respostas", {})
+            sup = resp.get("suprimento")
+            prod = resp.get("produção")
+            if sup is not None and prod is not None and sup != prod:
+                divergencias.append(
+                    {
+                        "numero": item.get("numero"),
+                        "pergunta": item.get("pergunta"),
+                        "suprimento": sup,
+                        "produção": prod,
+                    }
+                )
+        if divergencias:
+            resultados.append(
+                {
+                    "obra": data.get("obra", ""),
+                    "ano": data.get("ano", ""),
+                    "divergencias": divergencias,
+                }
+            )
+
+    return resultados
+
+
 def main() -> None:
     """Command-line interface for merging checklist JSON files."""
     import argparse
