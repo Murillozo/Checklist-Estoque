@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/edit_admin_user"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Usuário admin" />
+
+        <EditText
+            android:id="@+id/edit_admin_pass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha admin"
+            android:inputType="textPassword" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab02"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 02" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab03"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 03" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab04"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 04" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab05"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 05" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab06"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 06" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab06_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 06.1" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab07"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 07" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab08"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 08 IQE" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab08_teste"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 08 Teste" />
+
+        <EditText
+            android:id="@+id/edit_pass_tab09"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Senha Posto 09" />
+
+        <Button
+            android:id="@+id/button_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Salvar" />
+    </LinearLayout>
+</ScrollView>
