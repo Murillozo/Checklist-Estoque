@@ -49,3 +49,6 @@ def listar_projetos():
 # legacy alias
 bp.add_url_rule('/upload', view_func=salvar_checklist, methods=['POST'])
 
+# utilidades de mesclagem
+from .merge_checklists import merge_checklists, merge_directory
+
