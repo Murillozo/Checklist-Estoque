@@ -24,6 +24,7 @@ def salvar_checklist():
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     merge_directory(BASE_DIR)
+    move_matching_checklists(BASE_DIR)
 
     return jsonify({'caminho': file_path})
 
@@ -42,6 +43,29 @@ def listar_projetos():
                 'arquivo': nome,
                 'obra': data.get('obra', path.splitext(nome)[0]),
                 'ano': data.get('ano', '')
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto02/projects', methods=['GET'])
+def listar_posto02_projetos():
+    """Return obra/ano info for each checklist JSON file in Posto02_Oficina."""
+    dir_path = os.path.join(BASE_DIR, 'Posto02_Oficina')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
             })
         except Exception:
             continue
@@ -110,3 +134,4 @@ bp.add_url_rule('/upload', view_func=salvar_checklist, methods=['POST'])
 
 # utilidades de mesclagem
 from .merge_checklists import merge_checklists, merge_directory, find_mismatches
+from .merge_checklists import move_matching_checklists
