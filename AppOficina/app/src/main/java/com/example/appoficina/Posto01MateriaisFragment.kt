@@ -39,7 +39,8 @@ class Posto01MateriaisFragment : Fragment() {
                     conn.disconnect()
 
                     val projetos = JSONObject(response).optJSONArray("projetos") ?: JSONArray()
-                    requireActivity().runOnUiThread {
+                    if (!isAdded) return@Thread
+                    activity?.runOnUiThread {
                         listContainer.removeAllViews()
                         for (i in 0 until projetos.length()) {
                             val obj = projetos.getJSONObject(i)
@@ -73,8 +74,8 @@ class Posto01MateriaisFragment : Fragment() {
                     // tenta proximo endereco
                 }
             }
-            if (!loaded) {
-                requireActivity().runOnUiThread {
+            if (!loaded && isAdded) {
+                activity?.runOnUiThread {
                     listContainer.removeAllViews()
                     val tv = TextView(requireContext())
                     tv.text = "Não foi possível carregar os projetos"
