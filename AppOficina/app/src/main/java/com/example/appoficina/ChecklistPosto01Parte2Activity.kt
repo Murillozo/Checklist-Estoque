@@ -19,25 +19,45 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val ano = intent.getStringExtra("ano") ?: ""
         val producao = intent.getStringExtra("producao") ?: ""
 
-        val pairs = (55..74).map { i ->
+        val triplets = (55..74).map { i ->
             val cId = resources.getIdentifier("cbQ${i}C", "id", packageName)
             val ncId = resources.getIdentifier("cbQ${i}NC", "id", packageName)
-            findViewById<CheckBox>(cId) to findViewById<CheckBox>(ncId)
+            val naId = resources.getIdentifier("cbQ${i}NA", "id", packageName)
+            Triple(
+                findViewById<CheckBox>(cId),
+                findViewById<CheckBox>(ncId),
+                findViewById<CheckBox>(naId),
+            )
         }
 
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto01Parte2)
 
         fun updateButtonState() {
-            concluirButton.isEnabled = pairs.all { (c, nc) -> c.isChecked || nc.isChecked }
+            concluirButton.isEnabled = triplets.all { (c, nc, na) ->
+                c.isChecked || nc.isChecked || na.isChecked
+            }
         }
 
-        pairs.forEach { (c, nc) ->
+        triplets.forEach { (c, nc, na) ->
             c.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) nc.isChecked = false
+                if (isChecked) {
+                    nc.isChecked = false
+                    na.isChecked = false
+                }
                 updateButtonState()
             }
             nc.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) c.isChecked = false
+                if (isChecked) {
+                    c.isChecked = false
+                    na.isChecked = false
+                }
+                updateButtonState()
+            }
+            na.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    c.isChecked = false
+                    nc.isChecked = false
+                }
                 updateButtonState()
             }
         }
@@ -69,7 +89,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
 
         concluirButton.setOnClickListener {
             val itens = JSONArray()
-            pairs.forEachIndexed { idx, (c, nc) ->
+            triplets.forEachIndexed { idx, (c, nc, na) ->
                 val obj = JSONObject()
                 obj.put("numero", 55 + idx)
                 obj.put("pergunta", perguntas[idx])
@@ -78,6 +98,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                     when {
                         c.isChecked -> "C"
                         nc.isChecked -> "NC"
+                        na.isChecked -> "NA"
                         else -> ""
                     }
                 )

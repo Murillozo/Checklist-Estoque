@@ -51,15 +51,36 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
         val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
-        val pairs = (1..54).map { i ->
+        val triplets = (1..54).map { i ->
             val c = resources.getIdentifier("cbQ${i}C", "id", packageName)
             val nc = resources.getIdentifier("cbQ${i}NC", "id", packageName)
-            findViewById<CheckBox>(c) to findViewById<CheckBox>(nc)
+            val na = resources.getIdentifier("cbQ${i}NA", "id", packageName)
+            Triple(
+                findViewById<CheckBox>(c),
+                findViewById<CheckBox>(nc),
+                findViewById<CheckBox>(na),
+            )
         }
 
-        pairs.forEach { (cbC, cbNC) ->
-            cbC.setOnCheckedChangeListener { _, isChecked -> if (isChecked) cbNC.isChecked = false }
-            cbNC.setOnCheckedChangeListener { _, isChecked -> if (isChecked) cbC.isChecked = false }
+        triplets.forEach { (cbC, cbNC, cbNA) ->
+            cbC.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    cbNC.isChecked = false
+                    cbNA.isChecked = false
+                }
+            }
+            cbNC.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    cbC.isChecked = false
+                    cbNA.isChecked = false
+                }
+            }
+            cbNA.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    cbC.isChecked = false
+                    cbNC.isChecked = false
+                }
+            }
         }
 
         val questions = listOf(
@@ -120,10 +141,11 @@ class ChecklistPosto01Activity : AppCompatActivity() {
         )
 
         findViewById<Button>(R.id.btnConcluirPosto01).setOnClickListener {
-            val respostas = pairs.mapIndexed { index, (cbC, cbNC) ->
+            val respostas = triplets.mapIndexed { index, (cbC, cbNC, cbNA) ->
                 val marcados = mutableListOf<String>()
                 if (cbC.isChecked) marcados.add("C")
                 if (cbNC.isChecked) marcados.add("NC")
+                if (cbNA.isChecked) marcados.add("NA")
                 if (marcados.isEmpty()) {
                     Toast.makeText(this, "Selecione uma opção em: ${questions[index]}", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
