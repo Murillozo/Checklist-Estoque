@@ -36,6 +36,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ55NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -57,6 +63,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ56NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -80,6 +92,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ57NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -101,6 +119,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ58NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -132,6 +156,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ59NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -153,6 +183,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ60NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -176,6 +212,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ61NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -197,6 +239,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ62NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -228,6 +276,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ63NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -249,6 +303,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ64NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -272,6 +332,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ65NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -293,6 +359,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ66NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -324,6 +396,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ67NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -345,6 +423,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ68NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -368,6 +452,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ69NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -389,6 +479,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ70NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -420,6 +516,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ71NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -441,6 +543,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ72NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
@@ -464,6 +572,12 @@
                 android:layout_height="wrap_content"
                 android:text="N.C"
                 android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ73NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
         </LinearLayout>
 
         <TextView
@@ -485,6 +599,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ74NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
