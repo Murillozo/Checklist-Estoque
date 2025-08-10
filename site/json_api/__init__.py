@@ -48,6 +48,7 @@ def listar_projetos():
     return jsonify({'projetos': projetos})
 
 
+
 @bp.route('/revisao', methods=['GET'])
 def listar_revisao():
     """Return checklists whose answers diverge between departments."""
