@@ -1,0 +1,7 @@
+# Ignore generated checklist JSON files
+site/json_api/*.json
+site/json_api/Posto01_Oficina/*.json
+
+# Python cache
+__pycache__/
+*.pyc
