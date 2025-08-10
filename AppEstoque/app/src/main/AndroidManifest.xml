@@ -27,6 +27,7 @@
         <activity android:name=".checklist.PendenciasActivity"/>
         <activity android:name=".checklist.ChecklistPosto01Activity"/>
         <activity android:name=".checklist.ChecklistPosto01Parte2Activity"/>
+        <activity android:name=".RevisaoDetailActivity"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
