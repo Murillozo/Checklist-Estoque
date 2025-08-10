@@ -116,3 +116,32 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
             json.dump(result, fp, ensure_ascii=False, indent=2)
         merged.append(result)
     return merged
+
+
+def main() -> None:
+    """Command-line interface for merging checklist JSON files."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Merge suprimento and produção checklists found in a directory"
+    )
+    parser.add_argument(
+        "base_dir",
+        nargs="?",
+        default=".",
+        help="Directory containing checklist JSON files",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output_dir",
+        default=None,
+        help="Directory to write merged checklists",
+    )
+    args = parser.parse_args()
+    merged = merge_directory(args.base_dir, args.output_dir)
+    print(f"Merged {len(merged)} checklist(s)")
+
+
+if __name__ == "__main__":
+    main()
