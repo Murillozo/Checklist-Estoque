@@ -1,5 +1,6 @@
 package com.example.apestoque.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.apestoque.R
+import com.example.apestoque.RevisaoDetailActivity
 import com.example.apestoque.adapter.RevisaoAdapter
 import com.example.apestoque.data.JsonNetworkModule
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +51,11 @@ class RevisaoFragment : Fragment() {
                 } else {
                     tvMsg.visibility = View.GONE
                     rv.visibility = View.VISIBLE
-                    rv.adapter = RevisaoAdapter(lista)
+                    rv.adapter = RevisaoAdapter(lista) { selecionado ->
+                        val intent = Intent(requireContext(), RevisaoDetailActivity::class.java)
+                        intent.putExtra("revisao", selecionado)
+                        startActivity(intent)
+                    }
                 }
             } catch (e: Exception) {
                 tvMsg.text = "Erro ao carregar"

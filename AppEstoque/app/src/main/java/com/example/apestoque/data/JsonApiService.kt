@@ -12,4 +12,9 @@ interface JsonApiService {
 
     @GET("revisao")
     suspend fun listarRevisao(): List<RevisaoChecklist>
+
+    @POST("revisao/reenviar")
+    suspend fun reenviarChecklist(
+        @Body body: ReenvioRequest
+    ): ChecklistResponse
 }

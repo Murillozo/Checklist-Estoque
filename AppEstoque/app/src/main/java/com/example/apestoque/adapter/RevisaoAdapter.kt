@@ -8,8 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.apestoque.R
 import com.example.apestoque.data.RevisaoChecklist
 
-class RevisaoAdapter(private val itens: List<RevisaoChecklist>) :
-    RecyclerView.Adapter<RevisaoAdapter.VH>() {
+class RevisaoAdapter(
+    private val itens: List<RevisaoChecklist>,
+    private val onClick: (RevisaoChecklist) -> Unit
+) : RecyclerView.Adapter<RevisaoAdapter.VH>() {
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tv: TextView = view.findViewById(R.id.tvRevisao)
@@ -24,12 +26,7 @@ class RevisaoAdapter(private val itens: List<RevisaoChecklist>) :
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = itens[position]
-        val lines = buildString {
-            append("${item.obra} (${item.ano})")
-            for (div in item.divergencias) {
-                append("\nItem ${div.numero}: S=${div.suprimento?.joinToString() ?: "-"} P=${div.producao?.joinToString() ?: "-"}")
-            }
-        }
-        holder.tv.text = lines
+        holder.tv.text = "${item.obra} (${item.ano}) - ${item.divergencias.size} divergência(s)"
+        holder.itemView.setOnClickListener { onClick(item) }
     }
 }
