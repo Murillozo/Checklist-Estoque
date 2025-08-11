@@ -33,6 +33,12 @@ class MainActivity : AppCompatActivity() {
             prefs.edit().putString("operador_suprimentos", it.toString()).apply()
         }
 
+        val etApiIp = findViewById<EditText>(R.id.etApiIp)
+        etApiIp.setText(prefs.getString("api_ip", "192.168.0.135"))
+        etApiIp.doAfterTextChanged {
+            prefs.edit().putString("api_ip", it.toString()).apply()
+        }
+
         // Views
         val swipe = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
         val pager = findViewById<ViewPager2>(R.id.viewPager)

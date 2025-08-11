@@ -35,7 +35,7 @@ class RevisaoDetailActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     withContext(Dispatchers.IO) {
-                        JsonNetworkModule.api.reenviarChecklist(
+                        JsonNetworkModule.api(this@RevisaoDetailActivity).reenviarChecklist(
                             ReenvioRequest(checklist.obra, checklist.ano)
                         )
                     }

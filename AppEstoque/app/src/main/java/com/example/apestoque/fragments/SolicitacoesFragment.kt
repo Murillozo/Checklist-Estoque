@@ -101,7 +101,7 @@ class SolicitacoesFragment : Fragment() {
             try {
                 // Requisição em IO
                 val lista: List<Solicitacao> = withContext(Dispatchers.IO) {
-                    NetworkModule.api.listarSolicitacoes()
+                    NetworkModule.api(requireContext()).listarSolicitacoes()
                 }
 
                 val pendentes = lista.filter { it.status != "aprovado" && it.pendencias == null }

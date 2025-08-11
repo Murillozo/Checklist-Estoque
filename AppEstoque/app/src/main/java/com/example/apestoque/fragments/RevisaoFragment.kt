@@ -43,7 +43,7 @@ class RevisaoFragment : Fragment() {
         swipe.isRefreshing = true
         lifecycleScope.launch {
             try {
-                val lista = withContext(Dispatchers.IO) { JsonNetworkModule.api.listarRevisao() }
+                val lista = withContext(Dispatchers.IO) { JsonNetworkModule.api(requireContext()).listarRevisao() }
                 if (lista.isEmpty()) {
                     tvMsg.text = "Nenhuma divergência."
                     tvMsg.visibility = View.VISIBLE
