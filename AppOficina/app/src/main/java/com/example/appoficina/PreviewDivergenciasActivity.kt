@@ -52,6 +52,7 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                         "posto03_pre" -> ChecklistPosto03PreActivity::class.java to "montador"
                         "posto04_barramento" -> ChecklistPosto04BarramentoActivity::class.java to "montador"
                         "posto05_cablagem" -> ChecklistPosto05CablagemActivity::class.java to "montador"
+                        "posto06_pre" -> ChecklistPosto06PreActivity::class.java to "montador"
                         else -> ChecklistPosto02Activity::class.java to "producao"
                     }
                     val intent = Intent(this, clazz)

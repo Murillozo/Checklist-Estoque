@@ -1,5 +1,6 @@
 package com.example.appoficina
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -25,53 +26,48 @@ class Posto04BarramentoInspetorFragment : Fragment() {
         val listContainer: LinearLayout = view.findViewById(R.id.projetos_container)
 
         Thread {
-            val urls = listOf(
-                "http://10.0.2.2:5000/json_api/posto04/insp/projects",
-                "http://192.168.0.135:5000/json_api/posto04/insp/projects",
-            )
+            val ip = requireContext().getSharedPreferences("config", Context.MODE_PRIVATE)
+                .getString("api_ip", "192.168.0.135")
+            val address = "http://$ip:5000/json_api/posto04/insp/projects"
             var loaded = false
-            for (address in urls) {
-                try {
-                    val url = URL(address)
-                    val conn = url.openConnection() as HttpURLConnection
-                    val response = conn.inputStream.bufferedReader().use { it.readText() }
-                    conn.disconnect()
+            try {
+                val url = URL(address)
+                val conn = url.openConnection() as HttpURLConnection
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                conn.disconnect()
 
-                    val projetos = JSONObject(response).optJSONArray("projetos") ?: JSONArray()
-                    if (!isAdded) return@Thread
-                    activity?.runOnUiThread {
-                        listContainer.removeAllViews()
-                        for (i in 0 until projetos.length()) {
-                            val obj = projetos.getJSONObject(i)
-                            val obra = obj.optString("obra")
-                            val ano = obj.optString("ano")
-                            val tv = TextView(requireContext())
-                            tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
-                            tv.setPadding(0, 0, 0, 16)
-                            tv.setOnClickListener {
-                                val input = EditText(requireContext())
-                                AlertDialog.Builder(requireContext())
-                                    .setTitle("Nome do inspetor")
-                                    .setView(input)
-                                    .setPositiveButton("OK") { _, _ ->
-                                        val nome = input.text.toString()
-                                        val intent = Intent(requireContext(), ChecklistPosto04BarramentoInspActivity::class.java)
-                                        intent.putExtra("obra", obra)
-                                        intent.putExtra("ano", ano)
-                                        intent.putExtra("inspetor", nome)
-                                        startActivity(intent)
-                                    }
-                                    .setNegativeButton("Cancelar", null)
-                                    .show()
-                            }
-                            listContainer.addView(tv)
+                val projetos = JSONObject(response).optJSONArray("projetos") ?: JSONArray()
+                if (!isAdded) return@Thread
+                activity?.runOnUiThread {
+                    listContainer.removeAllViews()
+                    for (i in 0 until projetos.length()) {
+                        val obj = projetos.getJSONObject(i)
+                        val obra = obj.optString("obra")
+                        val ano = obj.optString("ano")
+                        val tv = TextView(requireContext())
+                        tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
+                        tv.setPadding(0, 0, 0, 16)
+                        tv.setOnClickListener {
+                            val input = EditText(requireContext())
+                            AlertDialog.Builder(requireContext())
+                                .setTitle("Nome do inspetor")
+                                .setView(input)
+                                .setPositiveButton("OK") { _, _ ->
+                                    val nome = input.text.toString()
+                                    val intent = Intent(requireContext(), ChecklistPosto04BarramentoInspActivity::class.java)
+                                    intent.putExtra("obra", obra)
+                                    intent.putExtra("ano", ano)
+                                    intent.putExtra("inspetor", nome)
+                                    startActivity(intent)
+                                }
+                                .setNegativeButton("Cancelar", null)
+                                .show()
                         }
+                        listContainer.addView(tv)
                     }
-                    loaded = true
-                    break
-                } catch (_: Exception) {
-                    // tenta proximo endereço
                 }
+                loaded = true
+            } catch (_: Exception) {
             }
             if (!loaded && isAdded) {
                 activity?.runOnUiThread {

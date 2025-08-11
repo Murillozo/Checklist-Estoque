@@ -129,24 +129,19 @@ class ChecklistPosto03PreInspActivity : AppCompatActivity() {
     }
 
     private fun enviarChecklist(json: JSONObject) {
-        val urls = listOf(
-            "http://10.0.2.2:5000/json_api/posto03_pre/insp/upload",
-            "http://192.168.0.135:5000/json_api/posto03_pre/insp/upload",
-        )
-        for (addr in urls) {
-            try {
-                val url = URL(addr)
-                val conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "POST"
-                conn.doOutput = true
-                conn.setRequestProperty("Content-Type", "application/json")
-                OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
-                val code = conn.responseCode
-                conn.disconnect()
-                if (code in 200..299) break
-            } catch (_: Exception) {
-                // tenta próximo endereço
-            }
+        val ip = getSharedPreferences("config", MODE_PRIVATE)
+            .getString("api_ip", "192.168.0.135")
+        val address = "http://$ip:5000/json_api/posto03_pre/insp/upload"
+        try {
+            val url = URL(address)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "application/json")
+            OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
+            conn.responseCode
+            conn.disconnect()
+        } catch (_: Exception) {
         }
     }
 }
