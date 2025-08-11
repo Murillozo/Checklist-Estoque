@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             Posto01MateriaisFragment(),
             Posto02OficinaFragment(),
             Posto03PreMontagemFragment(),
-            SimpleTextFragment.newInstance("04 - POSTO - 04 BARRAMENTO"),
+            Posto04BarramentoFragment(),
             SimpleTextFragment.newInstance("05 - POSTO - 05 CABLAGEM - 01"),
             SimpleTextFragment.newInstance("06 - POSTO - 06 PRÉ-MONTAGEM - 02"),
             SimpleTextFragment.newInstance("06.1 - POSTO - 06 CABLAGEM - 02"),

@@ -12,14 +12,14 @@ class InspetorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inspetor)
-
+        
         val viewPager: ViewPager2 = findViewById(R.id.view_pager)
         val tabLayout: TabLayout = findViewById(R.id.tab_layout)
 
         val fragments: List<Fragment> = listOf(
             Posto02InspetorFragment(),
             Posto03PreMontagemInspetorFragment(),
-            SimpleTextFragment.newInstance("04 - POSTO - 04 BARRAMENTO"),
+            Posto04BarramentoInspetorFragment(),
             SimpleTextFragment.newInstance("05 - POSTO - 05 CABLAGEM - 01"),
             SimpleTextFragment.newInstance("06 - POSTO - 06 PRÉ-MONTAGEM - 02"),
             SimpleTextFragment.newInstance("06.1 - POSTO - 06 CABLAGEM - 02"),

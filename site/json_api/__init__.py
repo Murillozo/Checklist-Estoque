@@ -210,6 +210,171 @@ def posto02_insp_upload():
     return jsonify({'caminho': dest_path, 'divergencias': divergencias})
 
 
+@bp.route('/posto04/projects', methods=['GET'])
+def listar_posto04_projetos():
+    """List projects awaiting Barramento production."""
+    dir_path = os.path.join(BASE_DIR, 'Posto04_Barramento')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto04/checklist', methods=['GET'])
+def obter_posto04_checklist():
+    """Return full checklist data for a given obra in Barramento."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'Posto04_Barramento', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+
+@bp.route('/posto04/upload', methods=['POST'])
+def posto04_upload():
+    """Append Barramento checklist and move it for inspection."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(BASE_DIR, 'Posto04_Barramento', f'checklist_{obra}.json')
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    itens = []
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        itens.append({
+            'numero': numero,
+            'pergunta': pergunta,
+            'respostas': {'montador': resposta},
+        })
+
+    base['posto04_barramento'] = {
+        'montador': data.get('montador'),
+        'itens': itens,
+    }
+
+    insp_dir = os.path.join(BASE_DIR, 'Posto04_Barramento', 'Posto04_Barramento_Inspetor')
+    os.makedirs(insp_dir, exist_ok=True)
+    dest_path = os.path.join(insp_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path})
+
+
+@bp.route('/posto04/insp/projects', methods=['GET'])
+def listar_posto04_insp_proj():
+    """List projects awaiting Barramento inspection."""
+    dir_path = os.path.join(BASE_DIR, 'Posto04_Barramento', 'Posto04_Barramento_Inspetor')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto04/insp/upload', methods=['POST'])
+def posto04_insp_upload():
+    """Process inspector answers and advance or return checklist."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(
+        BASE_DIR, 'Posto04_Barramento', 'Posto04_Barramento_Inspetor', f'checklist_{obra}.json'
+    )
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    prod_itens = {
+        item.get('numero'): item
+        for item in base.get('posto04_barramento', {}).get('itens', [])
+    }
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        entry = prod_itens.setdefault(numero, {'numero': numero, 'pergunta': pergunta, 'respostas': {}})
+        entry['pergunta'] = entry.get('pergunta') or pergunta
+        entry.setdefault('respostas', {})['inspetor'] = resposta
+
+    divergencias = []
+    for entry in prod_itens.values():
+        resp_mont = entry.get('respostas', {}).get('montador')
+        resp_insp = entry.get('respostas', {}).get('inspetor')
+        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+            divergencias.append({
+                'numero': entry.get('numero'),
+                'pergunta': entry.get('pergunta'),
+                'montador': resp_mont,
+                'inspetor': resp_insp,
+            })
+
+    base['posto04_barramento']['inspetor'] = data.get('inspetor')
+    base['posto04_barramento']['itens'] = list(prod_itens.values())
+    if divergencias:
+        base['posto04_barramento']['divergencias'] = divergencias
+        dest_dir = os.path.join(BASE_DIR, 'Posto04_Barramento')
+    else:
+        base['posto04_barramento']['divergencias'] = []
+        dest_dir = os.path.join(BASE_DIR, 'Posto06_Pre_montagem_02')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path, 'divergencias': divergencias})
+
 @bp.route('/posto03_pre/projects', methods=['GET'])
 def listar_posto03_pre_projetos():
     """List projects awaiting pre-montagem 01 production."""
