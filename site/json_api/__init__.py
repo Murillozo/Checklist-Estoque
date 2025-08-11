@@ -381,6 +381,7 @@ def posto06_cab2_insp_upload():
     return jsonify({'caminho': dest_path, 'divergencias': divergencias})
 
 
+
 @bp.route('/posto05/projects', methods=['GET'])
 def listar_posto05_projetos():
     """List projects awaiting Cablagem 01 production."""
@@ -488,6 +489,7 @@ def listar_posto05_insp_proj():
 
 
 @bp.route('/posto05/insp/upload', methods=['POST'])
+
 def posto05_insp_upload():
     """Process inspector answers and advance or return checklist."""
     data = request.get_json() or {}
@@ -720,6 +722,7 @@ def posto06_pre_insp_upload():
     except OSError:
         pass
     return jsonify({'caminho': dest_path, 'divergencias': divergencias})
+
 
 
 @bp.route('/posto04/projects', methods=['GET'])
