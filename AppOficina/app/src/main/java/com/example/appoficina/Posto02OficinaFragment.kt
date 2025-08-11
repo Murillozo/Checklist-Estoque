@@ -79,6 +79,7 @@ class Posto02OficinaFragment : Fragment() {
                                             intent.putExtra("obra", obra)
                                             intent.putExtra("ano", ano)
                                             intent.putExtra("divergencias", divergencias.toString())
+                                            intent.putExtra("tipo", "posto02")
                                             startActivity(intent)
                                         } else {
                                             val input = EditText(requireContext())

@@ -1,6 +1,5 @@
 package com.example.appoficina
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -26,10 +25,8 @@ class Posto03PreMontagemInspetorFragment : Fragment() {
         val listContainer: LinearLayout = view.findViewById(R.id.projetos_container)
 
         Thread {
-            val ip = requireContext().getSharedPreferences("config", Context.MODE_PRIVATE)
-                .getString("api_ip", "192.168.0.135")
             val urls = listOf(
-                "http://$ip:5000/json_api/posto03_pre/insp/projects",
+                "http://192.168.0.151:5000/json_api/posto03_pre/insp/projects",
             )
             var loaded = false
             for (address in urls) {

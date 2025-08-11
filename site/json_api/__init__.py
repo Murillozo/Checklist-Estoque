@@ -374,7 +374,7 @@ def posto04_insp_upload():
     except OSError:
         pass
     return jsonify({'caminho': dest_path, 'divergencias': divergencias})
-
+  
 @bp.route('/posto03_pre/projects', methods=['GET'])
 def listar_posto03_pre_projetos():
     """List projects awaiting pre-montagem 01 production."""

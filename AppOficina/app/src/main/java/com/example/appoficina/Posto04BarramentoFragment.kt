@@ -1,6 +1,5 @@
 package com.example.appoficina
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -27,10 +26,10 @@ class Posto04BarramentoFragment : Fragment() {
         val listContainer: LinearLayout = view.findViewById(R.id.projetos_container)
 
         Thread {
-            val ip = requireContext().getSharedPreferences("config", Context.MODE_PRIVATE)
-                .getString("api_ip", "192.168.0.135")
             val urls = listOf(
-                "http://$ip:5000/json_api/posto04/projects",
+                "http://10.0.2.2:5000/json_api/posto04/projects",
+                "http://192.168.0.151:5000/json_api/posto04/projects",
+                "http://192.168.0.135:5000/json_api/posto04/projects",
             )
             var loaded = false
             for (address in urls) {
@@ -53,9 +52,11 @@ class Posto04BarramentoFragment : Fragment() {
                             tv.setPadding(0, 0, 0, 16)
                             tv.setOnClickListener {
                                 Thread {
-                                    val urlsChecklist = listOf(
-                                        "http://$ip:5000/json_api/posto04/checklist?obra=" +
+                                 val urlsChecklist = listOf(
+                              
+                                        "http://192.168.0.151:5000/json_api/posto04/checklist?obra=" +
                                             URLEncoder.encode(obra, "UTF-8"),
+                                  
                                     )
                                     var divergencias: JSONArray? = null
                                     var found = false
@@ -79,6 +80,7 @@ class Posto04BarramentoFragment : Fragment() {
                                             intent.putExtra("obra", obra)
                                             intent.putExtra("ano", ano)
                                             intent.putExtra("divergencias", divergencias.toString())
+                                            intent.putExtra("tipo", "posto04_barramento")
                                             startActivity(intent)
                                         } else {
                                             val input = EditText(requireContext())

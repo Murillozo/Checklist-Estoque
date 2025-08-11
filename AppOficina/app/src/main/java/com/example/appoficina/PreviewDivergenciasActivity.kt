@@ -18,6 +18,7 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
         val divergenciasStr = intent.getStringExtra("divergencias") ?: "[]"
+        val tipo = intent.getStringExtra("tipo") ?: "posto02"
 
         val divergencias = try { JSONArray(divergenciasStr) } catch (_: Exception) { JSONArray() }
         val container = findViewById<LinearLayout>(R.id.divergencias_container)
@@ -37,15 +38,24 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnCorrigir).setOnClickListener {
             val input = EditText(this)
+            val titulo = when (tipo) {
+                "posto02" -> "Nome do conferente da produção"
+                else -> "Nome do montador"
+            }
             AlertDialog.Builder(this)
-                .setTitle("Nome do conferente da produção")
+                .setTitle(titulo)
                 .setView(input)
                 .setPositiveButton("OK") { _, _ ->
-                    val producao = input.text.toString()
-                    val intent = Intent(this, ChecklistPosto02Activity::class.java)
+                    val nome = input.text.toString()
+                    val (clazz, extraName) = when (tipo) {
+                        "posto03_pre" -> ChecklistPosto03PreActivity::class.java to "montador"
+                        "posto04_barramento" -> ChecklistPosto04BarramentoActivity::class.java to "montador"
+                        else -> ChecklistPosto02Activity::class.java to "producao"
+                    }
+                    val intent = Intent(this, clazz)
                     intent.putExtra("obra", obra)
                     intent.putExtra("ano", ano)
-                    intent.putExtra("producao", producao)
+                    intent.putExtra(extraName, nome)
                     startActivity(intent)
                     finish()
                 }
