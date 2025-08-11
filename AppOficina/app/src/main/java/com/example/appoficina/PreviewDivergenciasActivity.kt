@@ -18,7 +18,7 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
         val divergenciasStr = intent.getStringExtra("divergencias") ?: "[]"
-        val tipo = intent.getStringExtra("tipo") ?: "posto02"
+        val tipo = intent.getStringExtra("tipo")?.trim()?.lowercase() ?: "posto02"
 
         val divergencias = try { JSONArray(divergenciasStr) } catch (_: Exception) { JSONArray() }
         val container = findViewById<LinearLayout>(R.id.divergencias_container)
@@ -48,6 +48,7 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                 .setPositiveButton("OK") { _, _ ->
                     val nome = input.text.toString()
                     val (clazz, extraName) = when (tipo) {
+                        "posto02" -> ChecklistPosto02Activity::class.java to "producao"
                         "posto03_pre" -> ChecklistPosto03PreActivity::class.java to "montador"
                         "posto04_barramento" -> ChecklistPosto04BarramentoActivity::class.java to "montador"
                         else -> ChecklistPosto02Activity::class.java to "producao"
