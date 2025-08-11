@@ -16,7 +16,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-class Posto02OficinaFragment : Fragment() {
+class Posto04BarramentoFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -27,9 +27,9 @@ class Posto02OficinaFragment : Fragment() {
 
         Thread {
             val urls = listOf(
-                "http://10.0.2.2:5000/json_api/posto02/projects",
-                "http://192.168.0.151:5000/json_api/posto02/projects",
-                "http://192.168.0.135:5000/json_api/posto02/projects",
+                "http://10.0.2.2:5000/json_api/posto04/projects",
+                "http://192.168.0.151:5000/json_api/posto04/projects",
+                "http://192.168.0.135:5000/json_api/posto04/projects",
             )
             var loaded = false
             for (address in urls) {
@@ -53,11 +53,11 @@ class Posto02OficinaFragment : Fragment() {
                             tv.setOnClickListener {
                                 Thread {
                                     val urlsChecklist = listOf(
-                                        "http://10.0.2.2:5000/json_api/posto02/checklist?obra=" +
+                                        "http://10.0.2.2:5000/json_api/posto04/checklist?obra=" +
                                             URLEncoder.encode(obra, "UTF-8"),
-                                        "http://192.168.0.151:5000/json_api/posto02/checklist?obra=" +
+                                        "http://192.168.0.151:5000/json_api/posto04/checklist?obra=" +
                                             URLEncoder.encode(obra, "UTF-8"),
-                                        "http://192.168.0.135:5000/json_api/posto02/checklist?obra=" +
+                                        "http://192.168.0.135:5000/json_api/posto04/checklist?obra=" +
                                             URLEncoder.encode(obra, "UTF-8"),
                                     )
                                     var divergencias: JSONArray? = null
@@ -69,7 +69,7 @@ class Posto02OficinaFragment : Fragment() {
                                             val response = conn.inputStream.bufferedReader().use { it.readText() }
                                             conn.disconnect()
                                             val json = JSONObject(response)
-                                            divergencias = json.optJSONObject("posto02")?.optJSONArray("divergencias")
+                                            divergencias = json.optJSONObject("posto04_barramento")?.optJSONArray("divergencias")
                                             found = true
                                             break
                                         } catch (_: Exception) {
@@ -82,19 +82,19 @@ class Posto02OficinaFragment : Fragment() {
                                             intent.putExtra("obra", obra)
                                             intent.putExtra("ano", ano)
                                             intent.putExtra("divergencias", divergencias.toString())
-                                            intent.putExtra("tipo", "posto02")
+                                            intent.putExtra("tipo", "posto04_barramento")
                                             startActivity(intent)
                                         } else {
                                             val input = EditText(requireContext())
                                             AlertDialog.Builder(requireContext())
-                                                .setTitle("Nome do conferente da produção")
+                                                .setTitle("Nome do montador")
                                                 .setView(input)
                                                 .setPositiveButton("OK") { _, _ ->
-                                                    val producao = input.text.toString()
-                                                    val intent = Intent(requireContext(), ChecklistPosto02Activity::class.java)
+                                                    val nome = input.text.toString()
+                                                    val intent = Intent(requireContext(), ChecklistPosto04BarramentoActivity::class.java)
                                                     intent.putExtra("obra", obra)
                                                     intent.putExtra("ano", ano)
-                                                    intent.putExtra("producao", producao)
+                                                    intent.putExtra("montador", nome)
                                                     startActivity(intent)
                                                 }
                                                 .setNegativeButton("Cancelar", null)
@@ -125,4 +125,3 @@ class Posto02OficinaFragment : Fragment() {
         return view
     }
 }
-
