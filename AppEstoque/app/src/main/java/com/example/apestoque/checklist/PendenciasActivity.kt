@@ -82,7 +82,7 @@ class PendenciasActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     withContext(Dispatchers.IO) {
-                        NetworkModule.api.marcarCompras(id, ComprasRequest(atualizados))
+                        NetworkModule.api(this@PendenciasActivity).marcarCompras(id, ComprasRequest(atualizados))
                     }
                     setResult(Activity.RESULT_OK)
                     finish()

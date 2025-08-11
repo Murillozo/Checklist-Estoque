@@ -166,11 +166,11 @@ class ChecklistPosto01Activity : AppCompatActivity() {
                     try {
                         withContext(Dispatchers.IO) {
                             val request = ChecklistRequest(obra, ano, suprimento, itensChecklist, materiais)
-                            JsonNetworkModule.api.salvarChecklist(request)
+                            JsonNetworkModule.api(this@ChecklistPosto01Activity).salvarChecklist(request)
                             if (pendentes == null) {
-                                NetworkModule.api.aprovarSolicitacao(id)
+                                NetworkModule.api(this@ChecklistPosto01Activity).aprovarSolicitacao(id)
                             } else {
-                                NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
+                                NetworkModule.api(this@ChecklistPosto01Activity).marcarCompras(id, ComprasRequest(pendentes))
                             }
                         }
                         Toast.makeText(this@ChecklistPosto01Activity, "MATERIAL INCOMPLETO", Toast.LENGTH_LONG).show()

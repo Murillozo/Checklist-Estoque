@@ -23,6 +23,12 @@
             android:inputType="textPassword" />
 
         <EditText
+            android:id="@+id/edit_api_ip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="IP da API" />
+
+        <EditText
             android:id="@+id/edit_pass_inspetor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

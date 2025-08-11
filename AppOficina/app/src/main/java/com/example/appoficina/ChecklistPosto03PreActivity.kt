@@ -1,5 +1,6 @@
 package com.example.appoficina
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
@@ -129,10 +130,10 @@ class ChecklistPosto03PreActivity : AppCompatActivity() {
     }
 
     private fun enviarChecklist(json: JSONObject) {
+        val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
+            .getString("api_ip", "192.168.0.135")
         val urls = listOf(
-            "http://10.0.2.2:5000/json_api/posto03_pre/upload",
-            "http://192.168.0.151:5000/json_api/posto03_pre/upload",
-            "http://192.168.0.135:5000/json_api/posto03_pre/upload",
+            "http://$ip:5000/json_api/posto03_pre/upload",
         )
         for (addr in urls) {
             try {

@@ -1,5 +1,6 @@
 package com.example.appoficina
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -26,10 +27,10 @@ class Posto02OficinaFragment : Fragment() {
         val listContainer: LinearLayout = view.findViewById(R.id.projetos_container)
 
         Thread {
+            val ip = requireContext().getSharedPreferences("config", Context.MODE_PRIVATE)
+                .getString("api_ip", "192.168.0.135")
             val urls = listOf(
-                "http://10.0.2.2:5000/json_api/posto02/projects",
-                "http://192.168.0.151:5000/json_api/posto02/projects",
-                "http://192.168.0.135:5000/json_api/posto02/projects",
+                "http://$ip:5000/json_api/posto02/projects",
             )
             var loaded = false
             for (address in urls) {
@@ -53,11 +54,7 @@ class Posto02OficinaFragment : Fragment() {
                             tv.setOnClickListener {
                                 Thread {
                                     val urlsChecklist = listOf(
-                                        "http://10.0.2.2:5000/json_api/posto02/checklist?obra=" +
-                                            URLEncoder.encode(obra, "UTF-8"),
-                                        "http://192.168.0.151:5000/json_api/posto02/checklist?obra=" +
-                                            URLEncoder.encode(obra, "UTF-8"),
-                                        "http://192.168.0.135:5000/json_api/posto02/checklist?obra=" +
+                                        "http://$ip:5000/json_api/posto02/checklist?obra=" +
                                             URLEncoder.encode(obra, "UTF-8"),
                                     )
                                     var divergencias: JSONArray? = null
