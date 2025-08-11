@@ -119,7 +119,7 @@ class ChecklistPosto04BarramentoActivity : AppCompatActivity() {
     private fun enviarChecklist(json: JSONObject) {
         val urls = listOf(
             "http://192.168.0.151:5000/json_api/posto04/upload",
-!!        )
+        )
         for (addr in urls) {
             try {
                 val url = URL(addr)
