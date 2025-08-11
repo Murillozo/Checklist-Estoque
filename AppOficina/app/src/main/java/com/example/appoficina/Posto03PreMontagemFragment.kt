@@ -1,5 +1,6 @@
 package com.example.appoficina
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -26,8 +27,10 @@ class Posto03PreMontagemFragment : Fragment() {
         val listContainer: LinearLayout = view.findViewById(R.id.projetos_container)
 
         Thread {
+            val ip = requireContext().getSharedPreferences("config", Context.MODE_PRIVATE)
+                .getString("api_ip", "192.168.0.135")
             val urls = listOf(
-                "http://192.168.0.151:5000/json_api/posto03_pre/projects",
+                "http://$ip:5000/json_api/posto03_pre/projects",
             )
             var loaded = false
             for (address in urls) {
@@ -51,7 +54,7 @@ class Posto03PreMontagemFragment : Fragment() {
                             tv.setOnClickListener {
                                 Thread {
                                     val urlsChecklist = listOf(
-                                        "http://192.168.0.151:5000/json_api/posto03_pre/checklist?obra=" +
+                                        "http://$ip:5000/json_api/posto03_pre/checklist?obra=" +
                                             URLEncoder.encode(obra, "UTF-8"),
                                     )
                                     var divergencias: JSONArray? = null
