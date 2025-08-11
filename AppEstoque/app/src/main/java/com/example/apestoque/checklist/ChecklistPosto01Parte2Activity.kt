@@ -126,11 +126,11 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                 try {
                     val filePath = withContext(Dispatchers.IO) {
                         val request = ChecklistRequest(obra, ano, suprimento, itensChecklist, materiais)
-                        val response = JsonNetworkModule.api.salvarChecklist(request)
+                        val response = JsonNetworkModule.api(this@ChecklistPosto01Parte2Activity).salvarChecklist(request)
                         if (pendentes == null) {
-                            NetworkModule.api.aprovarSolicitacao(id)
+                            NetworkModule.api(this@ChecklistPosto01Parte2Activity).aprovarSolicitacao(id)
                         } else {
-                            NetworkModule.api.marcarCompras(id, ComprasRequest(pendentes))
+                            NetworkModule.api(this@ChecklistPosto01Parte2Activity).marcarCompras(id, ComprasRequest(pendentes))
                         }
                         response.caminho
                     }

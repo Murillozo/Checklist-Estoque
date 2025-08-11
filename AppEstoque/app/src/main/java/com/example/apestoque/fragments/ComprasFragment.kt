@@ -46,7 +46,7 @@ class ComprasFragment : Fragment() {
         swipe.isRefreshing = true
         lifecycleScope.launch {
             try {
-                val lista = withContext(Dispatchers.IO) { NetworkModule.api.listarSolicitacoes() }
+                val lista = withContext(Dispatchers.IO) { NetworkModule.api(requireContext()).listarSolicitacoes() }
                 val pendentes = lista.filter { it.status != "aprovado" }
                 if (pendentes.isEmpty()) {
                     tvMsg.text = "Nenhuma solicitação."

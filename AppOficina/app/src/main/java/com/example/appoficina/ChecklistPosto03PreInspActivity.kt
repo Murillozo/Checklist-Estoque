@@ -130,9 +130,7 @@ class ChecklistPosto03PreInspActivity : AppCompatActivity() {
 
     private fun enviarChecklist(json: JSONObject) {
         val urls = listOf(
-            "http://10.0.2.2:5000/json_api/posto03_pre/insp/upload",
             "http://192.168.0.151:5000/json_api/posto03_pre/insp/upload",
-            "http://192.168.0.135:5000/json_api/posto03_pre/insp/upload",
         )
         for (addr in urls) {
             try {
