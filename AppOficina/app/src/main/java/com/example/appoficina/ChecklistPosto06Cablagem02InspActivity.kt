@@ -12,22 +12,22 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-class ChecklistPosto04BarramentoInspActivity : AppCompatActivity() {
+class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_checklist_posto04_barramento)
+        setContentView(R.layout.activity_checklist_posto06_cablagem_02)
 
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
         val inspetor = intent.getStringExtra("inspetor") ?: ""
 
         val perguntas = listOf(
-            "4.1 - BARRAMENTO: Corte",
-            "4.1 - BARRAMENTO: Furos",
-            "4.1 - BARRAMENTO: Roscas",
-            "4.1 - BARRAMENTO: Escariamento",
-            "4.1 - BARRAMENTO: Dobra",
-            "4.1 - BARRAMENTO: Identificação",
+            "6.3 - CABLAGEM - AUTOPORTANTES: Fabricação",
+            "6.3 - CABLAGEM - AUTOPORTANTES: Montagem",
+            "6.3 - CABLAGEM - AUTOPORTANTES: Identificação",
+            "6.3 - CABLAGEM - AUTOPORTANTES: Acabamento",
+            "6.3 - CABLAGEM - AUTOPORTANTES: Aterramento de portas",
+            "6.3 - CABLAGEM - AUTOPORTANTES: Montagem das tampas das canaletas",
         )
 
         val container = findViewById<LinearLayout>(R.id.questions_container)
@@ -54,7 +54,7 @@ class ChecklistPosto04BarramentoInspActivity : AppCompatActivity() {
             triplets.add(Triple(c, nc, na))
         }
 
-        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto04Barramento)
+        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto06Cablagem02)
 
         fun updateButtonState() {
             concluirButton.isEnabled = triplets.all { (c, nc, na) ->
@@ -92,7 +92,7 @@ class ChecklistPosto04BarramentoInspActivity : AppCompatActivity() {
             val itens = JSONArray()
             triplets.forEachIndexed { idx, (c, nc, na) ->
                 val obj = JSONObject()
-                obj.put("numero", 401 + idx)
+                obj.put("numero", 608 + idx)
                 obj.put("pergunta", perguntas[idx])
                 val resp = JSONArray()
                 resp.put(
@@ -119,7 +119,7 @@ class ChecklistPosto04BarramentoInspActivity : AppCompatActivity() {
     private fun enviarChecklist(json: JSONObject) {
         val ip = getSharedPreferences("config", MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
-        val address = "http://$ip:5000/json_api/posto04/insp/upload"
+        val address = "http://$ip:5000/json_api/posto06_cab2/insp/upload"
         try {
             val url = URL(address)
             val conn = url.openConnection() as HttpURLConnection

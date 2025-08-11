@@ -30,6 +30,12 @@
         <activity android:name=".ChecklistPosto03PreInspActivity" android:exported="false" />
         <activity android:name=".ChecklistPosto04BarramentoActivity" android:exported="false" />
         <activity android:name=".ChecklistPosto04BarramentoInspActivity" android:exported="false" />
+        <activity android:name=".ChecklistPosto05CablagemActivity" android:exported="false" />
+        <activity android:name=".ChecklistPosto05CablagemInspActivity" android:exported="false" />
+        <activity android:name=".ChecklistPosto06PreActivity" android:exported="false" />
+        <activity android:name=".ChecklistPosto06PreInspActivity" android:exported="false" />
+        <activity android:name=".ChecklistPosto06Cablagem02Activity" android:exported="false" />
+        <activity android:name=".ChecklistPosto06Cablagem02InspActivity" android:exported="false" />
         <activity android:name=".PreviewDivergenciasActivity" android:exported="false" />
         <activity android:name=".AdminConfigActivity" android:exported="false" />
         <activity android:name=".InspetorActivity" android:exported="false" />

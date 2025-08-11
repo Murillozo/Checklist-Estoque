@@ -210,6 +210,518 @@ def posto02_insp_upload():
     return jsonify({'caminho': dest_path, 'divergencias': divergencias})
 
 
+@bp.route('/posto06_cab2/projects', methods=['GET'])
+def listar_posto06_cab2_projetos():
+    """List projects awaiting Cablagem 02 production."""
+    dir_path = os.path.join(BASE_DIR, 'POSTO06_1_06Cablagem02')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto06_cab2/checklist', methods=['GET'])
+def obter_posto06_cab2_checklist():
+    """Return full checklist data for a given obra in Cablagem 02."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'POSTO06_1_06Cablagem02', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+
+@bp.route('/posto06_cab2/upload', methods=['POST'])
+def posto06_cab2_upload():
+    """Append Cablagem 02 checklist and move it for inspection."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(BASE_DIR, 'POSTO06_1_06Cablagem02', f'checklist_{obra}.json')
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    itens = []
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        itens.append({
+            'numero': numero,
+            'pergunta': pergunta,
+            'respostas': {'montador': resposta},
+        })
+
+    base['posto06_cablagem_02'] = {
+        'montador': data.get('montador'),
+        'itens': itens,
+    }
+
+    insp_dir = os.path.join(BASE_DIR, 'POSTO06_1_06Cablagem02', 'POSTO06_1_06Cablagem02_inspetor')
+    os.makedirs(insp_dir, exist_ok=True)
+    dest_path = os.path.join(insp_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path})
+
+
+@bp.route('/posto06_cab2/insp/projects', methods=['GET'])
+def listar_posto06_cab2_insp_proj():
+    """List projects awaiting Cablagem 02 inspection."""
+    dir_path = os.path.join(BASE_DIR, 'POSTO06_1_06Cablagem02', 'POSTO06_1_06Cablagem02_inspetor')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto06_cab2/insp/upload', methods=['POST'])
+def posto06_cab2_insp_upload():
+    """Process inspector answers for Cablagem 02 and advance or return checklist."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(
+        BASE_DIR,
+        'POSTO06_1_06Cablagem02',
+        'POSTO06_1_06Cablagem02_inspetor',
+        f'checklist_{obra}.json',
+    )
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    prod_itens = {
+        item.get('numero'): item
+        for item in base.get('posto06_cablagem_02', {}).get('itens', [])
+    }
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        entry = prod_itens.setdefault(
+            numero, {'numero': numero, 'pergunta': pergunta, 'respostas': {}}
+        )
+        entry['pergunta'] = entry.get('pergunta') or pergunta
+        entry.setdefault('respostas', {})['inspetor'] = resposta
+
+    divergencias = []
+    for entry in prod_itens.values():
+        resp_mont = entry.get('respostas', {}).get('montador')
+        resp_insp = entry.get('respostas', {}).get('inspetor')
+        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+            divergencias.append({
+                'numero': entry.get('numero'),
+                'pergunta': entry.get('pergunta'),
+                'montador': resp_mont,
+                'inspetor': resp_insp,
+            })
+
+    base['posto06_cablagem_02']['inspetor'] = data.get('inspetor')
+    base['posto06_cablagem_02']['itens'] = list(prod_itens.values())
+    if divergencias:
+        base['posto06_cablagem_02']['divergencias'] = divergencias
+        dest_dir = os.path.join(BASE_DIR, 'POSTO06_1_06Cablagem02')
+    else:
+        base['posto06_cablagem_02']['divergencias'] = []
+        dest_dir = os.path.join(BASE_DIR, 'posto08_IQM')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path, 'divergencias': divergencias})
+
+
+@bp.route('/posto05/projects', methods=['GET'])
+def listar_posto05_projetos():
+    """List projects awaiting Cablagem 01 production."""
+    dir_path = os.path.join(BASE_DIR, 'Posto05_cablagem_01')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto05/checklist', methods=['GET'])
+def obter_posto05_checklist():
+    """Return full checklist data for a given obra in Cablagem 01."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'Posto05_cablagem_01', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+
+@bp.route('/posto05/upload', methods=['POST'])
+def posto05_upload():
+    """Append Cablagem 01 checklist and move it for inspection."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(BASE_DIR, 'Posto05_cablagem_01', f'checklist_{obra}.json')
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    itens = []
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        itens.append({
+            'numero': numero,
+            'pergunta': pergunta,
+            'respostas': {'montador': resposta},
+        })
+
+    base['posto05_cablagem_01'] = {
+        'montador': data.get('montador'),
+        'itens': itens,
+    }
+
+    insp_dir = os.path.join(BASE_DIR, 'Posto05_cablagem_01', 'Posto05_cablagem_01_inspetor')
+    os.makedirs(insp_dir, exist_ok=True)
+    dest_path = os.path.join(insp_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path})
+
+
+@bp.route('/posto05/insp/projects', methods=['GET'])
+def listar_posto05_insp_proj():
+    """List projects awaiting Cablagem 01 inspection."""
+    dir_path = os.path.join(BASE_DIR, 'Posto05_cablagem_01', 'Posto05_cablagem_01_inspetor')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto05/insp/upload', methods=['POST'])
+def posto05_insp_upload():
+    """Process inspector answers and advance or return checklist."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(
+        BASE_DIR, 'Posto05_cablagem_01', 'Posto05_cablagem_01_inspetor', f'checklist_{obra}.json'
+    )
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    prod_itens = {
+        item.get('numero'): item
+        for item in base.get('posto05_cablagem_01', {}).get('itens', [])
+    }
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        entry = prod_itens.setdefault(numero, {'numero': numero, 'pergunta': pergunta, 'respostas': {}})
+        entry['pergunta'] = entry.get('pergunta') or pergunta
+        entry.setdefault('respostas', {})['inspetor'] = resposta
+
+    divergencias = []
+    for entry in prod_itens.values():
+        resp_mont = entry.get('respostas', {}).get('montador')
+        resp_insp = entry.get('respostas', {}).get('inspetor')
+        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+            divergencias.append({
+                'numero': entry.get('numero'),
+                'pergunta': entry.get('pergunta'),
+                'montador': resp_mont,
+                'inspetor': resp_insp,
+            })
+
+    base['posto05_cablagem_01']['inspetor'] = data.get('inspetor')
+    base['posto05_cablagem_01']['itens'] = list(prod_itens.values())
+    if divergencias:
+        base['posto05_cablagem_01']['divergencias'] = divergencias
+        dest_dir = os.path.join(BASE_DIR, 'Posto05_cablagem_01')
+    else:
+        base['posto05_cablagem_01']['divergencias'] = []
+        dest_dir = os.path.join(BASE_DIR, 'Posto06_Pre_montagem_02')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path, 'divergencias': divergencias})
+
+
+@bp.route('/posto06_pre/projects', methods=['GET'])
+def listar_posto06_pre_projetos():
+    """List projects awaiting Pre-montagem 02 production."""
+    dir_path = os.path.join(BASE_DIR, 'Posto06_Pre_montagem_02')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto06_pre/checklist', methods=['GET'])
+def obter_posto06_pre_checklist():
+    """Return full checklist data for a given obra in Pre-montagem 02."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'Posto06_Pre_montagem_02', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+
+@bp.route('/posto06_pre/upload', methods=['POST'])
+def posto06_pre_upload():
+    """Append Pre-montagem 02 checklist and move it for inspection."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(BASE_DIR, 'Posto06_Pre_montagem_02', f'checklist_{obra}.json')
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    itens: list = []
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        itens.append({
+            'numero': numero,
+            'pergunta': pergunta,
+            'respostas': {'montador': resposta},
+        })
+
+    base['posto06_pre_montagem_02'] = {
+        'montador': data.get('montador'),
+        'itens': itens,
+    }
+
+    insp_dir = os.path.join(
+        BASE_DIR, 'Posto06_Pre_montagem_02', 'Posto06_Pre_montagem_02_inspetor'
+    )
+    os.makedirs(insp_dir, exist_ok=True)
+    dest_path = os.path.join(insp_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path})
+
+
+@bp.route('/posto06_pre/insp/projects', methods=['GET'])
+def listar_posto06_pre_insp_proj():
+    """List projects awaiting Pre-montagem 02 inspection."""
+    dir_path = os.path.join(
+        BASE_DIR, 'Posto06_Pre_montagem_02', 'Posto06_Pre_montagem_02_inspetor'
+    )
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto06_pre/insp/upload', methods=['POST'])
+def posto06_pre_insp_upload():
+    """Process inspector answers for Pre-montagem 02 and advance or return checklist."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(
+        BASE_DIR,
+        'Posto06_Pre_montagem_02',
+        'Posto06_Pre_montagem_02_inspetor',
+        f'checklist_{obra}.json',
+    )
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    prod_itens = {
+        item.get('numero'): item
+        for item in base.get('posto06_pre_montagem_02', {}).get('itens', [])
+    }
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        entry = prod_itens.setdefault(
+            numero, {'numero': numero, 'pergunta': pergunta, 'respostas': {}}
+        )
+        entry['pergunta'] = entry.get('pergunta') or pergunta
+        entry.setdefault('respostas', {})['inspetor'] = resposta
+
+    divergencias = []
+    for entry in prod_itens.values():
+        resp_mont = entry.get('respostas', {}).get('montador')
+        resp_insp = entry.get('respostas', {}).get('inspetor')
+        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+            divergencias.append({
+                'numero': entry.get('numero'),
+                'pergunta': entry.get('pergunta'),
+                'montador': resp_mont,
+                'inspetor': resp_insp,
+            })
+
+    base['posto06_pre_montagem_02']['inspetor'] = data.get('inspetor')
+    base['posto06_pre_montagem_02']['itens'] = list(prod_itens.values())
+    if divergencias:
+        base['posto06_pre_montagem_02']['divergencias'] = divergencias
+        dest_dir = os.path.join(BASE_DIR, 'Posto06_Pre_montagem_02')
+    else:
+        base['posto06_pre_montagem_02']['divergencias'] = []
+        dest_dir = os.path.join(BASE_DIR, 'POSTO06_1_06Cablagem02')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path, 'divergencias': divergencias})
+
+
 @bp.route('/posto04/projects', methods=['GET'])
 def listar_posto04_projetos():
     """List projects awaiting Barramento production."""
@@ -364,7 +876,7 @@ def posto04_insp_upload():
         dest_dir = os.path.join(BASE_DIR, 'POSTO_04_BARRAMENTO')
     else:
         base['posto04_barramento']['divergencias'] = []
-        dest_dir = os.path.join(BASE_DIR, 'Posto06_Pre_montagem_02')
+        dest_dir = os.path.join(BASE_DIR, 'Posto05_cablagem_01')
     os.makedirs(dest_dir, exist_ok=True)
     dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
     with open(dest_path, 'w', encoding='utf-8') as f:
