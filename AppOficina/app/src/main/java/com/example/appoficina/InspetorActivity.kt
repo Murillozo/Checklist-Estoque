@@ -12,7 +12,7 @@ class InspetorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inspetor)
-
+        
         val viewPager: ViewPager2 = findViewById(R.id.view_pager)
         val tabLayout: TabLayout = findViewById(R.id.tab_layout)
 
