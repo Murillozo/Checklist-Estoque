@@ -18,7 +18,7 @@ class InspetorActivity : AppCompatActivity() {
 
         val fragments: List<Fragment> = listOf(
             Posto02InspetorFragment(),
-            SimpleTextFragment.newInstance("03 - POSTO - 03 PRÉ-MONTAGEM - 01"),
+            Posto03PreMontagemInspetorFragment(),
             SimpleTextFragment.newInstance("04 - POSTO - 04 BARRAMENTO"),
             SimpleTextFragment.newInstance("05 - POSTO - 05 CABLAGEM - 01"),
             SimpleTextFragment.newInstance("06 - POSTO - 06 PRÉ-MONTAGEM - 02"),
