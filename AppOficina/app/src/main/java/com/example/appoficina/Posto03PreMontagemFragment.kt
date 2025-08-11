@@ -28,7 +28,7 @@ class Posto03PreMontagemFragment : Fragment() {
         Thread {
             val urls = listOf(
                 "http://192.168.0.151:5000/json_api/posto03_pre/projects",
-           )
+            )
             var loaded = false
             for (address in urls) {
                 try {
@@ -50,10 +50,9 @@ class Posto03PreMontagemFragment : Fragment() {
                             tv.setPadding(0, 0, 0, 16)
                             tv.setOnClickListener {
                                 Thread {
-                                   val urlsChecklist = listOf(
-               !
+                                    val urlsChecklist = listOf(
                                         "http://192.168.0.151:5000/json_api/posto03_pre/checklist?obra=" +
-                          
+                                            URLEncoder.encode(obra, "UTF-8"),
                                     )
                                     var divergencias: JSONArray? = null
                                     var found = false
