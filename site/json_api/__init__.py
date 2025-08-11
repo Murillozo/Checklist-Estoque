@@ -71,7 +71,24 @@ def listar_posto02_projetos():
             continue
     return jsonify({'projetos': projetos})
 
+@bp.route('/posto02/checklist', methods=['GET'])
+def obter_posto02_checklist():
+    """Return full checklist data for a given obra in Posto02_Oficina."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
 
+    file_path = os.path.join(BASE_DIR, 'Posto02_Oficina', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+  
+  
 @bp.route('/posto02/upload', methods=['POST'])
 def posto02_upload():
     """Append Posto02 produção checklist and move it for inspection."""

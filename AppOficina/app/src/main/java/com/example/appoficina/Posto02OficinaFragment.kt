@@ -14,6 +14,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 
 class Posto02OficinaFragment : Fragment() {
     override fun onCreateView(
@@ -50,20 +51,56 @@ class Posto02OficinaFragment : Fragment() {
                             tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
                             tv.setPadding(0, 0, 0, 16)
                             tv.setOnClickListener {
-                                val input = EditText(requireContext())
-                                AlertDialog.Builder(requireContext())
-                                    .setTitle("Nome do conferente da produção")
-                                    .setView(input)
-                                    .setPositiveButton("OK") { _, _ ->
-                                        val producao = input.text.toString()
-                                        val intent = Intent(requireContext(), ChecklistPosto02Activity::class.java)
-                                        intent.putExtra("obra", obra)
-                                        intent.putExtra("ano", ano)
-                                        intent.putExtra("producao", producao)
-                                        startActivity(intent)
+                                Thread {
+                                    val urlsChecklist = listOf(
+                                        "http://10.0.2.2:5000/json_api/posto02/checklist?obra=" +
+                                            URLEncoder.encode(obra, "UTF-8"),
+                                        "http://192.168.0.151:5000/json_api/posto02/checklist?obra=" +
+                                            URLEncoder.encode(obra, "UTF-8"),
+                                        "http://192.168.0.135:5000/json_api/posto02/checklist?obra=" +
+                                            URLEncoder.encode(obra, "UTF-8"),
+                                    )
+                                    var divergencias: JSONArray? = null
+                                    var found = false
+                                    for (addr in urlsChecklist) {
+                                        try {
+                                            val url = URL(addr)
+                                            val conn = url.openConnection() as HttpURLConnection
+                                            val response = conn.inputStream.bufferedReader().use { it.readText() }
+                                            conn.disconnect()
+                                            val json = JSONObject(response)
+                                            divergencias = json.optJSONObject("posto02")?.optJSONArray("divergencias")
+                                            found = true
+                                            break
+                                        } catch (_: Exception) {
+                                        }
                                     }
-                                    .setNegativeButton("Cancelar", null)
-                                    .show()
+                                    if (!isAdded) return@Thread
+                                    activity?.runOnUiThread {
+                                        if (found && divergencias != null && divergencias!!.length() > 0) {
+                                            val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
+                                            intent.putExtra("obra", obra)
+                                            intent.putExtra("ano", ano)
+                                            intent.putExtra("divergencias", divergencias.toString())
+                                            startActivity(intent)
+                                        } else {
+                                            val input = EditText(requireContext())
+                                            AlertDialog.Builder(requireContext())
+                                                .setTitle("Nome do conferente da produção")
+                                                .setView(input)
+                                                .setPositiveButton("OK") { _, _ ->
+                                                    val producao = input.text.toString()
+                                                    val intent = Intent(requireContext(), ChecklistPosto02Activity::class.java)
+                                                    intent.putExtra("obra", obra)
+                                                    intent.putExtra("ano", ano)
+                                                    intent.putExtra("producao", producao)
+                                                    startActivity(intent)
+                                                }
+                                                .setNegativeButton("Cancelar", null)
+                                                .show()
+                                        }
+                                    }
+                                }.start()
                             }
                             listContainer.addView(tv)
                         }
