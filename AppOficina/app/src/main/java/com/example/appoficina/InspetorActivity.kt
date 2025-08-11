@@ -17,7 +17,7 @@ class InspetorActivity : AppCompatActivity() {
         val tabLayout: TabLayout = findViewById(R.id.tab_layout)
 
         val fragments: List<Fragment> = listOf(
-            Posto02OficinaFragment(),
+            Posto02InspetorFragment(),
             SimpleTextFragment.newInstance("03 - POSTO - 03 PRÉ-MONTAGEM - 01"),
             SimpleTextFragment.newInstance("04 - POSTO - 04 BARRAMENTO"),
             SimpleTextFragment.newInstance("05 - POSTO - 05 CABLAGEM - 01"),

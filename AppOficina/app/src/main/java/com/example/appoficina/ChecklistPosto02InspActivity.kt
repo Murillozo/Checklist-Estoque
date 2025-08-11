@@ -10,14 +10,14 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-class ChecklistPosto02Activity : AppCompatActivity() {
+class ChecklistPosto02InspActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_checklist_posto02)
 
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
-        val producao = intent.getStringExtra("producao") ?: ""
+        val inspetor = intent.getStringExtra("inspetor") ?: ""
 
         val triplets = (200..224).map { i ->
             val cId = resources.getIdentifier("cbQ${i}C", "id", packageName)
@@ -113,7 +113,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             val payload = JSONObject()
             payload.put("obra", obra)
             payload.put("ano", ano)
-            payload.put("produção", producao)
+            payload.put("inspetor", inspetor)
             payload.put("itens", itens)
             Thread { enviarChecklist(payload) }.start()
             finish()
@@ -122,9 +122,9 @@ class ChecklistPosto02Activity : AppCompatActivity() {
 
     private fun enviarChecklist(json: JSONObject) {
         val urls = listOf(
-            "http://10.0.2.2:5000/json_api/posto02/upload",
-            "http://192.168.0.151:5000/json_api/posto02/upload",
-            "http://192.168.0.135:5000/json_api/posto02/upload",
+            "http://10.0.2.2:5000/json_api/posto02/insp/upload",
+            "http://192.168.0.151:5000/json_api/posto02/insp/upload",
+            "http://192.168.0.135:5000/json_api/posto02/insp/upload",
         )
         for (addr in urls) {
             try {
