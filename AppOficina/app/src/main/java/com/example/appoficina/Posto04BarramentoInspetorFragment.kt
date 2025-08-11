@@ -27,7 +27,6 @@ class Posto04BarramentoInspetorFragment : Fragment() {
         Thread {
             val urls = listOf(
                 "http://10.0.2.2:5000/json_api/posto04/insp/projects",
-                "http://192.168.0.151:5000/json_api/posto04/insp/projects",
                 "http://192.168.0.135:5000/json_api/posto04/insp/projects",
             )
             var loaded = false

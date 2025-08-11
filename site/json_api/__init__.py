@@ -213,7 +213,7 @@ def posto02_insp_upload():
 @bp.route('/posto04/projects', methods=['GET'])
 def listar_posto04_projetos():
     """List projects awaiting Barramento production."""
-    dir_path = os.path.join(BASE_DIR, 'Posto04_Barramento')
+    dir_path = os.path.join(BASE_DIR, 'POSTO_04_BARRAMENTO')
     if not os.path.isdir(dir_path):
         return jsonify({'projetos': []})
     arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
@@ -240,7 +240,7 @@ def obter_posto04_checklist():
     if not obra:
         return jsonify({'erro': 'obra obrigatória'}), 400
 
-    file_path = os.path.join(BASE_DIR, 'Posto04_Barramento', f'checklist_{obra}.json')
+    file_path = os.path.join(BASE_DIR, 'POSTO_04_BARRAMENTO', f'checklist_{obra}.json')
     if not os.path.exists(file_path):
         return jsonify({'erro': 'arquivo não encontrado'}), 404
 
@@ -258,7 +258,7 @@ def posto04_upload():
     if not obra:
         return jsonify({'erro': 'obra obrigatória'}), 400
 
-    src_path = os.path.join(BASE_DIR, 'Posto04_Barramento', f'checklist_{obra}.json')
+    src_path = os.path.join(BASE_DIR, 'POSTO_04_BARRAMENTO', f'checklist_{obra}.json')
     if not os.path.exists(src_path):
         return jsonify({'erro': 'arquivo não encontrado'}), 404
 
@@ -281,7 +281,7 @@ def posto04_upload():
         'itens': itens,
     }
 
-    insp_dir = os.path.join(BASE_DIR, 'Posto04_Barramento', 'Posto04_Barramento_Inspetor')
+    insp_dir = os.path.join(BASE_DIR, 'POSTO_04_BARRAMENTO', 'POSTO_04_BARRAMENTO_Inspetor')
     os.makedirs(insp_dir, exist_ok=True)
     dest_path = os.path.join(insp_dir, f'checklist_{obra}.json')
     with open(dest_path, 'w', encoding='utf-8') as f:
@@ -296,7 +296,7 @@ def posto04_upload():
 @bp.route('/posto04/insp/projects', methods=['GET'])
 def listar_posto04_insp_proj():
     """List projects awaiting Barramento inspection."""
-    dir_path = os.path.join(BASE_DIR, 'Posto04_Barramento', 'Posto04_Barramento_Inspetor')
+    dir_path = os.path.join(BASE_DIR, 'POSTO_04_BARRAMENTO', 'POSTO_04_BARRAMENTO_Inspetor')
     if not os.path.isdir(dir_path):
         return jsonify({'projetos': []})
     arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
@@ -325,7 +325,7 @@ def posto04_insp_upload():
         return jsonify({'erro': 'obra obrigatória'}), 400
 
     src_path = os.path.join(
-        BASE_DIR, 'Posto04_Barramento', 'Posto04_Barramento_Inspetor', f'checklist_{obra}.json'
+        BASE_DIR, 'POSTO_04_BARRAMENTO', 'POSTO_04_BARRAMENTO_Inspetor', f'checklist_{obra}.json'
     )
     if not os.path.exists(src_path):
         return jsonify({'erro': 'arquivo não encontrado'}), 404
@@ -361,7 +361,7 @@ def posto04_insp_upload():
     base['posto04_barramento']['itens'] = list(prod_itens.values())
     if divergencias:
         base['posto04_barramento']['divergencias'] = divergencias
-        dest_dir = os.path.join(BASE_DIR, 'Posto04_Barramento')
+        dest_dir = os.path.join(BASE_DIR, 'POSTO_04_BARRAMENTO')
     else:
         base['posto04_barramento']['divergencias'] = []
         dest_dir = os.path.join(BASE_DIR, 'Posto06_Pre_montagem_02')
@@ -535,7 +535,7 @@ def posto03_pre_insp_upload():
         dest_dir = os.path.join(BASE_DIR, 'Posto03_Pre_montagem_01')
     else:
         base['posto03_pre_montagem_01']['divergencias'] = []
-        dest_dir = os.path.join(BASE_DIR, 'Posto04_Barramento')
+        dest_dir = os.path.join(BASE_DIR, 'POSTO_04_BARRAMENTO')
     os.makedirs(dest_dir, exist_ok=True)
     dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
     with open(dest_path, 'w', encoding='utf-8') as f:
