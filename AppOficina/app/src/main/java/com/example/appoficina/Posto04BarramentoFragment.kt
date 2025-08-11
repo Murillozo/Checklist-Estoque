@@ -28,7 +28,6 @@ class Posto04BarramentoFragment : Fragment() {
         Thread {
             val urls = listOf(
                 "http://10.0.2.2:5000/json_api/posto04/projects",
-                "http://192.168.0.151:5000/json_api/posto04/projects",
                 "http://192.168.0.135:5000/json_api/posto04/projects",
             )
             var loaded = false
@@ -53,10 +52,10 @@ class Posto04BarramentoFragment : Fragment() {
                             tv.setOnClickListener {
                                 Thread {
                                  val urlsChecklist = listOf(
-                              
-                                        "http://192.168.0.151:5000/json_api/posto04/checklist?obra=" +
+                                        "http://10.0.2.2:5000/json_api/posto04/checklist?obra=" +
                                             URLEncoder.encode(obra, "UTF-8"),
-                                  
+                                        "http://192.168.0.135:5000/json_api/posto04/checklist?obra=" +
+                                            URLEncoder.encode(obra, "UTF-8"),
                                     )
                                     var divergencias: JSONArray? = null
                                     var found = false
