@@ -20,7 +20,7 @@ class InspetorActivity : AppCompatActivity() {
             Posto02InspetorFragment(),
             Posto03PreMontagemInspetorFragment(),
             Posto04BarramentoInspetorFragment(),
-            SimpleTextFragment.newInstance("05 - POSTO - 05 CABLAGEM - 01"),
+            Posto05CablagemInspetorFragment(),
             SimpleTextFragment.newInstance("06 - POSTO - 06 PRÉ-MONTAGEM - 02"),
             SimpleTextFragment.newInstance("06.1 - POSTO - 06 CABLAGEM - 02"),
             SimpleTextFragment.newInstance("07 - POSTO - 08 IQM"),
