@@ -316,7 +316,7 @@ def listar_posto05_insp_proj():
     return jsonify({'projetos': projetos})
 
 
-@bp.route('/posto05/insp/upload', methods=['POST'])
+  @bp.route('/posto05/insp/upload', methods=['POST'])
 def posto05_insp_upload():
     """Process inspector answers and advance or return checklist."""
     data = request.get_json() or {}
@@ -550,6 +550,10 @@ def posto06_pre_insp_upload():
         pass
     return jsonify({'caminho': dest_path, 'divergencias': divergencias})
 
+
+
+  
+  
 
 @bp.route('/posto04/projects', methods=['GET'])
 def listar_posto04_projetos():
