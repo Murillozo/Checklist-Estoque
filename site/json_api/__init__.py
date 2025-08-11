@@ -71,7 +71,6 @@ def listar_posto02_projetos():
             continue
     return jsonify({'projetos': projetos})
 
-
 @bp.route('/posto02/checklist', methods=['GET'])
 def obter_posto02_checklist():
     """Return full checklist data for a given obra in Posto02_Oficina."""
@@ -88,7 +87,8 @@ def obter_posto02_checklist():
 
     return jsonify(data)
 
-
+  
+  
 @bp.route('/posto02/upload', methods=['POST'])
 def posto02_upload():
     """Append Posto02 produção checklist and move it for inspection."""
