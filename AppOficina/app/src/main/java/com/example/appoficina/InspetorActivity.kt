@@ -1,6 +1,7 @@
 package com.example.appoficina
 
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -13,8 +14,11 @@ class InspetorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inspetor)
         
+        val refreshButton: Button = findViewById(R.id.btnRefresh)
         val viewPager: ViewPager2 = findViewById(R.id.view_pager)
         val tabLayout: TabLayout = findViewById(R.id.tab_layout)
+
+        refreshButton.setOnClickListener { recreate() }
 
         val fragments: List<Fragment> = listOf(
             Posto02InspetorFragment(),

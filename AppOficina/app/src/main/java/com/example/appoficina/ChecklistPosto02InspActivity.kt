@@ -1,6 +1,7 @@
 package com.example.appoficina
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
@@ -32,11 +33,14 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         }
 
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto02)
+        val seguirButton = findViewById<Button>(R.id.btnSeguirPosto02)
 
         fun updateButtonState() {
-            concluirButton.isEnabled = triplets.all { (c, nc, na) ->
+            val enabled = triplets.all { (c, nc, na) ->
                 c.isChecked || nc.isChecked || na.isChecked
             }
+            concluirButton.isEnabled = enabled
+            seguirButton.isEnabled = enabled
         }
 
         triplets.forEach { (c, nc, na) ->
@@ -117,6 +121,15 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             payload.put("inspetor", inspetor)
             payload.put("itens", itens)
             Thread { enviarChecklist(payload) }.start()
+            finish()
+        }
+
+        seguirButton.setOnClickListener {
+            val intent = Intent(this, ChecklistPosto03PreInspActivity::class.java)
+            intent.putExtra("obra", obra)
+            intent.putExtra("ano", ano)
+            intent.putExtra("inspetor", inspetor)
+            startActivity(intent)
             finish()
         }
     }

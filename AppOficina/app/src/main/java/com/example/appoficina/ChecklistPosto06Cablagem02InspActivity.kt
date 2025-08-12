@@ -55,11 +55,14 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
         }
 
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto06Cablagem02)
+        val seguirButton = findViewById<Button>(R.id.btnSeguirPosto06Cablagem02)
 
         fun updateButtonState() {
-            concluirButton.isEnabled = triplets.all { (c, nc, na) ->
+            val enabled = triplets.all { (c, nc, na) ->
                 c.isChecked || nc.isChecked || na.isChecked
             }
+            concluirButton.isEnabled = enabled
+            seguirButton.isEnabled = enabled
         }
 
         triplets.forEach { (c, nc, na) ->
@@ -112,6 +115,10 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
             payload.put("inspetor", inspetor)
             payload.put("itens", itens)
             Thread { enviarChecklist(payload) }.start()
+            finish()
+        }
+
+        seguirButton.setOnClickListener {
             finish()
         }
     }

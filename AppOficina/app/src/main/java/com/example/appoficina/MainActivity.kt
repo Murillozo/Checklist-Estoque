@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
 
         val adminButton: TextView = findViewById(R.id.admin_button)
         val inspetorButton: Button = findViewById(R.id.inspetor_button)
+        val refreshButton: Button = findViewById(R.id.btnRefresh)
         val viewPager: ViewPager2 = findViewById(R.id.view_pager)
         val tabLayout: TabLayout = findViewById(R.id.tab_layout)
 
@@ -75,6 +76,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 .setNegativeButton("Cancelar", null)
                 .show()
+        }
+
+        refreshButton.setOnClickListener {
+            recreate()
         }
 
         val fragments: List<Fragment> = listOf(
