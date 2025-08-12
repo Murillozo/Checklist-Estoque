@@ -23,7 +23,7 @@
             android:text="Concluir" />
 
         <Button
-            android:id="@+id/btnSeguirPosto06Cablagem02"
+            android:id="@+id/btnSeguirPosto06Pre"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"

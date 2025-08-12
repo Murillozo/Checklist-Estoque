@@ -99,7 +99,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             "2.3 - COMPONENTES FIXAÇÃO DIRETA: Fixação",
         )
 
-        fun buildPayload(): JSONObject {
+         fun buildPayload(): JSONObject {
             val itens = JSONArray()
             triplets.forEachIndexed { idx, (c, nc, na) ->
                 val obj = JSONObject()
@@ -132,15 +132,6 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
 
         seguirButton.setOnClickListener {
             Thread { enviarChecklist(buildPayload()) }.start()
-            val intent = Intent(this, ChecklistPosto03PreInspActivity::class.java)
-            intent.putExtra("obra", obra)
-            intent.putExtra("ano", ano)
-            intent.putExtra("inspetor", inspetor)
-            startActivity(intent)
-            finish()
-        }
-
-        seguirButton.setOnClickListener {
             val intent = Intent(this, ChecklistPosto03PreInspActivity::class.java)
             intent.putExtra("obra", obra)
             intent.putExtra("ano", ano)
