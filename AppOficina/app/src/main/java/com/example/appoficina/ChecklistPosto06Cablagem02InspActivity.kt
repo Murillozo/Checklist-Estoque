@@ -1,5 +1,6 @@
 package com.example.appoficina
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
@@ -119,6 +120,7 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
             payload.put("itens", itens)
             return payload
         }
+
 
         concluirButton.setOnClickListener {
             Thread { enviarChecklist(buildPayload()) }.start()

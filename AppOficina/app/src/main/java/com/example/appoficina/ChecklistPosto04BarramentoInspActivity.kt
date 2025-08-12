@@ -138,7 +138,7 @@ class ChecklistPosto04BarramentoInspActivity : AppCompatActivity() {
     private fun enviarChecklist(json: JSONObject) {
         val ip = getSharedPreferences("config", MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
-        val address = "http://$ip:5000/json_api/posto04/insp/upload"
+        val address = "http://$ip:5000/json_api/posto05/insp/upload"
         try {
             val url = URL(address)
             val conn = url.openConnection() as HttpURLConnection
