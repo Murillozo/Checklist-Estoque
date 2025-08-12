@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
 import org.json.JSONObject
@@ -58,6 +59,7 @@ class ChecklistPosto06PreInspActivity : AppCompatActivity() {
 
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto06Pre)
         val seguirButton = findViewById<Button>(R.id.btnSeguirPosto06Pre)
+        seguirButton.visibility = View.VISIBLE
 
         fun updateButtonState() {
             val enabled = triplets.all { (c, nc, na) ->
@@ -93,7 +95,7 @@ class ChecklistPosto06PreInspActivity : AppCompatActivity() {
 
         updateButtonState()
 
-        concluirButton.setOnClickListener {
+        fun buildPayload(): JSONObject {
             val itens = JSONArray()
             triplets.forEachIndexed { idx, (c, nc, na) ->
                 val obj = JSONObject()
@@ -116,7 +118,21 @@ class ChecklistPosto06PreInspActivity : AppCompatActivity() {
             payload.put("ano", ano)
             payload.put("inspetor", inspetor)
             payload.put("itens", itens)
-            Thread { enviarChecklist(payload) }.start()
+            return payload
+        }
+
+        concluirButton.setOnClickListener {
+            Thread { enviarChecklist(buildPayload()) }.start()
+            finish()
+        }
+
+        seguirButton.setOnClickListener {
+            Thread { enviarChecklist(buildPayload()) }.start()
+            val intent = Intent(this, ChecklistPosto06Cablagem02InspActivity::class.java)
+            intent.putExtra("obra", obra)
+            intent.putExtra("ano", ano)
+            intent.putExtra("inspetor", inspetor)
+            startActivity(intent)
             finish()
         }
 

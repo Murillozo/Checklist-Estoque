@@ -23,10 +23,11 @@
             android:text="Concluir" />
 
         <Button
-            android:id="@+id/btnSeguirPosto06Pre"
+            android:id="@+id/btnSeguirPosto06Cablagem02"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Seguir para proximo posto" />
+            android:text="Seguir para proximo posto"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>
