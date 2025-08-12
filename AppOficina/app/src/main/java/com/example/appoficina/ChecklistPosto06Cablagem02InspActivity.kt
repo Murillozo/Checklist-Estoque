@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
@@ -125,7 +126,11 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
         }
 
         seguirButton.setOnClickListener {
-            Thread { enviarChecklist(buildPayload()) }.start()
+            val payload = buildPayload()
+            seguirButton.isEnabled = false
+            concluirButton.isEnabled = false
+            Thread { enviarChecklist(payload) }.start()
+            Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
@@ -146,4 +151,5 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
         } catch (_: Exception) {
         }
     }
+
 }
