@@ -131,10 +131,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
 
         seguirButton.setOnClickListener {
             val payload = buildPayload()
-            Thread {
-                enviarChecklist(payload)
-                enviarProximoPosto(payload)
-            }.start()
+            Thread { enviarProximoPosto(payload) }.start()
             finish()
         }
     }
