@@ -1,6 +1,7 @@
 package com.example.appoficina
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
@@ -132,6 +133,11 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         seguirButton.setOnClickListener {
             val payload = buildPayload()
             Thread { enviarProximoPosto(payload) }.start()
+            val intent = Intent(this, ChecklistPosto03PreInspActivity::class.java)
+            intent.putExtra("obra", obra)
+            intent.putExtra("ano", ano)
+            intent.putExtra("inspetor", inspetor)
+            startActivity(intent)
             finish()
         }
     }
