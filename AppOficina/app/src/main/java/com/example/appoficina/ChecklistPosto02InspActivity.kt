@@ -134,8 +134,9 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             val payload = buildPayload()
             seguirButton.isEnabled = false
             concluirButton.isEnabled = false
-            Thread { enviarProximoPosto(payload) }.start()
+            Thread { enviarChecklist(payload) }.start()
             Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 
@@ -162,20 +163,4 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         }
     }
 
-    private fun enviarProximoPosto(json: JSONObject) {
-        val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
-            .getString("api_ip", "192.168.0.135")
-        val address = "http://$ip:5000/json_api/posto03_pre/upload"
-        try {
-            val url = URL(address)
-            val conn = url.openConnection() as HttpURLConnection
-            conn.requestMethod = "POST"
-            conn.doOutput = true
-            conn.setRequestProperty("Content-Type", "application/json")
-            OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
-            conn.responseCode
-            conn.disconnect()
-        } catch (_: Exception) {
-        }
-    }
 }
