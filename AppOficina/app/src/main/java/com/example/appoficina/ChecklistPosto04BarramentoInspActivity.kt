@@ -1,10 +1,12 @@
 package com.example.appoficina
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
 import org.json.JSONObject
@@ -55,11 +57,15 @@ class ChecklistPosto04BarramentoInspActivity : AppCompatActivity() {
         }
 
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto04Barramento)
+        val seguirButton = findViewById<Button>(R.id.btnSeguirPosto04Barramento)
+        seguirButton.visibility = View.VISIBLE
 
         fun updateButtonState() {
-            concluirButton.isEnabled = triplets.all { (c, nc, na) ->
+            val enabled = triplets.all { (c, nc, na) ->
                 c.isChecked || nc.isChecked || na.isChecked
             }
+            concluirButton.isEnabled = enabled
+            seguirButton.isEnabled = enabled
         }
 
         triplets.forEach { (c, nc, na) ->
@@ -88,7 +94,7 @@ class ChecklistPosto04BarramentoInspActivity : AppCompatActivity() {
 
         updateButtonState()
 
-        concluirButton.setOnClickListener {
+        fun buildPayload(): JSONObject {
             val itens = JSONArray()
             triplets.forEachIndexed { idx, (c, nc, na) ->
                 val obj = JSONObject()
@@ -111,7 +117,21 @@ class ChecklistPosto04BarramentoInspActivity : AppCompatActivity() {
             payload.put("ano", ano)
             payload.put("inspetor", inspetor)
             payload.put("itens", itens)
-            Thread { enviarChecklist(payload) }.start()
+            return payload
+        }
+
+        concluirButton.setOnClickListener {
+            Thread { enviarChecklist(buildPayload()) }.start()
+            finish()
+        }
+
+        seguirButton.setOnClickListener {
+            Thread { enviarChecklist(buildPayload()) }.start()
+            val intent = Intent(this, ChecklistPosto05CablagemInspActivity::class.java)
+            intent.putExtra("obra", obra)
+            intent.putExtra("ano", ano)
+            intent.putExtra("inspetor", inspetor)
+            startActivity(intent)
             finish()
         }
     }
