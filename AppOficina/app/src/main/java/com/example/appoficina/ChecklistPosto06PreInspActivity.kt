@@ -135,6 +135,15 @@ class ChecklistPosto06PreInspActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+
+        seguirButton.setOnClickListener {
+            val intent = Intent(this, ChecklistPosto06Cablagem02InspActivity::class.java)
+            intent.putExtra("obra", obra)
+            intent.putExtra("ano", ano)
+            intent.putExtra("inspetor", inspetor)
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun enviarChecklist(json: JSONObject) {

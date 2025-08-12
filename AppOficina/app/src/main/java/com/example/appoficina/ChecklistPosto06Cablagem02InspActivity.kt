@@ -128,6 +128,10 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
             Thread { enviarChecklist(buildPayload()) }.start()
             finish()
         }
+
+        seguirButton.setOnClickListener {
+            finish()
+        }
     }
 
     private fun enviarChecklist(json: JSONObject) {
