@@ -1,10 +1,10 @@
 package com.example.appoficina
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.Toast
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
@@ -132,15 +132,10 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
 
         seguirButton.setOnClickListener {
             val payload = buildPayload()
+            seguirButton.isEnabled = false
+            concluirButton.isEnabled = false
             Thread { enviarProximoPosto(payload) }.start()
-            val intent = Intent(this, ChecklistPosto03PreInspActivity::class.java)
-            intent.putExtra("obra", obra)
-            intent.putExtra("ano", ano)
-            intent.putExtra("inspetor", inspetor)
-            startActivity(intent)
-            finish()
-        }
-    }
+            Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
 
     private fun enviarChecklist(json: JSONObject) {
         val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
