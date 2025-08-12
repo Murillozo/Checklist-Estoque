@@ -755,6 +755,14 @@
             android:layout_marginTop="16dp"
             android:text="Concluir" />
 
+        <Button
+            android:id="@+id/btnSeguirPosto02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Seguir para proximo posto"
+            android:visibility="gone" />
+
     </LinearLayout>
 </ScrollView>
 
