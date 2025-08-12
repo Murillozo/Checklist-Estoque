@@ -136,8 +136,6 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             concluirButton.isEnabled = false
             Thread { enviarProximoPosto(payload) }.start()
             Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     private fun enviarChecklist(json: JSONObject) {
         val ip = getSharedPreferences("config", Context.MODE_PRIVATE)

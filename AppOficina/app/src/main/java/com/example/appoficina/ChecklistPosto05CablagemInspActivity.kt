@@ -120,6 +120,7 @@ class ChecklistPosto05CablagemInspActivity : AppCompatActivity() {
             return payload
         }
 
+
         concluirButton.setOnClickListener {
             Thread { enviarChecklist(buildPayload()) }.start()
             finish()
