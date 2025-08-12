@@ -99,7 +99,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             "2.3 - COMPONENTES FIXAÇÃO DIRETA: Fixação",
         )
 
-        fun buildPayload(): JSONObject {
+         fun buildPayload(): JSONObject {
             val itens = JSONArray()
             triplets.forEachIndexed { idx, (c, nc, na) ->
                 val obj = JSONObject()
