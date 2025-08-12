@@ -125,7 +125,8 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
         }
 
         seguirButton.setOnClickListener {
-            Thread { enviarChecklist(buildPayload()) }.start()
+            val payload = buildPayload()
+            Thread { enviarProximoPosto(payload) }.start()
             finish()
         }
     }
@@ -134,6 +135,23 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
         val ip = getSharedPreferences("config", MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
         val address = "http://$ip:5000/json_api/posto06_cab2/insp/upload"
+        try {
+            val url = URL(address)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "application/json")
+            OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
+            conn.responseCode
+            conn.disconnect()
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun enviarProximoPosto(json: JSONObject) {
+        val ip = getSharedPreferences("config", MODE_PRIVATE)
+            .getString("api_ip", "192.168.0.135")
+        val address = "http://$ip:5000/json_api/posto08_iqm/upload"
         try {
             val url = URL(address)
             val conn = url.openConnection() as HttpURLConnection

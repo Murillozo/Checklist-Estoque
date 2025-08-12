@@ -1,6 +1,5 @@
 package com.example.appoficina
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
@@ -138,12 +137,8 @@ class ChecklistPosto03PreInspActivity : AppCompatActivity() {
         }
 
         seguirButton.setOnClickListener {
-            Thread { enviarChecklist(buildPayload()) }.start()
-            val intent = Intent(this, ChecklistPosto04BarramentoInspActivity::class.java)
-            intent.putExtra("obra", obra)
-            intent.putExtra("ano", ano)
-            intent.putExtra("inspetor", inspetor)
-            startActivity(intent)
+            val payload = buildPayload()
+            Thread { enviarProximoPosto(payload) }.start()
             finish()
         }
     }
@@ -152,6 +147,23 @@ class ChecklistPosto03PreInspActivity : AppCompatActivity() {
         val ip = getSharedPreferences("config", MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
         val address = "http://$ip:5000/json_api/posto03_pre/insp/upload"
+        try {
+            val url = URL(address)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "application/json")
+            OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
+            conn.responseCode
+            conn.disconnect()
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun enviarProximoPosto(json: JSONObject) {
+        val ip = getSharedPreferences("config", MODE_PRIVATE)
+            .getString("api_ip", "192.168.0.135")
+        val address = "http://$ip:5000/json_api/posto04/upload"
         try {
             val url = URL(address)
             val conn = url.openConnection() as HttpURLConnection
