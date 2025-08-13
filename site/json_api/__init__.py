@@ -1119,6 +1119,46 @@ def reenviar_checklist():
 
     return jsonify({'caminho': out_path})
 
+
+@bp.route('/posto08_iqm/projects', methods=['GET'])
+def listar_posto08_iqm_projetos():
+    """List projects available for IQM inspection."""
+    dir_path = os.path.join(BASE_DIR, 'posto08_IQM')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append({
+                'arquivo': nome,
+                'obra': data.get('obra', path.splitext(nome)[0]),
+                'ano': data.get('ano', ''),
+            })
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto08_iqm/checklist', methods=['GET'])
+def obter_posto08_iqm_checklist():
+    """Return full IQM checklist data for a given obra."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'posto08_IQM', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
 # legacy alias
 bp.add_url_rule('/upload', view_func=salvar_checklist, methods=['POST'])
 
