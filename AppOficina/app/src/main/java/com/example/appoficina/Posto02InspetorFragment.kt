@@ -55,7 +55,8 @@ class Posto02InspetorFragment : Fragment() {
                                 Thread {
                                     val urlsChecklist = listOf(
                                         "http://$ip:5000/json_api/posto02/checklist?obra=" +
-                                            URLEncoder.encode(obra, "UTF-8"),
+                                            URLEncoder.encode(obra, "UTF-8") +
+                                            "&ano=" + URLEncoder.encode(ano, "UTF-8"),
                                     )
                                     var divergencias: JSONArray? = null
                                     var found = false
@@ -122,4 +123,3 @@ class Posto02InspetorFragment : Fragment() {
         return view
     }
 }
-
