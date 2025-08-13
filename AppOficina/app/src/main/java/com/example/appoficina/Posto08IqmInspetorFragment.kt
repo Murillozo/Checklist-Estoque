@@ -70,22 +70,24 @@ class Posto08IqmInspetorFragment : Fragment() {
                                         for (j in 0 until itens!!.length()) {
                                             val item = itens!!.getJSONObject(j)
                                             val respostas = item.optJSONObject("respostas") ?: JSONObject()
-                                            val inspArr = respostas.optJSONArray("inspetor") ?: JSONArray()
-                                            val filtradas = JSONArray()
-                                            var add = false
-                                            for (k in 0 until inspArr.length()) {
-                                                val r = inspArr.optString(k)
-                                                if (r.equals("NC", true) || r.equals("N.C", true) ||
-                                                    r.equals("NA", true) || r.equals("N.A", true)) {
-                                                    filtradas.put(r)
-                                                    add = true
+                                            val funcoesNc = JSONArray()
+                                            val funcoes = arrayOf("montador", "produção", "inspetor")
+                                            for (func in funcoes) {
+                                                val arr = respostas.optJSONArray(func) ?: JSONArray()
+                                                for (k in 0 until arr.length()) {
+                                                    val r = arr.optString(k).replace(".", "").trim().uppercase()
+                                                    if (r == "NC") {
+                                                        funcoesNc.put(func)
+                                                        break
+                                                    }
                                                 }
                                             }
-                                            if (add) {
+                                            if (funcoesNc.length() > 0) {
                                                 val prev = JSONObject()
                                                 prev.put("numero", item.optInt("numero"))
                                                 prev.put("pergunta", item.optString("pergunta"))
-                                                prev.put("inspetor", filtradas)
+                                                prev.put("posto", "Posto 08 IQM")
+                                                prev.put("funcoes", funcoesNc)
                                                 divergencias.put(prev)
                                             }
                                         }

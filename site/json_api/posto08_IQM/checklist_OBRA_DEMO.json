@@ -6,18 +6,30 @@
     "itens": [
       {
         "numero": 1,
-        "pergunta": "Item com NC",
-        "respostas": {"inspetor": ["N.C"]}
+        "pergunta": "Item com NC do montador e produção",
+        "respostas": {
+          "montador": ["NC"],
+          "produção": ["NC"],
+          "inspetor": ["C"]
+        }
       },
       {
         "numero": 2,
-        "pergunta": "Item com NA",
-        "respostas": {"inspetor": ["N.A"]}
+        "pergunta": "Item com NC do inspetor",
+        "respostas": {
+          "montador": ["C"],
+          "produção": ["C"],
+          "inspetor": ["NC"]
+        }
       },
       {
         "numero": 3,
         "pergunta": "Item conforme",
-        "respostas": {"inspetor": ["C"]}
+        "respostas": {
+          "montador": ["C"],
+          "produção": ["C"],
+          "inspetor": ["C"]
+        }
       }
     ]
   }

@@ -28,18 +28,33 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
 
         val divergencias = try { JSONArray(divergenciasStr) } catch (_: Exception) { JSONArray() }
         val container = findViewById<LinearLayout>(R.id.divergencias_container)
-        for (i in 0 until divergencias.length()) {
-            val obj = divergencias.getJSONObject(i)
-            val numero = obj.optInt("numero")
-            val pergunta = obj.optString("pergunta")
-            val prodArr = obj.optJSONArray("produção") ?: JSONArray()
-            val inspArr = obj.optJSONArray("inspetor") ?: JSONArray()
-            val prodText = (0 until prodArr.length()).joinToString(", ") { prodArr.optString(it) }
-            val inspText = (0 until inspArr.length()).joinToString(", ") { inspArr.optString(it) }
-            val tv = TextView(this)
-            tv.text = "$numero - $pergunta\nProdução: $prodText\nInspetor: $inspText"
-            tv.setPadding(0, 0, 0, 16)
-            container.addView(tv)
+        if (tipo == "insp_posto08_iqm") {
+            for (i in 0 until divergencias.length()) {
+                val obj = divergencias.getJSONObject(i)
+                val posto = obj.optString("posto")
+                val numero = obj.optInt("numero")
+                val pergunta = obj.optString("pergunta")
+                val funcs = obj.optJSONArray("funcoes") ?: JSONArray()
+                val funcsText = (0 until funcs.length()).joinToString(", ") { funcs.optString(it) }
+                val tv = TextView(this)
+                tv.text = "$posto | $numero | $pergunta | $funcsText"
+                tv.setPadding(0, 0, 0, 16)
+                container.addView(tv)
+            }
+        } else {
+            for (i in 0 until divergencias.length()) {
+                val obj = divergencias.getJSONObject(i)
+                val numero = obj.optInt("numero")
+                val pergunta = obj.optString("pergunta")
+                val prodArr = obj.optJSONArray("produção") ?: JSONArray()
+                val inspArr = obj.optJSONArray("inspetor") ?: JSONArray()
+                val prodText = (0 until prodArr.length()).joinToString(", ") { prodArr.optString(it) }
+                val inspText = (0 until inspArr.length()).joinToString(", ") { inspArr.optString(it) }
+                val tv = TextView(this)
+                tv.text = "$numero - $pergunta\nProdução: $prodText\nInspetor: $inspText"
+                tv.setPadding(0, 0, 0, 16)
+                container.addView(tv)
+            }
         }
 
         val actionButton = findViewById<Button>(R.id.btnCorrigir)
