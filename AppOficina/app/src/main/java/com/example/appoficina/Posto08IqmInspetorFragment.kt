@@ -70,24 +70,25 @@ class Posto08IqmInspetorFragment : Fragment() {
                                         for (j in 0 until itens!!.length()) {
                                             val item = itens!!.getJSONObject(j)
                                             val respostas = item.optJSONObject("respostas") ?: JSONObject()
-                                            val funcoesNc = JSONArray()
+                                            val funcResps = JSONObject()
                                             val funcoes = arrayOf("montador", "produção", "inspetor")
                                             for (func in funcoes) {
                                                 val arr = respostas.optJSONArray(func) ?: JSONArray()
                                                 for (k in 0 until arr.length()) {
-                                                    val r = arr.optString(k).replace(".", "").trim().uppercase()
-                                                    if (r == "NC") {
-                                                        funcoesNc.put(func)
+                                                    val orig = arr.optString(k)
+                                                    val r = orig.replace(".", "").trim().uppercase()
+                                                    if (r == "NC" || r == "NA") {
+                                                        funcResps.put(func, orig)
                                                         break
                                                     }
                                                 }
                                             }
-                                            if (funcoesNc.length() > 0) {
+                                            if (funcResps.length() > 0) {
                                                 val prev = JSONObject()
                                                 prev.put("numero", item.optInt("numero"))
                                                 prev.put("pergunta", item.optString("pergunta"))
                                                 prev.put("posto", "Posto 08 IQM")
-                                                prev.put("funcoes", funcoesNc)
+                                                prev.put("respostas", funcResps)
                                                 divergencias.put(prev)
                                             }
                                         }
