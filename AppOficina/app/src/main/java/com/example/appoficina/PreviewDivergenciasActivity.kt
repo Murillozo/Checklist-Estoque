@@ -36,10 +36,15 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
             container.addView(tv)
         }
 
-        findViewById<Button>(R.id.btnCorrigir).setOnClickListener {
+        val actionButton = findViewById<Button>(R.id.btnCorrigir)
+        if (tipo.startsWith("insp_")) {
+            actionButton.text = "Inspecionar"
+        }
+        actionButton.setOnClickListener {
             val input = EditText(this)
-            val titulo = when (tipo) {
-                "posto02" -> "Nome do conferente da produção"
+            val titulo = when {
+                tipo.startsWith("insp_") -> "Nome do inspetor"
+                tipo == "posto02" -> "Nome do conferente da produção"
                 else -> "Nome do montador"
             }
             AlertDialog.Builder(this)
@@ -54,6 +59,12 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                         "posto05_cablagem" -> ChecklistPosto05CablagemActivity::class.java to "montador"
                         "posto06_pre" -> ChecklistPosto06PreActivity::class.java to "montador"
                         "posto06_cablagem" -> ChecklistPosto06Cablagem02Activity::class.java to "montador"
+                        "insp_posto02" -> ChecklistPosto02InspActivity::class.java to "inspetor"
+                        "insp_posto03_pre" -> ChecklistPosto03PreInspActivity::class.java to "inspetor"
+                        "insp_posto04_barramento" -> ChecklistPosto04BarramentoInspActivity::class.java to "inspetor"
+                        "insp_posto05_cablagem" -> ChecklistPosto05CablagemInspActivity::class.java to "inspetor"
+                        "insp_posto06_pre" -> ChecklistPosto06PreInspActivity::class.java to "inspetor"
+                        "insp_posto06_cablagem" -> ChecklistPosto06Cablagem02InspActivity::class.java to "inspetor"
                         else -> ChecklistPosto02Activity::class.java to "producao"
                     }
                     val intent = Intent(this, clazz)

@@ -15,6 +15,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 
 class Posto04BarramentoInspetorFragment : Fragment() {
     override fun onCreateView(
@@ -48,20 +49,48 @@ class Posto04BarramentoInspetorFragment : Fragment() {
                         tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
                         tv.setPadding(0, 0, 0, 16)
                         tv.setOnClickListener {
-                            val input = EditText(requireContext())
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("Nome do inspetor")
-                                .setView(input)
-                                .setPositiveButton("OK") { _, _ ->
-                                    val nome = input.text.toString()
-                                    val intent = Intent(requireContext(), ChecklistPosto04BarramentoInspActivity::class.java)
-                                    intent.putExtra("obra", obra)
-                                    intent.putExtra("ano", ano)
-                                    intent.putExtra("inspetor", nome)
-                                    startActivity(intent)
+                            Thread {
+                                val addr = "http://$ip:5000/json_api/posto04/checklist?obra=" +
+                                    URLEncoder.encode(obra, "UTF-8")
+                                var divergencias: JSONArray? = null
+                                var found = false
+                                try {
+                                    val u = URL(addr)
+                                    val c = u.openConnection() as HttpURLConnection
+                                    val resp = c.inputStream.bufferedReader().use { it.readText() }
+                                    c.disconnect()
+                                    val json = JSONObject(resp)
+                                    divergencias = json.optJSONObject("posto04_barramento")?.optJSONArray("divergencias")
+                                    found = true
+                                } catch (_: Exception) {
                                 }
-                                .setNegativeButton("Cancelar", null)
-                                .show()
+                                if (!isAdded) return@Thread
+                                activity?.runOnUiThread {
+                                    if (found && divergencias != null && divergencias!!.length() > 0) {
+                                        val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
+                                        intent.putExtra("obra", obra)
+                                        intent.putExtra("ano", ano)
+                                        intent.putExtra("divergencias", divergencias.toString())
+                                        intent.putExtra("tipo", "insp_posto04_barramento")
+                                        startActivity(intent)
+                                    } else {
+                                        val input = EditText(requireContext())
+                                        AlertDialog.Builder(requireContext())
+                                            .setTitle("Nome do inspetor")
+                                            .setView(input)
+                                            .setPositiveButton("OK") { _, _ ->
+                                                val nome = input.text.toString()
+                                                val intent = Intent(requireContext(), ChecklistPosto04BarramentoInspActivity::class.java)
+                                                intent.putExtra("obra", obra)
+                                                intent.putExtra("ano", ano)
+                                                intent.putExtra("inspetor", nome)
+                                                startActivity(intent)
+                                            }
+                                            .setNegativeButton("Cancelar", null)
+                                            .show()
+                                    }
+                                }
+                            }.start()
                         }
                         listContainer.addView(tv)
                     }

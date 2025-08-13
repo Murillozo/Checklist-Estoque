@@ -90,9 +90,6 @@ class MainActivity : AppCompatActivity() {
             Posto05CablagemFragment(),
             Posto06PreMontagemFragment(),
             Posto06Cablagem02Fragment(),
-            SimpleTextFragment.newInstance("07 - POSTO - 08 IQM"),
-            SimpleTextFragment.newInstance("08 - POSTO - 08 IQE"),
-            SimpleTextFragment.newInstance("POSTO - 08 TESTE"),
             SimpleTextFragment.newInstance("POSTO - 09 EXPEDIÇÃO")
         )
         val titles = listOf(
@@ -103,9 +100,6 @@ class MainActivity : AppCompatActivity() {
             "05 - POSTO - 05 CABLAGEM - 01",
             "06 - POSTO - 06 PRÉ-MONTAGEM - 02",
             "06.1 - POSTO - 06 CABLAGEM - 02",
-            "07 - POSTO - 08 IQM",
-            "08 - POSTO - 08 IQE",
-            "POSTO - 08 TESTE",
             "POSTO - 09 EXPEDIÇÃO"
         )
         val tabKeys = listOf<String?>(
@@ -116,9 +110,6 @@ class MainActivity : AppCompatActivity() {
             "pass_05",
             "pass_06",
             "pass_06_1",
-            "pass_07",
-            "pass_08",
-            "pass_08_teste",
             "pass_09"
         )
 
