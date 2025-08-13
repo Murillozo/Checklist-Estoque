@@ -121,7 +121,7 @@ class ChecklistPosto05CablagemInspActivity : AppCompatActivity() {
         }
 
         concluirButton.setOnClickListener {
-            Thread { enviarChecklist(buildPayload()) }.start()
+            Thread { enviarChecklist(buildPayload(), "/json_api/posto05/insp/upload") }.start()
             finish()
         }
 
@@ -129,16 +129,16 @@ class ChecklistPosto05CablagemInspActivity : AppCompatActivity() {
             val payload = buildPayload()
             seguirButton.isEnabled = false
             concluirButton.isEnabled = false
-            Thread { enviarChecklist(payload) }.start()
+            Thread { enviarChecklist(payload, "/json_api/posto06_cab2/upload") }.start()
             Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
 
-    private fun enviarChecklist(json: JSONObject) {
+    private fun enviarChecklist(json: JSONObject, path: String) {
         val ip = getSharedPreferences("config", MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
-        val address = "http://$ip:5000/json_api/posto05/insp/upload"
+        val address = "http://$ip:5000$path"
         try {
             val url = URL(address)
             val conn = url.openConnection() as HttpURLConnection
