@@ -141,7 +141,7 @@ class ChecklistPosto03PreInspActivity : AppCompatActivity() {
             val payload = buildPayload()
             seguirButton.isEnabled = false
             concluirButton.isEnabled = false
-            Thread { enviarChecklist(payload, "/json_api/posto04/upload") }.start()
+            Thread { enviarChecklist(payload, "/json_api/posto03_pre/insp/upload") }.start()
             Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
             finish()
         }
