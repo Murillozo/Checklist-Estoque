@@ -1,10 +1,10 @@
 package com.example.appoficina
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.Toast
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
@@ -126,41 +126,35 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         }
 
         concluirButton.setOnClickListener {
-            Thread { enviarChecklist(buildPayload()) }.start()
+            Thread { enviarChecklist(buildPayload(), "/json_api/posto02/insp/upload") }.start()
             finish()
         }
 
         seguirButton.setOnClickListener {
-            Thread { enviarChecklist(buildPayload()) }.start()
-            val intent = Intent(this, ChecklistPosto03PreInspActivity::class.java)
-            intent.putExtra("obra", obra)
-            intent.putExtra("ano", ano)
-            intent.putExtra("inspetor", inspetor)
-            startActivity(intent)
+            val payload = buildPayload()
+            seguirButton.isEnabled = false
+            concluirButton.isEnabled = false
+            Thread { enviarChecklist(payload, "/json_api/posto03_pre/upload") }.start()
+            Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
 
-    private fun enviarChecklist(json: JSONObject) {
+    private fun enviarChecklist(json: JSONObject, path: String) {
         val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
-        val urls = listOf(
-            "http://$ip:5000/json_api/posto02/insp/upload",
-        )
-        for (addr in urls) {
-            try {
-                val url = URL(addr)
-                val conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "POST"
-                conn.doOutput = true
-                conn.setRequestProperty("Content-Type", "application/json")
-                OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
-                val code = conn.responseCode
-                conn.disconnect()
-                if (code in 200..299) break
-            } catch (_: Exception) {
-                // tenta próximo endereço
-            }
+        val address = "http://$ip:5000$path"
+        try {
+            val url = URL(address)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "application/json")
+            OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
+            conn.responseCode
+            conn.disconnect()
+        } catch (_: Exception) {
         }
     }
+
 }

@@ -1,11 +1,11 @@
 package com.example.appoficina
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
@@ -121,25 +121,24 @@ class ChecklistPosto05CablagemInspActivity : AppCompatActivity() {
         }
 
         concluirButton.setOnClickListener {
-            Thread { enviarChecklist(buildPayload()) }.start()
+            Thread { enviarChecklist(buildPayload(), "/json_api/posto05/insp/upload") }.start()
             finish()
         }
 
         seguirButton.setOnClickListener {
-            Thread { enviarChecklist(buildPayload()) }.start()
-            val intent = Intent(this, ChecklistPosto06PreInspActivity::class.java)
-            intent.putExtra("obra", obra)
-            intent.putExtra("ano", ano)
-            intent.putExtra("inspetor", inspetor)
-            startActivity(intent)
+            val payload = buildPayload()
+            seguirButton.isEnabled = false
+            concluirButton.isEnabled = false
+            Thread { enviarChecklist(payload, "/json_api/posto06_cab2/upload") }.start()
+            Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
 
-    private fun enviarChecklist(json: JSONObject) {
+    private fun enviarChecklist(json: JSONObject, path: String) {
         val ip = getSharedPreferences("config", MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
-        val address = "http://$ip:5000/json_api/posto05/insp/upload"
+        val address = "http://$ip:5000$path"
         try {
             val url = URL(address)
             val conn = url.openConnection() as HttpURLConnection
@@ -152,4 +151,5 @@ class ChecklistPosto05CablagemInspActivity : AppCompatActivity() {
         } catch (_: Exception) {
         }
     }
+
 }
