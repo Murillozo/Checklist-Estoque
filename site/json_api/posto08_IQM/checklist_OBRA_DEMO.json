@@ -1,0 +1,24 @@
+{
+  "obra": "OBRA_DEMO",
+  "ano": "2024",
+  "posto08_iqm": {
+    "inspetor": "",
+    "itens": [
+      {
+        "numero": 1,
+        "pergunta": "Item com NC",
+        "respostas": {"inspetor": ["N.C"]}
+      },
+      {
+        "numero": 2,
+        "pergunta": "Item com NA",
+        "respostas": {"inspetor": ["N.A"]}
+      },
+      {
+        "numero": 3,
+        "pergunta": "Item conforme",
+        "respostas": {"inspetor": ["C"]}
+      }
+    ]
+  }
+}
