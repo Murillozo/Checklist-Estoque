@@ -121,6 +121,7 @@ class ChecklistPosto06PreInspActivity : AppCompatActivity() {
             return payload
         }
 
+
         concluirButton.setOnClickListener {
             Thread { enviarChecklist(buildPayload(), "/json_api/posto06_pre/insp/upload") }.start()
             finish()
