@@ -87,6 +87,36 @@ def obter_posto02_checklist():
 
     return jsonify(data)
 
+
+@bp.route('/posto08_iqm/update', methods=['POST'])
+def atualizar_posto08_iqm():
+    """Overwrite IQM checklist for an obra."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+    dir_path = os.path.join(BASE_DIR, 'posto08_IQM')
+    os.makedirs(dir_path, exist_ok=True)
+    file_path = os.path.join(dir_path, f'checklist_{obra}.json')
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return jsonify({'caminho': file_path})
+
+
+@bp.route('/posto08_iqe/upload', methods=['POST'])
+def posto08_iqe_upload():
+    """Store IQE inspector checklist."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+    dir_path = os.path.join(BASE_DIR, 'posto08_IQE')
+    os.makedirs(dir_path, exist_ok=True)
+    file_path = os.path.join(dir_path, f'checklist_{obra}.json')
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return jsonify({'caminho': file_path})
+
   
   
 @bp.route('/posto02/upload', methods=['POST'])
