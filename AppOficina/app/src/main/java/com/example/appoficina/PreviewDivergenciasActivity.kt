@@ -36,12 +36,11 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                 val pergunta = obj.optString("pergunta")
                 val respObj = obj.optJSONObject("respostas") ?: JSONObject()
                 val keys = respObj.keys()
-                val parts = mutableListOf<String>()
+                val funcs = mutableListOf<String>()
                 while (keys.hasNext()) {
-                    val k = keys.next()
-                    parts.add("$k: ${respObj.optString(k)}")
+                    funcs.add(keys.next())
                 }
-                val funcsText = parts.joinToString(", ")
+                val funcsText = funcs.joinToString(", ")
                 val tv = TextView(this)
                 tv.text = "$posto | $numero | $pergunta | $funcsText"
                 tv.setPadding(0, 0, 0, 16)

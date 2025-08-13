@@ -1,34 +1,4 @@
-{
-  "obra": "agora20",
-  "ano": "2025",
-  "posto08_iqm": {
-    "ano": "2025",
-    "correcoes": [],
-    "itens": [
-      {
-        "numero": 1,
-        "pergunta": "1.2 - INVÓLUCRO - CAIXA: Identificação do projeto",
-        "respostas": {
-          "inspetor": [],
-          "produção": null,
-          "suprimento": [
-            "C"
-          ]
-        }
-      },
-      {
-        "numero": 2,
-        "pergunta": "1.2 - INVÓLUCRO - CAIXA: Separação - POSTO - 07",
-        "respostas": {
-          "inspetor": [],
-          "produção": null,
-          "suprimento": [
-            "C"
-          ]
-        }
-      },
-      {
-        "numero": 3,
+
         "pergunta": "1.2 - INVÓLUCRO - CAIXA: Referências x Projeto",
         "respostas": {
           "inspetor": [],
