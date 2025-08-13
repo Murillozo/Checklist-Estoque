@@ -15,6 +15,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 
 class Posto03PreMontagemInspetorFragment : Fragment() {
     override fun onCreateView(
@@ -51,20 +52,53 @@ class Posto03PreMontagemInspetorFragment : Fragment() {
                             tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
                             tv.setPadding(0, 0, 0, 16)
                             tv.setOnClickListener {
-                                val input = EditText(requireContext())
-                                AlertDialog.Builder(requireContext())
-                                    .setTitle("Nome do inspetor")
-                                    .setView(input)
-                                    .setPositiveButton("OK") { _, _ ->
-                                        val nome = input.text.toString()
-                                        val intent = Intent(requireContext(), ChecklistPosto03PreInspActivity::class.java)
-                                        intent.putExtra("obra", obra)
-                                        intent.putExtra("ano", ano)
-                                        intent.putExtra("inspetor", nome)
-                                        startActivity(intent)
+                                Thread {
+                                    val urlsChecklist = listOf(
+                                        "http://$ip:5000/json_api/posto03_pre/checklist?obra=" +
+                                            URLEncoder.encode(obra, "UTF-8"),
+                                    )
+                                    var divergencias: JSONArray? = null
+                                    var found = false
+                                    for (addr in urlsChecklist) {
+                                        try {
+                                            val url = URL(addr)
+                                            val conn = url.openConnection() as HttpURLConnection
+                                            val response = conn.inputStream.bufferedReader().use { it.readText() }
+                                            conn.disconnect()
+                                            val json = JSONObject(response)
+                                            divergencias = json.optJSONObject("posto03_pre_montagem_01")?.optJSONArray("divergencias")
+                                            found = true
+                                            break
+                                        } catch (_: Exception) {
+                                        }
                                     }
-                                    .setNegativeButton("Cancelar", null)
-                                    .show()
+                                    if (!isAdded) return@Thread
+                                    activity?.runOnUiThread {
+                                        if (found && divergencias != null && divergencias!!.length() > 0) {
+                                            val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
+                                            intent.putExtra("obra", obra)
+                                            intent.putExtra("ano", ano)
+                                            intent.putExtra("divergencias", divergencias.toString())
+                                            intent.putExtra("tipo", "insp_posto03_pre")
+                                            startActivity(intent)
+                                        } else {
+                                            val input = EditText(requireContext())
+                                            AlertDialog.Builder(requireContext())
+                                                .setTitle("Nome do inspetor")
+                                                .setView(input)
+                                                .setPositiveButton("OK") { _, _ ->
+                                                    val nome = input.text.toString()
+                                                    val intent = Intent(requireContext(), ChecklistPosto03PreInspActivity::class.java)
+                                                    intent.putExtra("obra", obra)
+                                                    intent.putExtra("ano", ano)
+                                                    intent.putExtra("inspetor", nome)
+                                                    startActivity(intent)
+                                                }
+                                                .setNegativeButton("Cancelar", null)
+                                                .show()
+                                        }
+                                    }
+                                }.start()
                             }
                             listContainer.addView(tv)
                         }
