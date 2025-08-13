@@ -1,36 +1,1734 @@
 {
-  "obra": "OBRA_DEMO",
-  "ano": "2024",
+  "obra": "agora20",
+  "ano": "2025",
   "posto08_iqm": {
-    "inspetor": "",
+    "ano": "2025",
+    "correcoes": [],
     "itens": [
       {
         "numero": 1,
-        "pergunta": "Item com NC do montador e produção",
+        "pergunta": "1.2 - INVÓLUCRO - CAIXA: Identificação do projeto",
         "respostas": {
-          "montador": ["NC"],
-          "produção": ["NC"],
-          "inspetor": ["C"]
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
         }
       },
       {
         "numero": 2,
-        "pergunta": "Item com NC do inspetor",
+        "pergunta": "1.2 - INVÓLUCRO - CAIXA: Separação - POSTO - 07",
         "respostas": {
-          "montador": ["C"],
-          "produção": ["C"],
-          "inspetor": ["NC"]
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
         }
       },
       {
         "numero": 3,
-        "pergunta": "Item conforme",
+        "pergunta": "1.2 - INVÓLUCRO - CAIXA: Referências x Projeto",
         "respostas": {
-          "montador": ["C"],
-          "produção": ["C"],
-          "inspetor": ["C"]
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 4,
+        "pergunta": "1.2 - INVÓLUCRO - CAIXA: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 5,
+        "pergunta": "1.3 - INVÓLUCRO - AUTOPORTANTE: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 6,
+        "pergunta": "1.3 - INVÓLUCRO - AUTOPORTANTE: Separação - POSTO - 07",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 7,
+        "pergunta": "1.3 - INVÓLUCRO - AUTOPORTANTE: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8,
+        "pergunta": "1.3 - INVÓLUCRO - AUTOPORTANTE: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 9,
+        "pergunta": "1.4 - INVÓLUCRO - PLACAS DE MONTAGEM: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 10,
+        "pergunta": "1.4 - INVÓLUCRO - PLACAS DE MONTAGEM: Separação - POSTO - 07",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 11,
+        "pergunta": "1.4 - INVÓLUCRO - PLACAS DE MONTAGEM: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 12,
+        "pergunta": "1.4 - INVÓLUCRO - PLACAS DE MONTAGEM: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 13,
+        "pergunta": "1.5 - INVÓLUCRO - FLANGES: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 14,
+        "pergunta": "1.5 - INVÓLUCRO - FLANGES: Separação - POSTO - 07",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 15,
+        "pergunta": "1.5 - INVÓLUCRO - FLANGES: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 16,
+        "pergunta": "1.5 - INVÓLUCRO - FLANGES: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 17,
+        "pergunta": "1.6 - INVÓLUCRO - PORTAS COM RECORTE: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 18,
+        "pergunta": "1.6 - INVÓLUCRO - PORTAS COM RECORTE: Separação - POSTO - 07",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 19,
+        "pergunta": "1.6 - INVÓLUCRO - PORTAS COM RECORTE: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 20,
+        "pergunta": "1.6 - INVÓLUCRO - PORTAS COM RECORTE: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 21,
+        "pergunta": "1.8 - INVÓLUCRO - CONTRAPORTAS COM RECORTE: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 22,
+        "pergunta": "1.8 - INVÓLUCRO - CONTRAPORTAS COM RECORTE: Separação - POSTO - 07",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 23,
+        "pergunta": "1.8 - INVÓLUCRO - CONTRAPORTAS COM RECORTE: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 24,
+        "pergunta": "1.8 - INVÓLUCRO - CONTRAPORTAS COM RECORTE: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 25,
+        "pergunta": "1.11 - CABOS: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 26,
+        "pergunta": "1.11 - CABOS: Separação - POSTO - 01",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 27,
+        "pergunta": "1.11 - CABOS: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 28,
+        "pergunta": "1.11 - CABOS: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 29,
+        "pergunta": "1.12 - BARRAMENTO: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 30,
+        "pergunta": "1.12 - BARRAMENTO: Separação - POSTO - 04",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 31,
+        "pergunta": "1.12 - BARRAMENTO: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 32,
+        "pergunta": "1.12 - BARRAMENTO: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 33,
+        "pergunta": "1.13 - TRILHOS: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 34,
+        "pergunta": "1.13 - TRILHOS: Separação - POSTO - 03",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 35,
+        "pergunta": "1.13 - TRILHOS: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 36,
+        "pergunta": "1.13 - TRILHOS: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 37,
+        "pergunta": "1.14 - CANALETAS: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 38,
+        "pergunta": "1.14 - CANALETAS: Separação - POSTO - 03",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 39,
+        "pergunta": "1.14 - CANALETAS: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 40,
+        "pergunta": "1.14 - CANALETAS: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 41,
+        "pergunta": "1.16 - ETIQUETAS: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 42,
+        "pergunta": "1.16 - ETIQUETAS: Separação - POSTO - 01",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 43,
+        "pergunta": "1.16 - ETIQUETAS: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 44,
+        "pergunta": "1.16 - ETIQUETAS: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 45,
+        "pergunta": "1.17 - PARAFUSOS/PORCAS/ARRUELAS: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 46,
+        "pergunta": "1.17 - PARAFUSOS/PORCAS/ARRUELAS: Separação - POSTO - 01",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 47,
+        "pergunta": "1.17 - PARAFUSOS/PORCAS/ARRUELAS: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 48,
+        "pergunta": "1.17 - PARAFUSOS/PORCAS/ARRUELAS: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 49,
+        "pergunta": "1.18 - ISOLADORES: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 50,
+        "pergunta": "1.18 - ISOLADORES: Separação - POSTO - 01",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 51,
+        "pergunta": "1.18 - ISOLADORES: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 52,
+        "pergunta": "1.18 - ISOLADORES: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 53,
+        "pergunta": "1.19 - PALETIZAÇÃO: Fabricação do palete",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 54,
+        "pergunta": "1.19 - PALETIZAÇÃO: Fixação no invólucro",
+        "respostas": {
+          "inspetor": [],
+          "produção": null,
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 55,
+        "pergunta": "1.1 - COMPONENTES: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 56,
+        "pergunta": "1.1 - COMPONENTES: Separação - POSTO - 01",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 57,
+        "pergunta": "1.1 - COMPONENTES: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 58,
+        "pergunta": "1.1 - COMPONENTES: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 59,
+        "pergunta": "1.7 - INVÓLUCRO - PORTAS SEM RECORTE: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 60,
+        "pergunta": "1.7 - INVÓLUCRO - PORTAS SEM RECORTE: Separação - POSTO - 07",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 61,
+        "pergunta": "1.7 - INVÓLUCRO - PORTAS SEM RECORTE: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 62,
+        "pergunta": "1.7 - INVÓLUCRO - PORTAS SEM RECORTE: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 63,
+        "pergunta": "1.9 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 64,
+        "pergunta": "1.9 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Separação - POSTO - 07",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 65,
+        "pergunta": "1.9 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 66,
+        "pergunta": "1.9 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 67,
+        "pergunta": "1.10 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 68,
+        "pergunta": "1.10 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Separação - POSTO - 07",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 69,
+        "pergunta": "1.10 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 70,
+        "pergunta": "1.10 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 71,
+        "pergunta": "1.15 - POLICARBONATO: Identificação do projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 72,
+        "pergunta": "1.15 - POLICARBONATO: Separação - POSTO - 03",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 73,
+        "pergunta": "1.15 - POLICARBONATO: Referências x Projeto",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 74,
+        "pergunta": "1.15 - POLICARBONATO: Material em bom estado",
+        "respostas": {
+          "inspetor": [],
+          "produção": [
+            "C"
+          ],
+          "suprimento": [
+            "C"
+          ]
         }
       }
-    ]
+    ],
+    "materiais": [
+      {
+        "completo": true,
+        "material": "SDASADASD",
+        "quantidade": 2
+      }
+    ],
+    "obra": "agora20",
+    "posto02": {
+      "divergencias": [],
+      "inspetor": "mu",
+      "itens": [
+        {
+          "numero": 200,
+          "pergunta": "2.1 - PORTAS: Identificação do projeto",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 201,
+          "pergunta": "2.1 - PORTAS: Marcação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 202,
+          "pergunta": "2.1 - PORTAS: Furos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 203,
+          "pergunta": "2.1 - PORTAS: Cortes",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 204,
+          "pergunta": "2.1 - PORTAS: Rebarbas",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 205,
+          "pergunta": "2.1 - PORTAS: Acabamento",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 206,
+          "pergunta": "2.1 - PORTAS: Porta documentos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 207,
+          "pergunta": "2.1 - PORTAS: Montagem no invólucro",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 208,
+          "pergunta": "2.2 - PLACAS DE MONTAGEM: Identificação do projeto",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 209,
+          "pergunta": "2.2 - PLACAS DE MONTAGEM: Marcação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 210,
+          "pergunta": "2.2 - PLACAS DE MONTAGEM: Furos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 211,
+          "pergunta": "2.2 - PLACAS DE MONTAGEM: Cortes",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 212,
+          "pergunta": "2.2 - PLACAS DE MONTAGEM: Rebarbas",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 213,
+          "pergunta": "2.2 - PLACAS DE MONTAGEM: Acabamento",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 214,
+          "pergunta": "2.3 - CANALETAS: Corte",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 215,
+          "pergunta": "2.3 - CANALETAS: Identificação do projeto",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 216,
+          "pergunta": "2.3 - CANALETAS: Separação POSTO - 07",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 217,
+          "pergunta": "2.3 - TRILHOS: Corte",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 218,
+          "pergunta": "2.3 - TRILHOS: Fixação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 219,
+          "pergunta": "2.3 - COMPONENTES FIXAÇÃO DIRETA: Marcação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 220,
+          "pergunta": "2.3 - COMPONENTES FIXAÇÃO DIRETA: Furos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 221,
+          "pergunta": "2.3 - COMPONENTES FIXAÇÃO DIRETA: Cortes",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 222,
+          "pergunta": "2.3 - COMPONENTES FIXAÇÃO DIRETA: Rebarbas",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "produção": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 223,
+          "pergunta": "2.3 - COMPONENTES FIXAÇÃO DIRETA: Acabamento",
+          "respostas": {
+            "inspetor": [
+              "NC"
+            ],
+            "produção": [
+              "NC"
+            ]
+          }
+        },
+        {
+          "numero": 224,
+          "pergunta": "2.3 - COMPONENTES FIXAÇÃO DIRETA: Fixação",
+          "respostas": {
+            "inspetor": [
+              "NC"
+            ],
+            "produção": [
+              "NC"
+            ]
+          }
+        }
+      ],
+      "produção": "mu"
+    },
+    "posto03_pre_montagem_01": {
+      "divergencias": [],
+      "inspetor": "miii",
+      "itens": [
+        {
+          "numero": 301,
+          "pergunta": "3.1 - COMPONENTES: Montagem",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 302,
+          "pergunta": "3.1 - COMPONENTES: Montagem de acessórios",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 303,
+          "pergunta": "3.1 - COMPONENTES: Identificação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 304,
+          "pergunta": "3.2 - RÉGUAS DE BORNES: Montagem",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 305,
+          "pergunta": "3.2 - RÉGUAS DE BORNES: Montagem de acessórios",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 306,
+          "pergunta": "3.2 - RÉGUAS DE BORNES: Identificação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 307,
+          "pergunta": "3.3 - BARRAMENTO FRONTAL: Montagem",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 308,
+          "pergunta": "3.3 - BARRAMENTO FRONTAL: Parafusos/ Porcas/ Arruelas - Campo",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 309,
+          "pergunta": "3.3 - BARRAMENTO FRONTAL: Fabricação de anteparos em policarbonato",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 310,
+          "pergunta": "3.3 - BARRAMENTO FRONTAL: Colagem etiquetas dos anteparos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 311,
+          "pergunta": "3.3 - BARRAMENTO FRONTAL: Identificação por projeto de anteparos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 312,
+          "pergunta": "3.3 - BARRAMENTO FRONTAL: Separação de anteparos do barramento POSTO - 07",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 313,
+          "pergunta": "3.4 - PORTA: Nome do painel",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 314,
+          "pergunta": "3.4 - PORTA: Etiqueta de dados",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 315,
+          "pergunta": "3.4 - PORTA: Etiqueta de advertencia",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 316,
+          "pergunta": "3.4 - PORTA: Etiquetas externas dispositivos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 317,
+          "pergunta": "3.4 - PORTA: Etiqueta de circuitos",
+          "respostas": {
+            "inspetor": [
+              "NC"
+            ],
+            "montador": [
+              "NC"
+            ]
+          }
+        },
+        {
+          "numero": 318,
+          "pergunta": "3.4 - PORTA: Etiqueta de componentes",
+          "respostas": {
+            "inspetor": [
+              "NC"
+            ],
+            "montador": [
+              "NC"
+            ]
+          }
+        }
+      ],
+      "montador": "mu"
+    },
+    "posto04_barramento": {
+      "divergencias": [],
+      "inspetor": "miii",
+      "itens": [
+        {
+          "numero": 401,
+          "pergunta": "4.1 - BARRAMENTO: Corte",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 402,
+          "pergunta": "4.1 - BARRAMENTO: Furos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 403,
+          "pergunta": "4.1 - BARRAMENTO: Roscas",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 404,
+          "pergunta": "4.1 - BARRAMENTO: Escariamento",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 405,
+          "pergunta": "4.1 - BARRAMENTO: Dobra",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 406,
+          "pergunta": "4.1 - BARRAMENTO: Identificação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        }
+      ],
+      "montador": "moo"
+    },
+    "posto05_cablagem_01": {
+      "divergencias": [],
+      "inspetor": "moo",
+      "itens": [
+        {
+          "numero": 501,
+          "pergunta": "5.1 - CABLAGEM - QD SOBREPOR/EMBUTIR: Fabricação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 502,
+          "pergunta": "5.1 - CABLAGEM - QD SOBREPOR/EMBUTIR: Montagem",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 503,
+          "pergunta": "5.1 - CABLAGEM - QD SOBREPOR/EMBUTIR: Identificação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 504,
+          "pergunta": "5.1 - CABLAGEM - QD SOBREPOR/EMBUTIR: Acabamento",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 505,
+          "pergunta": "5.1 - CABLAGEM - QD SOBREPOR/EMBUTIR: Aterramento de portas",
+          "respostas": {
+            "inspetor": [
+              "NC"
+            ],
+            "montador": [
+              "NC"
+            ]
+          }
+        },
+        {
+          "numero": 506,
+          "pergunta": "5.1 - CABLAGEM - QD SOBREPOR/EMBUTIR: Montagem das tampas das canaletas",
+          "respostas": {
+            "inspetor": [
+              "NC"
+            ],
+            "montador": [
+              "NC"
+            ]
+          }
+        }
+      ],
+      "montador": "mii"
+    },
+    "posto06_cablagem_02": {
+      "divergencias": [],
+      "inspetor": "mooo",
+      "itens": [
+        {
+          "numero": 608,
+          "pergunta": "6.3 - CABLAGEM - AUTOPORTANTES: Fabricação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 609,
+          "pergunta": "6.3 - CABLAGEM - AUTOPORTANTES: Montagem",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 610,
+          "pergunta": "6.3 - CABLAGEM - AUTOPORTANTES: Identificação",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 611,
+          "pergunta": "6.3 - CABLAGEM - AUTOPORTANTES: Acabamento",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 612,
+          "pergunta": "6.3 - CABLAGEM - AUTOPORTANTES: Aterramento de portas",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 613,
+          "pergunta": "6.3 - CABLAGEM - AUTOPORTANTES: Montagem das tampas das canaletas",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        }
+      ],
+      "montador": "moo"
+    },
+    "posto06_pre_montagem_02": {
+      "divergencias": [],
+      "inspetor": "mooo",
+      "itens": [
+        {
+          "numero": 601,
+          "pergunta": "6.1 - COMPONENTES FIXAÇÃO DIRETA: Montagem acessórios dos componentes de fixação direta",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 602,
+          "pergunta": "6.2 - BARRAMENTO HORIZONTAL/VERTICAL/ TRASEIRO: Montagem",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 603,
+          "pergunta": "6.2 - BARRAMENTO HORIZONTAL/VERTICAL/ TRASEIRO: Parafusos/ Porcas/ Arruelas - Campo",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 604,
+          "pergunta": "6.2 - BARRAMENTO HORIZONTAL/VERTICAL/ TRASEIRO: Fabricação de anteparos em policarbonato",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 605,
+          "pergunta": "6.2 - BARRAMENTO HORIZONTAL/VERTICAL/ TRASEIRO: Colagem etiquetas dos anteparos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 606,
+          "pergunta": "6.2 - BARRAMENTO HORIZONTAL/VERTICAL/ TRASEIRO: Identificação por projeto de anteparos",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        },
+        {
+          "numero": 607,
+          "pergunta": "6.2 - BARRAMENTO HORIZONTAL/VERTICAL/ TRASEIRO: Separação de anteparos do barramento POSTO - 07",
+          "respostas": {
+            "inspetor": [
+              "C"
+            ],
+            "montador": [
+              "C"
+            ]
+          }
+        }
+      ],
+      "montador": "mooo"
+    },
+    "respondentes": {
+      "produção": "kkk",
+      "suprimento": "marcao"
+    }
   }
 }
