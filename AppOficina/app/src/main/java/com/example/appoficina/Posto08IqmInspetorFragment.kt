@@ -36,77 +36,59 @@ class Posto08IqmInspetorFragment : Fragment() {
                 conn.disconnect()
 
                 val projetos = JSONObject(response).optJSONArray("projetos") ?: JSONArray()
-                if (!isAdded) return@Thread
-                activity?.runOnUiThread {
-                    listContainer.removeAllViews()
-                    for (i in 0 until projetos.length()) {
-                        val obj = projetos.getJSONObject(i)
-                        val obra = obj.optString("obra")
-                        val ano = obj.optString("ano")
-                        val tv = TextView(requireContext())
-                        tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
-                        tv.setPadding(0, 0, 0, 16)
-                        tv.setOnClickListener {
-                            Thread {
-                                val addr = "http://$ip:5000/json_api/posto08_iqm/checklist?obra=" +
-                                    URLEncoder.encode(obra, "UTF-8")
-                                var itens: JSONArray? = null
-                                var found = false
-                                try {
-                                    val u = URL(addr)
-                                    val c = u.openConnection() as HttpURLConnection
-                                    val resp = c.inputStream.bufferedReader().use { it.readText() }
-                                    c.disconnect()
-                                    val json = JSONObject(resp)
-                                    val root = json.optJSONObject("posto08_iqm") ?: json
-                                    itens = root.optJSONArray("itens")
-                                    found = true
-                                } catch (_: Exception) {
-                                }
-                                if (!isAdded) return@Thread
-                                activity?.runOnUiThread {
-                                    if (found && itens != null) {
-                                        val divergencias = JSONArray()
-                                        for (j in 0 until itens!!.length()) {
-                                            val item = itens!!.getJSONObject(j)
-                                            val respostas = item.optJSONObject("respostas") ?: JSONObject()
-                                            val funcResps = JSONObject()
-                                            val funcoes = arrayOf("montador", "produção", "inspetor")
-                                            for (func in funcoes) {
-                                                val arr = respostas.optJSONArray(func) ?: JSONArray()
-                                                for (k in 0 until arr.length()) {
-                                                    val orig = arr.optString(k)
-                                                    val r = orig.replace(".", "").trim().uppercase()
-                                                    if (r == "NC" || r == "NA") {
-                                                        funcResps.put(func, orig)
-                                                        break
-                                                    }
+                if (isAdded) {
+                    activity?.runOnUiThread {
+                        listContainer.removeAllViews()
+                        for (i in 0 until projetos.length()) {
+                            val obj = projetos.getJSONObject(i)
+                            val obra = obj.optString("obra")
+                            val ano = obj.optString("ano")
+                            val tv = TextView(requireContext())
+                            tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
+                            tv.setPadding(0, 0, 0, 16)
+                            tv.setOnClickListener {
+                                Thread {
+                                    val addr = "http://$ip:5000/json_api/posto08_iqm/checklist?obra=" +
+                                        URLEncoder.encode(obra, "UTF-8")
+                                    var preview: JSONArray? = null
+                                    var found = false
+                                    try {
+                                        val u = URL(addr)
+                                        val c = u.openConnection() as HttpURLConnection
+                                        val resp = c.inputStream.bufferedReader().use { it.readText() }
+                                        c.disconnect()
+                                        val json = JSONObject(resp)
+                                        val root = json.optJSONObject("posto08_iqm") ?: json
+                                        preview = root.optJSONArray("pre_visualizacao") ?: JSONArray()
+                                        found = true
+                                    } catch (e: Exception) {
+                                    }
+                                    if (isAdded) {
+                                        activity?.runOnUiThread {
+                                            if (found && preview != null) {
+                                                val divergencias = JSONArray()
+                                                for (j in 0 until preview!!.length()) {
+                                                    val item = preview!!.getJSONObject(j)
+                                                    item.put("posto", "Posto 08 IQM")
+                                                    divergencias.put(item)
                                                 }
-                                            }
-                                            if (funcResps.length() > 0) {
-                                                val prev = JSONObject()
-                                                prev.put("numero", item.optInt("numero"))
-                                                prev.put("pergunta", item.optString("pergunta"))
-                                                prev.put("posto", "Posto 08 IQM")
-                                                prev.put("respostas", funcResps)
-                                                divergencias.put(prev)
+                                                val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
+                                                intent.putExtra("obra", obra)
+                                                intent.putExtra("ano", ano)
+                                                intent.putExtra("divergencias", divergencias.toString())
+                                                intent.putExtra("tipo", "insp_posto08_iqm")
+                                                startActivity(intent)
                                             }
                                         }
-                                        val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
-                                        intent.putExtra("obra", obra)
-                                        intent.putExtra("ano", ano)
-                                        intent.putExtra("divergencias", divergencias.toString())
-                                        intent.putExtra("tipo", "insp_posto08_iqm")
-                                        startActivity(intent)
                                     }
-                                }
-                            }.start()
+                                }.start()
+                            }
+                            listContainer.addView(tv)
                         }
-                        listContainer.addView(tv)
                     }
                 }
                 loaded = true
-            } catch (_: Exception) {
+            } catch (e: Exception) {
             }
             if (!loaded && isAdded) {
                 activity?.runOnUiThread {
