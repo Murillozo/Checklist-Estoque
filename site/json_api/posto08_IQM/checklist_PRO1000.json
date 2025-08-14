@@ -1,0 +1,40 @@
+{
+  "obra": "PRO1000",
+  "ano": "2024",
+  "posto08_iqm": {
+    "inspetor": "",
+    "itens": [
+      {
+        "numero": 223,
+        "pergunta": "2.3 - COMPONENTES FIXAÇÃO DIRETA: Acabamento",
+        "respostas": {
+          "inspetor": ["NC"],
+          "produção": ["NC"]
+        }
+      },
+      {
+        "numero": 224,
+        "pergunta": "2.3 - COMPONENTES FIXAÇÃO DIRETA: Fixação",
+        "respostas": {
+          "inspetor": ["NC"],
+          "produção": ["NC"]
+        }
+      },
+      {
+        "numero": 225,
+        "pergunta": "Item com NC do montador e inspetor",
+        "respostas": {
+          "montador": ["NC"],
+          "inspetor": ["NC"]
+        }
+      },
+      {
+        "numero": 226,
+        "pergunta": "Item com NC do montador",
+        "respostas": {
+          "montador": ["NC"]
+        }
+      }
+    ]
+  }
+}
