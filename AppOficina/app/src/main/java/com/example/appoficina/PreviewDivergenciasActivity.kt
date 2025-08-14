@@ -67,7 +67,7 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
 
         val actionButton = findViewById<Button>(R.id.btnCorrigir)
         if (tipo.startsWith("insp_")) {
-            actionButton.text = "Inspecionar"
+            actionButton.text = "Demanda tratada - Continuar com testes"
         }
         actionButton.setOnClickListener {
             val input = EditText(this)
