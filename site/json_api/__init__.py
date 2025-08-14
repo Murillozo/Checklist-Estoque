@@ -9,6 +9,53 @@ bp = Blueprint('json_api', __name__)
 BASE_DIR = os.path.dirname(__file__)
 
 
+def _collect_nc_items(data):
+    """Return list of items with at least one "NC" answer."""
+    nc_itens = []
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            itens = obj.get("itens")
+            if isinstance(itens, list):
+                for item in itens:
+                    respostas = item.get("respostas", {})
+                    nc_respostas = {
+                        papel: resp
+                        for papel, resp in respostas.items()
+                        if isinstance(resp, list) and "NC" in resp
+                    }
+                    if nc_respostas:
+                        nc_itens.append(
+                            {
+                                "numero": item.get("numero"),
+                                "pergunta": item.get("pergunta"),
+                                "respostas": nc_respostas,
+                            }
+                        )
+            for value in obj.values():
+                walk(value)
+        elif isinstance(obj, list):
+            for value in obj:
+                walk(value)
+
+    walk(data)
+    return nc_itens
+
+
+def _ensure_nc_preview(file_path: str) -> None:
+    """Append preview of NC answers to ``file_path`` in-place."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return
+
+    data["pre_visualizacao"] = _collect_nc_items(data)
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 @bp.route('/checklist', methods=['POST'])
 def salvar_checklist():
     """Save a checklist payload to a timestamped JSON file."""
@@ -100,6 +147,7 @@ def listar_posto08_iqm_projetos():
     for nome in sorted(arquivos):
         caminho = path.join(dir_path, nome)
         try:
+            _ensure_nc_preview(caminho)
             with open(caminho, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             projetos.append(
@@ -125,6 +173,7 @@ def obter_posto08_iqm_checklist():
     if not os.path.exists(file_path):
         return jsonify({'erro': 'arquivo não encontrado'}), 404
 
+    _ensure_nc_preview(file_path)
     with open(file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
@@ -143,6 +192,7 @@ def atualizar_posto08_iqm():
     file_path = os.path.join(dir_path, f'checklist_{obra}.json')
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    _ensure_nc_preview(file_path)
     return jsonify({'caminho': file_path})
 
 
