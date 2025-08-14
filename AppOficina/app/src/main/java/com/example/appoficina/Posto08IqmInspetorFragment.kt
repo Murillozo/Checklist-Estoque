@@ -71,7 +71,6 @@ class Posto08IqmInspetorFragment : Fragment() {
                                             val item = preview!!.getJSONObject(j)
                                             item.put("posto", "Posto 08 IQM")
                                             divergencias.put(item)
-                                        }
                                         val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
                                         intent.putExtra("obra", obra)
                                         intent.putExtra("ano", ano)
