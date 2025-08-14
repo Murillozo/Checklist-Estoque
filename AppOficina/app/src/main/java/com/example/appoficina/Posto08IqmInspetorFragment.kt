@@ -77,7 +77,7 @@ class Posto08IqmInspetorFragment : Fragment() {
                                                 for (k in 0 until arr.length()) {
                                                     val orig = arr.optString(k)
                                                     val r = orig.replace(".", "").trim().uppercase()
-                                                    if (r == "NC" || r == "NA") {
+                                                    if (r == "NC") {
                                                         funcResps.put(func, orig)
                                                         break
                                                     }
