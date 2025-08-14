@@ -64,6 +64,7 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
             }
         }
 
+
         val actionButton = findViewById<Button>(R.id.btnCorrigir)
         if (tipo.startsWith("insp_")) {
             actionButton.text = "Inspecionar"
