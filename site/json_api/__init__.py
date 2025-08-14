@@ -42,6 +42,30 @@ def _collect_nc_items(data):
     return nc_itens
 
 
+def _collect_double_nc(data):
+    """Return list of answer blocks where both roles answered 'NC'."""
+    resultados = []
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            keys = set(obj.keys())
+            if keys in ({"montador", "inspetor"}, {"suprimento", "produção"}):
+                valores = []
+                for v in obj.values():
+                    if isinstance(v, list) and len(v) == 1:
+                        valores.append(v[0])
+                if len(valores) == 2 and all(v == "NC" for v in valores):
+                    resultados.append(obj)
+            for v in obj.values():
+                walk(v)
+        elif isinstance(obj, list):
+            for item in obj:
+                walk(item)
+
+    walk(data)
+    return resultados
+
+
 def _ensure_nc_preview(file_path: str) -> None:
     """Append preview of NC answers to ``file_path`` in-place."""
     try:
@@ -51,9 +75,12 @@ def _ensure_nc_preview(file_path: str) -> None:
         return
 
     data["pre_visualizacao"] = _collect_nc_items(data)
+    data["respostas_duplas_NC"] = _collect_double_nc(data)
 
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 
 
 @bp.route('/checklist', methods=['POST'])
