@@ -113,6 +113,9 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
     }
 
     private fun corrigirNcIqm(obra: String) {
+        if (obra.equals("OBRA_DEMO", ignoreCase = true)) {
+            return
+        }
         Thread {
             val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
                 .getString("api_ip", "192.168.0.135")
