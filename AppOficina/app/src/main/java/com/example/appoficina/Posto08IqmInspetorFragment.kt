@@ -50,7 +50,7 @@ class Posto08IqmInspetorFragment : Fragment() {
                             Thread {
                                 val addr = "http://$ip:5000/json_api/posto08_iqm/checklist?obra=" +
                                     URLEncoder.encode(obra, "UTF-8")
-                                var itens: JSONArray? = null
+                                var preview: JSONArray? = null
                                 var found = false
                                 try {
                                     val u = URL(addr)
@@ -59,39 +59,18 @@ class Posto08IqmInspetorFragment : Fragment() {
                                     c.disconnect()
                                     val json = JSONObject(resp)
                                     val root = json.optJSONObject("posto08_iqm") ?: json
-                                    itens = root.optJSONArray("itens")
+                                    preview = root.optJSONArray("pre_visualizacao") ?: JSONArray()
                                     found = true
                                 } catch (_: Exception) {
                                 }
                                 if (!isAdded) return@Thread
                                 activity?.runOnUiThread {
-                                    if (found && itens != null) {
+                                    if (found && preview != null) {
                                         val divergencias = JSONArray()
-                                        for (j in 0 until itens!!.length()) {
-                                            val item = itens!!.getJSONObject(j)
-                                            val respostas = item.optJSONObject("respostas") ?: JSONObject()
-                                            val funcResps = JSONObject()
-                                            val funcoes = arrayOf("montador", "produção", "inspetor")
-                                            for (func in funcoes) {
-                                                val arr = respostas.optJSONArray(func) ?: JSONArray()
-                                                for (k in 0 until arr.length()) {
-                                                    val orig = arr.optString(k)
-                                                    val r = orig.replace(".", "").trim().uppercase()
-                                                    if (r == "NC") {
-                                                        funcResps.put(func, orig)
-                                                        break
-                                                    }
-                                                }
-                                            }
-                                            if (funcResps.length() > 0) {
-                                                val prev = JSONObject()
-                                                prev.put("numero", item.optInt("numero"))
-                                                prev.put("pergunta", item.optString("pergunta"))
-                                                prev.put("posto", "Posto 08 IQM")
-                                                prev.put("respostas", funcResps)
-                                                divergencias.put(prev)
-                                            }
-                                        }
+                                        for (j in 0 until preview!!.length()) {
+                                            val item = preview!!.getJSONObject(j)
+                                            item.put("posto", "Posto 08 IQM")
+                                            divergencias.put(item)
                                         val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
                                         intent.putExtra("obra", obra)
                                         intent.putExtra("ano", ano)

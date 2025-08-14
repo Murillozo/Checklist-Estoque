@@ -19,11 +19,13 @@ def _collect_nc_items(data):
             if isinstance(itens, list):
                 for item in itens:
                     respostas = item.get("respostas", {})
-                    nc_respostas = {
-                        papel: resp
-                        for papel, resp in respostas.items()
-                        if isinstance(resp, list) and "NC" in resp
-                    }
+                    nc_respostas = {}
+                    for papel, resp in respostas.items():
+                        if isinstance(resp, list):
+                            for r in resp:
+                                if r.replace(".", "").strip().upper() == "NC":
+                                    nc_respostas[papel] = r
+                                    break
                     if nc_respostas:
                         nc_itens.append(
                             {
@@ -79,10 +81,7 @@ def _ensure_nc_preview(file_path: str) -> None:
 
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
-
-
-
+        
 @bp.route('/checklist', methods=['POST'])
 def salvar_checklist():
     """Save a checklist payload to a timestamped JSON file."""
