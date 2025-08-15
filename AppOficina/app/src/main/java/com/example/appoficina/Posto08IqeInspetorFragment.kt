@@ -16,7 +16,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-class Posto08IqmInspetorFragment : Fragment() {
+class Posto08IqeInspetorFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -28,7 +28,7 @@ class Posto08IqmInspetorFragment : Fragment() {
         Thread {
             val ip = requireContext().getSharedPreferences("config", Context.MODE_PRIVATE)
                 .getString("api_ip", "192.168.0.135")
-            val address = "http://$ip:5000/json_api/posto08_iqm/projects"
+            val address = "http://$ip:5000/json_api/posto08_iqe/projects"
             var loaded = false
             try {
                 val url = URL(address)
@@ -53,7 +53,7 @@ class Posto08IqmInspetorFragment : Fragment() {
                                 .setView(input)
                                 .setPositiveButton("OK") { _, _ ->
                                     val nome = input.text.toString()
-                                    val intent = Intent(requireContext(), ChecklistPosto08IqmActivity::class.java)
+                                    val intent = Intent(requireContext(), ChecklistPosto08IqeActivity::class.java)
                                     intent.putExtra("obra", obra)
                                     intent.putExtra("ano", ano)
                                     intent.putExtra("inspetor", nome)

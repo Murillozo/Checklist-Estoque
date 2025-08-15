@@ -13,24 +13,30 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-class ChecklistPosto08IqeActivity : AppCompatActivity() {
+class ChecklistPosto08IqmActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_checklist_posto08_iqe)
+        setContentView(R.layout.activity_checklist_posto08_iqm)
 
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
         val inspetor = intent.getStringExtra("inspetor") ?: ""
 
         val perguntas = listOf(
-            "Continuidade ponto-a-ponto força",
-            "Continuidade ponto-a-ponto comando",
-            "Continuidade elétrica entre aterramento e estrutura",
-            "Continuidade elétrica entre estrutura e portas",
-            "Ausência de curto - circuito força",
-            "Ausência de curto - circuito comando",
-            "Torque de cabos nos componentes",
-            "Torque de cabos no barramento",
+            "Torque parafusos dos componentes",
+            "Torque parafusos barra/Isolador",
+            "Torque parafusos barra/barra",
+            "Lacre parafusos dos componentes",
+            "Intertravamento mecânico",
+            "Montagem dos componentes conforme o projeto",
+            "Montagem de acessórios dos componentes",
+            "Montagem de bornes",
+            "Montagem de acessórios dos bornes",
+            "Montagem de barramentos",
+            "Montagem das portas",
+            "Montagem das etiquetas",
+            "Funcionamento mecânico dos componentes",
+            "Funcionamento mecânico partes móveis invólucro",
         )
 
         val container = findViewById<LinearLayout>(R.id.questions_container)
@@ -53,25 +59,19 @@ class ChecklistPosto08IqeActivity : AppCompatActivity() {
             pairs.add(Pair(c, nc))
         }
 
-        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto08Iqe)
+        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto08Iqm)
 
         fun updateButtonState() {
-            concluirButton.isEnabled = pairs.all { (c, nc) ->
-                c.isChecked || nc.isChecked
-            }
+            concluirButton.isEnabled = pairs.all { (c, nc) -> c.isChecked || nc.isChecked }
         }
 
         pairs.forEach { (c, nc) ->
             c.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    nc.isChecked = false
-                }
+                if (isChecked) nc.isChecked = false
                 updateButtonState()
             }
             nc.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    c.isChecked = false
-                }
+                if (isChecked) c.isChecked = false
                 updateButtonState()
             }
         }
@@ -80,36 +80,29 @@ class ChecklistPosto08IqeActivity : AppCompatActivity() {
 
         concluirButton.setOnClickListener {
             Thread {
-                val payload = buildPayload(perguntas, pairs, obra, ano, inspetor)
-                enviarChecklist(payload, "/json_api/posto08_teste/upload")
+                val itens = JSONArray()
+                pairs.forEachIndexed { idx, (c, nc) ->
+                    val obj = JSONObject()
+                    obj.put("numero", 8101 + idx)
+                    obj.put("pergunta", perguntas[idx])
+                    val respostas = JSONObject()
+                    val arr = JSONArray()
+                    arr.put(if (c.isChecked) "C" else "NC")
+                    respostas.put("inspetor", arr)
+                    obj.put("respostas", respostas)
+                    itens.put(obj)
+                }
+                val root = JSONObject()
+                root.put("inspetor", inspetor)
+                root.put("itens", itens)
+                val payload = JSONObject()
+                payload.put("obra", obra)
+                payload.put("ano", ano)
+                payload.put("posto08_iqm", root)
+                enviarChecklist(payload, "/json_api/posto08_iqm/update")
             }.start()
             finish()
         }
-    }
-
-    private fun buildPayload(
-        perguntas: List<String>,
-        pairs: List<Pair<CheckBox, CheckBox>>,
-        obra: String,
-        ano: String,
-        inspetor: String,
-    ): JSONObject {
-        val itens = JSONArray()
-        pairs.forEachIndexed { idx, (c, nc) ->
-            val obj = JSONObject()
-            obj.put("numero", 8201 + idx)
-            obj.put("pergunta", perguntas[idx])
-            val resp = JSONArray()
-            resp.put(if (c.isChecked) "C" else "NC")
-            obj.put("resposta", resp)
-            itens.put(obj)
-        }
-        val payload = JSONObject()
-        payload.put("obra", obra)
-        payload.put("ano", ano)
-        payload.put("inspetor", inspetor)
-        payload.put("itens", itens)
-        return payload
     }
 
     private fun enviarChecklist(json: JSONObject, path: String) {
