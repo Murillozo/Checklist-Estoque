@@ -66,7 +66,7 @@ def _collect_double_nc(data):
 
     walk(data)
     return resultados
-
+  
 def _ensure_nc_preview(file_path: str) -> None:
     """Append preview of NC answers to ``file_path`` in-place."""
     try:
@@ -81,6 +81,7 @@ def _ensure_nc_preview(file_path: str) -> None:
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+  
   
 @bp.route('/checklist', methods=['POST'])
 def salvar_checklist():
@@ -222,9 +223,52 @@ def atualizar_posto08_iqm():
     return jsonify({'caminho': file_path})
 
 
+@bp.route('/posto08_iqe/projects', methods=['GET'])
+def listar_posto08_iqe_projetos():
+    """List available IQE checklists."""
+    dir_path = os.path.join(BASE_DIR, 'posto08_IQE')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = os.path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append(
+                {
+                    'arquivo': nome,
+                    'obra': data.get('obra', os.path.splitext(nome)[0]),
+                    'ano': data.get('ano', ''),
+                }
+            )
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto08_iqe/checklist', methods=['GET'])
+def obter_posto08_iqe_checklist():
+    """Return full IQE checklist for a given obra."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'posto08_IQE', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+
 @bp.route('/posto08_iqe/upload', methods=['POST'])
 def posto08_iqe_upload():
-    """Store IQE inspector checklist."""
+    """Store IQE inspector checklist and remove IQM file."""
     data = request.get_json() or {}
     obra = data.get('obra')
     if not obra:
@@ -234,7 +278,59 @@ def posto08_iqe_upload():
     file_path = os.path.join(dir_path, f'checklist_{obra}.json')
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    src_path = os.path.join(BASE_DIR, 'posto08_IQM', f'checklist_{obra}.json')
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    _ensure_nc_preview(file_path)
     return jsonify({'caminho': file_path})
+
+
+@bp.route('/posto08_teste/upload', methods=['POST'])
+def posto08_teste_upload():
+    """Append IQE answers and move checklist to POSTO08_TESTE."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(BASE_DIR, 'posto08_IQE', f'checklist_{obra}.json')
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo base não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    itens = []
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        itens.append(
+            {
+                'numero': numero,
+                'pergunta': pergunta,
+                'respostas': {'inspetor': resposta},
+            }
+        )
+
+    base['posto08_iqe'] = {
+        'inspetor': data.get('inspetor'),
+        'itens': itens,
+    }
+
+    dest_dir = os.path.join(BASE_DIR, 'POSTO08_TESTE')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    _ensure_nc_preview(dest_path)
+    return jsonify({'caminho': dest_path})
 
   
   
