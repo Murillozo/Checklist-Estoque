@@ -58,7 +58,7 @@ class Posto08IqmInspetorFragment : Fragment() {
                                     intent.putExtra("ano", ano)
                                     intent.putExtra("inspetor", nome)
                                     startActivity(intent)
-                                }
+                          }
                                 .setNegativeButton("Cancelar", null)
                                 .show()
                         }
