@@ -8,7 +8,6 @@ bp = Blueprint('json_api', __name__)
 
 BASE_DIR = os.path.dirname(__file__)
 
-
 def _collect_nc_items(data):
     """Return list of items with at least one "NC" answer."""
     nc_itens = []
@@ -44,6 +43,7 @@ def _collect_nc_items(data):
     return nc_itens
 
 
+
 def _collect_double_nc(data):
     """Return list of answer blocks where both roles answered 'NC'."""
     resultados = []
@@ -68,6 +68,7 @@ def _collect_double_nc(data):
     return resultados
 
 
+
 def _ensure_nc_preview(file_path: str) -> None:
     """Append preview of NC answers to ``file_path`` in-place."""
     try:
@@ -81,8 +82,8 @@ def _ensure_nc_preview(file_path: str) -> None:
 
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
-
+        
+        
 @bp.route('/checklist', methods=['POST'])
 def salvar_checklist():
     """Save a checklist payload to a timestamped JSON file."""
@@ -207,6 +208,7 @@ def obter_posto08_iqm_checklist():
     return jsonify(data)
 
 
+
 @bp.route('/posto08_iqm/update', methods=['POST'])
 def atualizar_posto08_iqm():
     """Append IQM inspector data and move checklist for IQE."""
@@ -248,6 +250,49 @@ def atualizar_posto08_iqm():
 
     _ensure_nc_preview(dest_path)
     return jsonify({'caminho': dest_path})
+
+
+@bp.route('/posto08_iqe/projects', methods=['GET'])
+def listar_posto08_iqe_projetos():
+    """List available IQE checklists."""
+    dir_path = os.path.join(BASE_DIR, 'posto08_IQE')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = os.path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append(
+                {
+                    'arquivo': nome,
+                    'obra': data.get('obra', os.path.splitext(nome)[0]),
+                    'ano': data.get('ano', ''),
+                }
+            )
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto08_iqe/checklist', methods=['GET'])
+def obter_posto08_iqe_checklist():
+    """Return full IQE checklist for a given obra."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'posto08_IQE', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
 
 
 @bp.route('/posto08_iqe/projects', methods=['GET'])
