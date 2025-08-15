@@ -8,7 +8,6 @@ bp = Blueprint('json_api', __name__)
 
 BASE_DIR = os.path.dirname(__file__)
 
-
 def _collect_nc_items(data):
     """Return list of items with at least one "NC" answer."""
     nc_itens = []
@@ -44,6 +43,7 @@ def _collect_nc_items(data):
     return nc_itens
 
 
+
 def _collect_double_nc(data):
     """Return list of answer blocks where both roles answered 'NC'."""
     resultados = []
@@ -66,6 +66,7 @@ def _collect_double_nc(data):
 
     walk(data)
     return resultados
+
 
 
 def _ensure_nc_preview(file_path: str) -> None:
@@ -207,6 +208,7 @@ def obter_posto08_iqm_checklist():
     return jsonify(data)
 
 
+
 @bp.route('/posto08_iqm/update', methods=['POST'])
 def atualizar_posto08_iqm():
     """Append IQM inspector data and move checklist for IQE."""
@@ -291,6 +293,7 @@ def obter_posto08_iqe_checklist():
         data = json.load(f)
 
     return jsonify(data)
+
 
 
 @bp.route('/posto08_iqe/upload', methods=['POST'])
