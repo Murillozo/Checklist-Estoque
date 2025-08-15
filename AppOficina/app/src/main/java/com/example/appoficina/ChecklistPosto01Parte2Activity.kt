@@ -120,7 +120,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
         val urls = listOf(
-            "http://$ip:5000/json_api/upload"
+            "http://$ip:5000/json_api/checklist"
         )
         for (addr in urls) {
             try {
