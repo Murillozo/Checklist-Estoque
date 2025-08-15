@@ -6,14 +6,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLEncoder
 
 class Posto08IqmInspetorFragment : Fragment() {
     override fun onCreateView(
@@ -34,61 +35,38 @@ class Posto08IqmInspetorFragment : Fragment() {
                 val conn = url.openConnection() as HttpURLConnection
                 val response = conn.inputStream.bufferedReader().use { it.readText() }
                 conn.disconnect()
-
                 val projetos = JSONObject(response).optJSONArray("projetos") ?: JSONArray()
-                if (isAdded) {
-                    activity?.runOnUiThread {
-                        listContainer.removeAllViews()
-                        for (i in 0 until projetos.length()) {
-                            val obj = projetos.getJSONObject(i)
-                            val obra = obj.optString("obra")
-                            val ano = obj.optString("ano")
-                            val tv = TextView(requireContext())
-                            tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
-                            tv.setPadding(0, 0, 0, 16)
-                            tv.setOnClickListener {
-                                Thread {
-                                    val addr = "http://$ip:5000/json_api/posto08_iqm/checklist?obra=" +
-                                        URLEncoder.encode(obra, "UTF-8")
-                                    var preview: JSONArray? = null
-                                    var found = false
-                                    try {
-                                        val u = URL(addr)
-                                        val c = u.openConnection() as HttpURLConnection
-                                        val resp = c.inputStream.bufferedReader().use { it.readText() }
-                                        c.disconnect()
-                                        val json = JSONObject(resp)
-                                        val root = json.optJSONObject("posto08_iqm") ?: json
-                                        preview = root.optJSONArray("pre_visualizacao") ?: JSONArray()
-                                        found = true
-                                    } catch (e: Exception) {
-                                    }
-                                    if (isAdded) {
-                                        activity?.runOnUiThread {
-                                            if (found && preview != null) {
-                                                val divergencias = JSONArray()
-                                                for (j in 0 until preview!!.length()) {
-                                                    val item = preview!!.getJSONObject(j)
-                                                    item.put("posto", "Posto 08 IQM")
-                                                    divergencias.put(item)
-                                                }
-                                                val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
-                                                intent.putExtra("obra", obra)
-                                                intent.putExtra("ano", ano)
-                                                intent.putExtra("divergencias", divergencias.toString())
-                                                intent.putExtra("tipo", "insp_posto08_iqm")
-                                                startActivity(intent)
-                                            }
-                                        }
-                                    }
-                                }.start()
-                            }
-                            listContainer.addView(tv)
+                if (!isAdded) return@Thread
+                activity?.runOnUiThread {
+                    listContainer.removeAllViews()
+                    for (i in 0 until projetos.length()) {
+                        val obj = projetos.getJSONObject(i)
+                        val obra = obj.optString("obra")
+                        val ano = obj.optString("ano")
+                        val tv = TextView(requireContext())
+                        tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
+                        tv.setPadding(0, 0, 0, 16)
+                        tv.setOnClickListener {
+                            val input = EditText(requireContext())
+                            AlertDialog.Builder(requireContext())
+                                .setTitle("Nome do inspetor")
+                                .setView(input)
+                                .setPositiveButton("OK") { _, _ ->
+                                    val nome = input.text.toString()
+                                    val intent = Intent(requireContext(), ChecklistPosto08IqmActivity::class.java)
+                                    intent.putExtra("obra", obra)
+                                    intent.putExtra("ano", ano)
+                                    intent.putExtra("inspetor", nome)
+                                    startActivity(intent)
+                          }
+                                .setNegativeButton("Cancelar", null)
+                                .show()
                         }
+                        listContainer.addView(tv)
                     }
                 }
                 loaded = true
-            } catch (e: Exception) {
+            } catch (_: Exception) {
             }
             if (!loaded && isAdded) {
                 activity?.runOnUiThread {
