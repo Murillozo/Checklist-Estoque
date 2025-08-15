@@ -66,8 +66,10 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
 
 
         val actionButton = findViewById<Button>(R.id.btnCorrigir)
-        if (tipo.startsWith("insp_")) {
-            actionButton.text = "Inspecionar"
+        actionButton.text = when {
+            tipo == "insp_posto08_iqm" -> "Demanda tratada - Continuar com testes"
+            tipo.startsWith("insp_") -> "Inspecionar"
+            else -> actionButton.text
         }
         actionButton.setOnClickListener {
             val input = EditText(this)
@@ -128,33 +130,46 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                 conn.disconnect()
                 val json = JSONObject(resp)
                 val root = json.optJSONObject("posto08_iqm") ?: json
+                val preview = root.optJSONArray("pre_visualizacao") ?: JSONArray()
                 val itens = root.optJSONArray("itens") ?: JSONArray()
-                val correcoes = JSONArray()
+                val indexMap = HashMap<Int, JSONObject>()
                 for (i in 0 until itens.length()) {
                     val item = itens.getJSONObject(i)
-                    val respostas = item.optJSONObject("respostas") ?: JSONObject()
-                    val inspArr = respostas.optJSONArray("inspetor") ?: JSONArray()
-                    var corrigiu = false
-                    for (j in 0 until inspArr.length()) {
-                        val r = inspArr.optString(j)
-                        if (r.equals("NC", true) || r.equals("N.C", true)) {
-                            inspArr.put(j, "C")
-                            corrigiu = true
+                    indexMap[item.optInt("numero")] = item
+                }
+                for (i in 0 until preview.length()) {
+                    val prev = preview.getJSONObject(i)
+                    val numero = prev.optInt("numero")
+                    val alvo = indexMap[numero]
+                    if (alvo != null) {
+                        val respostas = alvo.optJSONObject("respostas") ?: JSONObject()
+                        fun corrige(func: String) {
+                            val arr = respostas.optJSONArray(func) ?: JSONArray()
+                            if (arr.length() == 0) arr.put("C")
+                            for (j in 0 until arr.length()) {
+                                val v = arr.optString(j)
+                                if (v.equals("NC", true) || v.equals("N.C", true)) {
+                                    arr.put(j, "C")
+                                }
+                            }
+                            respostas.put(func, arr)
                         }
+                        corrige("inspetor")
+                        corrige("montador")
+                        alvo.put("respostas", respostas)
                     }
-                    if (corrigiu) {
-                        correcoes.put(item.optInt("numero"))
-                    }
-                    respostas.put("inspetor", inspArr)
-                    item.put("respostas", respostas)
+                    val respPrev = prev.optJSONObject("respostas") ?: JSONObject()
+                    respPrev.put("inspetor", "C")
+                    respPrev.put("montador", "C")
+                    prev.put("respostas", respPrev)
                 }
                 root.put("itens", itens)
-                root.put("correcoes", correcoes)
+                root.put("pre_visualizacao", preview)
                 val payload = JSONObject()
                 payload.put("obra", json.optString("obra", obra))
                 payload.put("ano", json.optString("ano"))
                 payload.put("posto08_iqm", root)
-                val upUrl = URL("http://$ip:5000/json_api/posto08_iqm/update")
+                val upUrl = URL("http://$ip:5000/json_api/posto08_iqe/upload")
                 val upConn = upUrl.openConnection() as HttpURLConnection
                 upConn.requestMethod = "POST"
                 upConn.doOutput = true

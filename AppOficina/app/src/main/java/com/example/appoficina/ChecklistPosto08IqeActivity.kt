@@ -23,24 +23,18 @@ class ChecklistPosto08IqeActivity : AppCompatActivity() {
         val inspetor = intent.getStringExtra("inspetor") ?: ""
 
         val perguntas = listOf(
-            "Torque parafusos dos componentes",
-            "Torque parafusos barra/Isolador",
-            "Torque parafusos barra/barra",
-            "Lacre parafusos dos componentes",
-            "Intertravamento mecânico",
-            "Montagem dos componentes conforme o projeto",
-            "Montagem de acessórios dos componentes",
-            "Montagem de bornes",
-            "Montagem de acessórios dos bornes",
-            "Montagem de barramentos",
-            "Montagem das portas",
-            "Montagem das etiquetas",
-            "Funcionamento mecânico dos componentes",
-            "Funcionamento mecânico partes móveis invólucro",
+            "Continuidade ponto-a-ponto força",
+            "Continuidade ponto-a-ponto comando",
+            "Continuidade elétrica entre aterramento e estrutura",
+            "Continuidade elétrica entre estrutura e portas",
+            "Ausência de curto - circuito força",
+            "Ausência de curto - circuito comando",
+            "Torque de cabos nos componentes",
+            "Torque de cabos no barramento",
         )
 
         val container = findViewById<LinearLayout>(R.id.questions_container)
-        val triplets = mutableListOf<Triple<CheckBox, CheckBox, CheckBox>>()
+        val pairs = mutableListOf<Pair<CheckBox, CheckBox>>()
 
         perguntas.forEach { pergunta ->
             val tv = TextView(this)
@@ -53,43 +47,30 @@ class ChecklistPosto08IqeActivity : AppCompatActivity() {
             val nc = CheckBox(this)
             nc.text = "N.C"
             nc.setPadding(24, 0, 0, 0)
-            val na = CheckBox(this)
-            na.text = "N.A"
-            na.setPadding(24, 0, 0, 0)
             row.addView(c)
             row.addView(nc)
-            row.addView(na)
             container.addView(row)
-            triplets.add(Triple(c, nc, na))
+            pairs.add(Pair(c, nc))
         }
 
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto08Iqe)
 
         fun updateButtonState() {
-            concluirButton.isEnabled = triplets.all { (c, nc, na) ->
-                c.isChecked || nc.isChecked || na.isChecked
+            concluirButton.isEnabled = pairs.all { (c, nc) ->
+                c.isChecked || nc.isChecked
             }
         }
 
-        triplets.forEach { (c, nc, na) ->
+        pairs.forEach { (c, nc) ->
             c.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     nc.isChecked = false
-                    na.isChecked = false
                 }
                 updateButtonState()
             }
             nc.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     c.isChecked = false
-                    na.isChecked = false
-                }
-                updateButtonState()
-            }
-            na.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    c.isChecked = false
-                    nc.isChecked = false
                 }
                 updateButtonState()
             }
@@ -99,8 +80,8 @@ class ChecklistPosto08IqeActivity : AppCompatActivity() {
 
         concluirButton.setOnClickListener {
             Thread {
-                val payload = buildPayload(perguntas, triplets, obra, ano, inspetor)
-                enviarChecklist(payload, "/json_api/posto08_iqe/upload")
+                val payload = buildPayload(perguntas, pairs, obra, ano, inspetor)
+                enviarChecklist(payload, "/json_api/posto08_teste/upload")
             }.start()
             finish()
         }
@@ -108,25 +89,18 @@ class ChecklistPosto08IqeActivity : AppCompatActivity() {
 
     private fun buildPayload(
         perguntas: List<String>,
-        triplets: List<Triple<CheckBox, CheckBox, CheckBox>>,
+        pairs: List<Pair<CheckBox, CheckBox>>,
         obra: String,
         ano: String,
         inspetor: String,
     ): JSONObject {
         val itens = JSONArray()
-        triplets.forEachIndexed { idx, (c, nc, na) ->
+        pairs.forEachIndexed { idx, (c, nc) ->
             val obj = JSONObject()
-            obj.put("numero", 801 + idx)
+            obj.put("numero", 8201 + idx)
             obj.put("pergunta", perguntas[idx])
             val resp = JSONArray()
-            resp.put(
-                when {
-                    c.isChecked -> "C"
-                    nc.isChecked -> "NC"
-                    na.isChecked -> "NA"
-                    else -> ""
-                }
-            )
+            resp.put(if (c.isChecked) "C" else "NC")
             obj.put("resposta", resp)
             itens.put(obj)
         }
