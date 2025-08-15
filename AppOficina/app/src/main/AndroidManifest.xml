@@ -40,6 +40,7 @@
         <activity android:name=".AdminConfigActivity" android:exported="false" />
         <activity android:name=".InspetorActivity" android:exported="false" />
         <activity android:name=".ChecklistPosto08IqeActivity" android:exported="false" />
+        <activity android:name=".ChecklistPosto08IqmActivity" android:exported="false" />
     </application>
 
 </manifest>
