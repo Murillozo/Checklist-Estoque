@@ -158,6 +158,80 @@ def _ensure_nc_preview(file_path: str) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def _collect_nc_items(data):
+    """Return list of items with at least one "NC" answer."""
+    nc_itens = []
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            itens = obj.get("itens")
+            if isinstance(itens, list):
+                for item in itens:
+                    respostas = item.get("respostas", {})
+                    nc_respostas = {}
+                    for papel, resp in respostas.items():
+                        if isinstance(resp, list):
+                            for r in resp:
+                                if r.replace(".", "").strip().upper() == "NC":
+                                    nc_respostas[papel] = r
+                                    break
+                    if nc_respostas:
+                        nc_itens.append(
+                            {
+                                "numero": item.get("numero"),
+                                "pergunta": item.get("pergunta"),
+                                "respostas": nc_respostas,
+                            }
+                        )
+            for value in obj.values():
+                walk(value)
+        elif isinstance(obj, list):
+            for value in obj:
+                walk(value)
+
+    walk(data)
+    return nc_itens
+
+
+def _collect_double_nc(data):
+    """Return list of answer blocks where both roles answered 'NC'."""
+    resultados = []
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            keys = set(obj.keys())
+            if keys in ({"montador", "inspetor"}, {"suprimento", "produção"}):
+                valores = []
+                for v in obj.values():
+                    if isinstance(v, list) and len(v) == 1:
+                        valores.append(v[0])
+                if len(valores) == 2 and all(v == "NC" for v in valores):
+                    resultados.append(obj)
+            for v in obj.values():
+                walk(v)
+        elif isinstance(obj, list):
+            for item in obj:
+                walk(item)
+
+    walk(data)
+    return resultados
+
+
+def _ensure_nc_preview(file_path: str) -> None:
+    """Append preview of NC answers to ``file_path`` in-place."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return
+
+    data["pre_visualizacao"] = _collect_nc_items(data)
+    data["respostas_duplas_NC"] = _collect_double_nc(data)
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 @bp.route('/checklist', methods=['POST'])
 def salvar_checklist():
     """Save a checklist payload to a timestamped JSON file."""
@@ -434,6 +508,85 @@ def posto08_teste_upload():
         pass
     _ensure_nc_preview(dest_path)
     return jsonify({'caminho': dest_path})
+
+
+@bp.route('/posto08_teste/projects', methods=['GET'])
+def listar_posto08_teste_projetos():
+    """List checklists awaiting electrical tests."""
+    dir_path = os.path.join(BASE_DIR, 'POSTO08_TESTE')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = os.path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append(
+                {
+                    'arquivo': nome,
+                    'obra': data.get('obra', os.path.splitext(nome)[0]),
+                    'ano': data.get('ano', ''),
+                }
+            )
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/posto08_teste/checklist', methods=['GET'])
+def obter_posto08_teste_checklist():
+    """Return POSTO08_TESTE checklist for a given obra."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+    file_path = os.path.join(BASE_DIR, 'POSTO08_TESTE', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+    _ensure_nc_preview(file_path)
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return jsonify(data)
+
+
+@bp.route('/posto08_teste/update', methods=['POST'])
+def posto08_teste_update():
+    """Store test results and move checklist to EXPEDICAO."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+    src_path = os.path.join(BASE_DIR, 'POSTO08_TESTE', f'checklist_{obra}.json')
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo base não encontrado'}), 404
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    itens = []
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        itens.append({'numero': numero, 'pergunta': pergunta, 'respostas': {'inspetor': resposta}})
+
+    base['posto08_teste'] = {
+        'inspetor': data.get('inspetor'),
+        'itens': itens,
+    }
+
+    dest_dir = os.path.join(BASE_DIR, 'EXPEDICAO')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    _ensure_nc_preview(dest_path)
+    return jsonify({'caminho': dest_path})
+
 
   
   

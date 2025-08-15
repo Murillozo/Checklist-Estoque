@@ -27,12 +27,26 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
             val obj = divergencias.getJSONObject(i)
             val numero = obj.optInt("numero")
             val pergunta = obj.optString("pergunta")
-            val prodArr = obj.optJSONArray("produção") ?: JSONArray()
-            val inspArr = obj.optJSONArray("inspetor") ?: JSONArray()
-            val prodText = (0 until prodArr.length()).joinToString(", ") { prodArr.optString(it) }
-            val inspText = (0 until inspArr.length()).joinToString(", ") { inspArr.optString(it) }
+
             val tv = TextView(this)
-            tv.text = "$numero - $pergunta\nProdução: $prodText\nInspetor: $inspText"
+            val builder = StringBuilder("$numero - $pergunta")
+            val respostas = obj.optJSONObject("respostas")
+            if (respostas != null) {
+                val roles = listOf("montador", "produção", "inspetor")
+                for (role in roles) {
+                    val ans = respostas.optString(role, null)
+                    if (!ans.isNullOrEmpty()) {
+                        builder.append("\n" + role.replaceFirstChar { it.uppercase() } + ": " + ans)
+                    }
+                }
+            } else {
+                val prodArr = obj.optJSONArray("produção") ?: JSONArray()
+                val inspArr = obj.optJSONArray("inspetor") ?: JSONArray()
+                val prodText = (0 until prodArr.length()).joinToString(", ") { prodArr.optString(it) }
+                val inspText = (0 until inspArr.length()).joinToString(", ") { inspArr.optString(it) }
+                builder.append("\nProdução: $prodText\nInspetor: $inspText")
+            }
+            tv.text = builder.toString()
             tv.setPadding(0, 0, 0, 16)
             container.addView(tv)
         }
@@ -41,16 +55,17 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
         val actionButton = findViewById<Button>(R.id.btnCorrigir)
         actionButton.text = when {
             tipo.startsWith("insp_") -> "Inspecionar"
+            tipo == "posto08_iqm" -> "Demanda tratada - Continuar com testes"
             else -> actionButton.text
         }
         actionButton.setOnClickListener {
             val input = EditText(this)
             val titulo = when {
-                tipo.startsWith("insp_") -> "Nome do inspetor"
+                tipo.startsWith("insp_") || tipo == "posto08_iqm" -> "Nome do inspetor"
                 tipo == "posto02" -> "Nome do conferente da produção"
                 else -> "Nome do montador"
             }
-            AlertDialog.Builder(this)
+           AlertDialog.Builder(this)
                 .setTitle(titulo)
                 .setView(input)
                 .setPositiveButton("OK") { _, _ ->
@@ -68,6 +83,7 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                         "insp_posto05_cablagem" -> ChecklistPosto05CablagemInspActivity::class.java to "inspetor"
                         "insp_posto06_pre" -> ChecklistPosto06PreInspActivity::class.java to "inspetor"
                         "insp_posto06_cablagem" -> ChecklistPosto06Cablagem02InspActivity::class.java to "inspetor"
+                        "posto08_iqm" -> ChecklistPosto08IqmActivity::class.java to "inspetor"
                         else -> ChecklistPosto02Activity::class.java to "producao"
                     }
                     val intent = Intent(this, clazz)

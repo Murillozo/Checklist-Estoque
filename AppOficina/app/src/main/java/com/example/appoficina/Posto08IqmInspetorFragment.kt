@@ -47,20 +47,51 @@ class Posto08IqmInspetorFragment : Fragment() {
                         tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
                         tv.setPadding(0, 0, 0, 16)
                         tv.setOnClickListener {
-                            val input = EditText(requireContext())
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("Nome do inspetor")
-                                .setView(input)
-                                .setPositiveButton("OK") { _, _ ->
-                                    val nome = input.text.toString()
-                                    val intent = Intent(requireContext(), ChecklistPosto08IqmActivity::class.java)
-                                    intent.putExtra("obra", obra)
-                                    intent.putExtra("ano", ano)
-                                    intent.putExtra("inspetor", nome)
-                                    startActivity(intent)
+                            Thread {
+                                val checklistUrl =
+                                    "http://$ip:5000/json_api/posto08_iqm/checklist?obra=" +
+                                        URLEncoder.encode(obra, "UTF-8")
+                                var divergencias: JSONArray? = null
+                                var found = false
+                                try {
+                                    val url2 = URL(checklistUrl)
+                                    val conn2 = url2.openConnection() as HttpURLConnection
+                                    val resp = conn2.inputStream.bufferedReader().use { it.readText() }
+                                    conn2.disconnect()
+                                    val json = JSONObject(resp)
+                                    divergencias = json.optJSONArray("pre_visualizacao")
+                                    found = true
+                                } catch (_: Exception) {
                                 }
-                                .setNegativeButton("Cancelar", null)
-                                .show()
+                                if (!isAdded) return@Thread
+                                activity?.runOnUiThread {
+                                    if (found && divergencias != null && divergencias!!.length() > 0) {
+                                                
+                                                
+                                        val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
+                                        intent.putExtra("obra", obra)
+                                        intent.putExtra("ano", ano)
+                                        intent.putExtra("divergencias", divergencias.toString())
+                                        intent.putExtra("tipo", "posto08_iqm")
+                                        startActivity(intent)
+                                    } else {
+                                        val input = EditText(requireContext())
+                                        AlertDialog.Builder(requireContext())
+                                            .setTitle("Nome do inspetor")
+                                            .setView(input)
+                                            .setPositiveButton("OK") { _, _ ->
+                                                val nome = input.text.toString()
+                                                val intent = Intent(requireContext(), ChecklistPosto08IqmActivity::class.java)
+                                                intent.putExtra("obra", obra)
+                                                intent.putExtra("ano", ano)
+                                                intent.putExtra("inspetor", nome)
+                                                startActivity(intent)
+                                            }
+                                            .setNegativeButton("Cancelar", null)
+                                            .show()
+                                    }
+                                }
+                            }.start()
                         }
                         listContainer.addView(tv)
                     }

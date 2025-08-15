@@ -29,7 +29,7 @@ class InspetorActivity : AppCompatActivity() {
             Posto06Cablagem02InspetorFragment(),
             Posto08IqmInspetorFragment(),
             Posto08IqeInspetorFragment(),
-            SimpleTextFragment.newInstance("POSTO - 08 TESTE")
+            Posto08TesteInspetorFragment()
         )
         val titles = listOf(
             "02 - POSTO - 02 OFICINA",
