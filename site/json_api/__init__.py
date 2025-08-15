@@ -67,7 +67,6 @@ def _collect_double_nc(data):
     walk(data)
     return resultados
 
-
 def _ensure_nc_preview(file_path: str) -> None:
     """Append preview of NC answers to ``file_path`` in-place."""
     try:
@@ -82,7 +81,7 @@ def _ensure_nc_preview(file_path: str) -> None:
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-
+  
 @bp.route('/checklist', methods=['POST'])
 def salvar_checklist():
     """Save a checklist payload to a timestamped JSON file."""
