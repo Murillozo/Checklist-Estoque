@@ -42,6 +42,7 @@
         <activity android:name=".ChecklistPosto08IqeActivity" android:exported="false" />
         <activity android:name=".ChecklistPosto08IqmActivity" android:exported="false" />
         <activity android:name=".ChecklistPosto08TesteActivity" android:exported="false" />
+
     </application>
 
 </manifest>

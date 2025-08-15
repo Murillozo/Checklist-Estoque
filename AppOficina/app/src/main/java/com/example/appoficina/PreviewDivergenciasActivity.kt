@@ -65,7 +65,7 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                 tipo == "posto02" -> "Nome do conferente da produção"
                 else -> "Nome do montador"
             }
-            AlertDialog.Builder(this)
+           AlertDialog.Builder(this)
                 .setTitle(titulo)
                 .setView(input)
                 .setPositiveButton("OK") { _, _ ->

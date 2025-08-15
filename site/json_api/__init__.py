@@ -8,6 +8,155 @@ bp = Blueprint('json_api', __name__)
 
 BASE_DIR = os.path.dirname(__file__)
 
+def _collect_nc_items(data):
+    """Return list of items with at least one "NC" answer."""
+    nc_itens = []
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            itens = obj.get("itens")
+            if isinstance(itens, list):
+                for item in itens:
+                    respostas = item.get("respostas", {})
+                    nc_respostas = {}
+                    for papel, resp in respostas.items():
+                        if isinstance(resp, list):
+                            for r in resp:
+                                if r.replace(".", "").strip().upper() == "NC":
+                                    nc_respostas[papel] = r
+                                    break
+                    if nc_respostas:
+                        nc_itens.append(
+                            {
+                                "numero": item.get("numero"),
+                                "pergunta": item.get("pergunta"),
+                                "respostas": nc_respostas,
+                            }
+                        )
+            for value in obj.values():
+                walk(value)
+        elif isinstance(obj, list):
+            for value in obj:
+                walk(value)
+
+    walk(data)
+    return nc_itens
+
+
+
+def _collect_double_nc(data):
+    """Return list of answer blocks where both roles answered 'NC'."""
+    resultados = []
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            keys = set(obj.keys())
+            if keys in ({"montador", "inspetor"}, {"suprimento", "produção"}):
+                valores = []
+                for v in obj.values():
+                    if isinstance(v, list) and len(v) == 1:
+                        valores.append(v[0])
+                if len(valores) == 2 and all(v == "NC" for v in valores):
+                    resultados.append(obj)
+            for v in obj.values():
+                walk(v)
+        elif isinstance(obj, list):
+            for item in obj:
+                walk(item)
+
+    walk(data)
+    return resultados
+
+
+
+def _ensure_nc_preview(file_path: str) -> None:
+    """Append preview of NC answers to ``file_path`` in-place."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return
+
+    data["pre_visualizacao"] = _collect_nc_items(data)
+    data["respostas_duplas_NC"] = _collect_double_nc(data)
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _collect_nc_items(data):
+    """Return list of items with at least one "NC" answer."""
+    nc_itens = []
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            itens = obj.get("itens")
+            if isinstance(itens, list):
+                for item in itens:
+                    respostas = item.get("respostas", {})
+                    nc_respostas = {}
+                    for papel, resp in respostas.items():
+                        if isinstance(resp, list):
+                            for r in resp:
+                                if r.replace(".", "").strip().upper() == "NC":
+                                    nc_respostas[papel] = r
+                                    break
+                    if nc_respostas:
+                        nc_itens.append(
+                            {
+                                "numero": item.get("numero"),
+                                "pergunta": item.get("pergunta"),
+                                "respostas": nc_respostas,
+                            }
+                        )
+            for value in obj.values():
+                walk(value)
+        elif isinstance(obj, list):
+            for value in obj:
+                walk(value)
+
+    walk(data)
+    return nc_itens
+
+
+def _collect_double_nc(data):
+    """Return list of answer blocks where both roles answered 'NC'."""
+    resultados = []
+
+    def walk(obj):
+        if isinstance(obj, dict):
+            keys = set(obj.keys())
+            if keys in ({"montador", "inspetor"}, {"suprimento", "produção"}):
+                valores = []
+                for v in obj.values():
+                    if isinstance(v, list) and len(v) == 1:
+                        valores.append(v[0])
+                if len(valores) == 2 and all(v == "NC" for v in valores):
+                    resultados.append(obj)
+            for v in obj.values():
+                walk(v)
+        elif isinstance(obj, list):
+            for item in obj:
+                walk(item)
+
+    walk(data)
+    return resultados
+
+
+def _ensure_nc_preview(file_path: str) -> None:
+    """Append preview of NC answers to ``file_path`` in-place."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return
+
+    data["pre_visualizacao"] = _collect_nc_items(data)
+    data["respostas_duplas_NC"] = _collect_double_nc(data)
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 
 def _collect_nc_items(data):
     """Return list of items with at least one "NC" answer."""
@@ -205,6 +354,7 @@ def obter_posto08_iqm_checklist():
         data = json.load(f)
 
     return jsonify(data)
+
 
 
 @bp.route('/posto08_iqm/update', methods=['POST'])
@@ -436,6 +586,7 @@ def posto08_teste_update():
         pass
     _ensure_nc_preview(dest_path)
     return jsonify({'caminho': dest_path})
+
 
   
   

@@ -15,7 +15,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLEncoder
 
 class Posto08IqmInspetorFragment : Fragment() {
     override fun onCreateView(
@@ -67,6 +66,8 @@ class Posto08IqmInspetorFragment : Fragment() {
                                 if (!isAdded) return@Thread
                                 activity?.runOnUiThread {
                                     if (found && divergencias != null && divergencias!!.length() > 0) {
+                                                
+                                                
                                         val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
                                         intent.putExtra("obra", obra)
                                         intent.putExtra("ano", ano)
