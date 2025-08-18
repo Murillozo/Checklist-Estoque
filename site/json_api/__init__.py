@@ -311,7 +311,21 @@ def obter_expedicao_checklist():
     with open(file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    return jsonify(data)
+    itens = [
+        {'numero': 1, 'pergunta': 'Comunicado à transportadora'},
+        {'numero': 2, 'pergunta': 'Comunicado ao cliente'},
+        {'numero': 3, 'pergunta': 'Nota fiscal'},
+        {'numero': 4, 'pergunta': 'As Built'},
+        {'numero': 5, 'pergunta': 'Limpeza'},
+        {'numero': 6, 'pergunta': 'Montagem de anteparos'},
+        {'numero': 7, 'pergunta': 'Fotos Sem embalagem'},
+        {'numero': 8, 'pergunta': 'Romaneio'},
+        {'numero': 9, 'pergunta': 'Chaves das portas'},
+        {'numero': 10, 'pergunta': 'Embalagem'},
+        {'numero': 11, 'pergunta': 'Fotos Com embalagem'},
+    ]
+
+    return jsonify({'obra': data.get('obra', obra), 'ano': data.get('ano', ''), 'itens': itens})
 
 
 @bp.route('/expedicao/upload', methods=['POST'])

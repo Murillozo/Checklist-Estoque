@@ -1,9 +1,11 @@
 package com.example.apestoque.checklist
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -31,7 +33,21 @@ class ChecklistExpedicaoActivity : AppCompatActivity() {
                 val checklist = withContext(Dispatchers.IO) {
                     JsonNetworkModule.api(this@ChecklistExpedicaoActivity).obterExpedicaoChecklist(obra)
                 }
-                checklist.itens.forEach { item ->
+                checklist.itens.forEachIndexed { index, item ->
+                    if (index == 0) {
+                        val titulo = TextView(this@ChecklistExpedicaoActivity).apply {
+                            text = "9.1 - EXPEDIÇÃO - 01"
+                            setTypeface(null, Typeface.BOLD)
+                        }
+                        container.addView(titulo)
+                    } else if (index == 4) {
+                        val titulo = TextView(this@ChecklistExpedicaoActivity).apply {
+                            text = "9.2 - EXPEDIÇÃO - 02"
+                            setTypeface(null, Typeface.BOLD)
+                            setPadding(0, 16, 0, 0)
+                        }
+                        container.addView(titulo)
+                    }
                     val cb = CheckBox(this@ChecklistExpedicaoActivity).apply { text = item.pergunta }
                     container.addView(cb)
                     checks.add(item.numero to cb)
