@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Checklist</title>
+<style>
+body{margin:0;background:#222;color:#eee;font-family:Arial,Helvetica,sans-serif;height:100vh;}
+#container{display:grid;grid-template-columns:1fr 1fr 2fr;height:100vh;}
+.column{border-right:1px solid #444;overflow:auto;padding:10px;}
+.column:last-child{border-right:none;}
+ul{list-style:none;margin:0;padding:0;}
+li{padding:5px;cursor:pointer;}
+li:focus,li:hover{background:#444;outline:none;}
+.search{width:100%;padding:6px;margin-bottom:5px;background:#333;color:#eee;border:1px solid #555;}
+.tabs{display:flex;margin-bottom:10px;}
+.tab{padding:5px 10px;background:#333;margin-right:5px;cursor:pointer;border-radius:4px;}
+.tab.active{background:#555;}
+.badge{padding:2px 6px;border-radius:4px;font-size:.8em;color:#fff;}
+.badge.ok{background:#2e7d32;}
+.badge.bad{background:#c62828;}
+.badge.nil{background:#555;}
+.card{background:#333;margin-bottom:10px;padding:10px;border-radius:4px;}
+.card h3{margin:0 0 5px 0;}
+table{width:100%;border-collapse:collapse;font-size:.9em;}
+th,td{border:1px solid #555;padding:4px;}
+th{background:#444;position:sticky;top:0;}
+pre{background:#111;padding:10px;overflow:auto;}
+.filter-row{margin-bottom:10px;}
+.filter-row input,.filter-row select{margin-right:5px;padding:4px;background:#333;color:#eee;border:1px solid #555;}
+.pagination{margin-top:5px;text-align:center;}
+.pagination button{margin:2px;padding:4px 8px;background:#333;color:#eee;border:1px solid #555;cursor:pointer;}
+.selected{background:#555;}
+</style>
+</head>
+<body>
+<div id="container">
+<div class="column" id="foldersCol">
+<input type="text" id="folderFilter" class="search" placeholder="Buscar pasta...">
+<ul id="folderList"></ul>
+</div>
+<div class="column" id="filesCol">
+<input type="text" id="fileFilter" class="search" placeholder="Buscar arquivo...">
+<ul id="fileList"></ul>
+</div>
+<div class="column" id="viewerCol">
+<div class="tabs">
+<div class="tab active" data-tab="etapa">Visão por Etapa</div>
+<div class="tab" data-tab="json">JSON bruto</div>
+</div>
+<div id="currentPath" style="margin-bottom:5px;"></div>
+<div class="filter-row">
+<input type="text" id="filterText" placeholder="Filtrar pergunta...">
+<select id="filterStatus">
+<option value="">Status</option>
+<option value="C">C</option>
+<option value="NC">NC</option>
+<option value="-">-</option>
+</select>
+<select id="filterPapel">
+<option value="">Papel</option>
+<option value="suprimento">Suprimento</option>
+<option value="produção">Produção</option>
+<option value="montador">Montador</option>
+<option value="inspetor">Inspetor</option>
+</select>
+</div>
+<div id="etapaView"></div>
+<pre id="jsonView" style="display:none"></pre>
+</div>
+</div>
+<script>
+let folders=[], files=[], currentFolder='', currentFileName='', currentFileData=null;
+let filters={text:'',status:'',papel:''};
+let paginationState={};
+
+function updatePath(){
+    document.getElementById('currentPath').textContent=currentFolder+(currentFileName?`/${currentFileName}`:'');
+}
+
+function cellStatus(arr){
+    if(!Array.isArray(arr) || !arr.length) return '-';
+    const up=arr.map(x=>String(x).toUpperCase());
+    if(up.some(v=>v==='NC')) return 'NC';
+    if(up.some(v=>v==='C')) return 'C';
+    return '-';
+}
+
+function itemAggregate(item){
+    const r=item.respostas||{};
+    const s=cellStatus(r.suprimento);
+    const p=cellStatus(r['produção']);
+    const m=cellStatus(r.montador);
+    const i=cellStatus(r.inspetor);
+    let overall='-';
+    if([s,p,m,i].includes('NC')) overall='NC';
+    else if([s,p,m,i].includes('C')) overall='C';
+    const hasDoubleNC=(m==='NC' && i==='NC');
+    return {s,p,m,i,overall,hasDoubleNC};
+}
+
+function applyGlobalFilters(items){
+    return items.filter(it=>{
+        if(filters.text && !String(it.pergunta||'').toLowerCase().includes(filters.text.toLowerCase())) return false;
+        const agg=itemAggregate(it);
+        if(filters.status){
+            if(filters.papel){
+                const map={suprimento:'s','produção':'p',montador:'m',inspetor:'i'};
+                if(agg[map[filters.papel]]!==filters.status) return false;
+            } else if(agg.overall!==filters.status) return false;
+        }
+        return true;
+    });
+}
+
+function renderSectionCard(key, title, items){
+    items=applyGlobalFilters(items);
+    if(!items.length) return '';
+    const total=items.length;
+    const c=items.filter(it=>itemAggregate(it).overall==='C').length;
+    const nc=items.filter(it=>itemAggregate(it).overall==='NC').length;
+    const pct=v=>((v/total*100)||0).toFixed(0);
+    const pages=Math.ceil(total/50);
+    let page=paginationState[key]||1;
+    if(page>pages) page=1;
+    function rowsFor(page){
+        const start=(page-1)*50;
+        return items.slice(start,start+50).map(it=>{
+            const agg=itemAggregate(it);
+            return `<tr><td>${it.numero||''}</td><td>${it.pergunta||''}${agg.hasDoubleNC?' ⚠':''}</td>`+
+                   `<td><span class="badge ${agg.s==='NC'?'bad':agg.s==='C'?'ok':'nil'}">${agg.s}</span></td>`+
+                   `<td><span class="badge ${agg.p==='NC'?'bad':agg.p==='C'?'ok':'nil'}">${agg.p}</span></td>`+
+                   `<td><span class="badge ${agg.m==='NC'?'bad':agg.m==='C'?'ok':'nil'}">${agg.m}</span></td>`+
+                   `<td><span class="badge ${agg.i==='NC'?'bad':agg.i==='C'?'ok':'nil'}">${agg.i}</span></td>`+
+                   `<td><span class="badge ${agg.overall==='NC'?'bad':agg.overall==='C'?'ok':'nil'}">${agg.overall}</span></td></tr>`;
+        }).join('');
+    }
+    let html=`<div class="card"><h3>${title}</h3>`+
+             `<div>Itens: ${total} | %C ${pct(c)} | %NC ${pct(nc)}</div>`+
+             `<table><tr><th>Nº</th><th>Pergunta</th><th>Supr.</th><th>Prod.</th><th>Mont.</th><th>Insp.</th><th>Status</th></tr>`+
+             `${rowsFor(page)}</table>`;
+    if(pages>1){
+        html+=`<div class="pagination">`;
+        for(let i=1;i<=pages;i++) html+=`<button data-section="${key}" data-pg="${i}">${i}</button>`;
+        html+='</div>';
+    }
+    html+='</div>';
+    return html;
+}
+
+function renderMaterials(list){
+    if(!Array.isArray(list) || !list.length) return '';
+    const rows=list.map(m=>{
+        const badge=m.completo?'<span class="badge ok">Completo</span>':'<span class="badge bad">Pendente</span>';
+        return `<tr><td>${m.material||''}</td><td>${m.quantidade||''}</td><td>${badge}</td></tr>`;
+    }).join('');
+    return `<div class="card"><h3>Materiais</h3><table><tr><th>Material</th><th>Quantidade</th><th>Status</th></tr>${rows}</table></div>`;
+}
+
+function renderPreview(list){
+    if(!Array.isArray(list) || !list.length) return '';
+    const rows=list.map(it=>{
+        const r=it.respostas||{};
+        const m=cellStatus(r.montador);
+        const i=cellStatus(r.inspetor);
+        return `<tr><td>${it.numero||''}</td><td>${it.pergunta||''}</td>`+
+               `<td><span class="badge ${m==='NC'?'bad':m==='C'?'ok':'nil'}">${m}</span></td>`+
+               `<td><span class="badge ${i==='NC'?'bad':i==='C'?'ok':'nil'}">${i}</span></td></tr>`;
+    }).join('');
+    return `<div class="card"><h3>Pré-visualização</h3><table><tr><th>Nº</th><th>Pergunta</th><th>Montador</th><th>Inspetor</th></tr>${rows}</table></div>`;
+}
+
+function renderDoubleNC(list){
+    if(!Array.isArray(list) || !list.length) return '';
+    const rows=list.map(it=>{
+        const r=it.respostas||{};
+        const m=cellStatus(r.montador);
+        const i=cellStatus(r.inspetor);
+        return `<tr><td>${it.numero||''}</td><td>${it.pergunta||''}</td>`+
+               `<td><span class="badge ${m==='NC'?'bad':m==='C'?'ok':'nil'}">${m}</span></td>`+
+               `<td><span class="badge ${i==='NC'?'bad':i==='C'?'ok':'nil'}">${i}</span></td></tr>`;
+    }).join('');
+    return `<div class="card"><h3>Duplo NC</h3><table><tr><th>Nº</th><th>Pergunta</th><th>Montador</th><th>Inspetor</th></tr>${rows}</table></div>`;
+}
+
+function renderEtapas(){
+    if(!currentFileData){document.getElementById('etapaView').innerHTML='';return;}
+    let html='';
+    const sections=[
+        ['itens','Posto 01'],
+        ['posto02','Posto 02'],
+        ['posto03_pre_montagem_01','Posto 03 Pré 01'],
+        ['posto04_barramento','Posto 04 Barramento'],
+        ['posto05_cablagem_01','Posto 05 Cablagem 01'],
+        ['posto06_pre_montagem_02','Posto 06 Pré 02'],
+        ['posto06_cablagem_02','Posto 06 Cablagem 02'],
+        ['posto08_iqm','Posto 08 IQM'],
+        ['posto08_iqe','Posto 08 IQE'],
+        ['posto08_teste','Posto 08 Teste'],
+        ['expedicao','Expedição']
+    ];
+    sections.forEach(([key,title])=>{if(Array.isArray(currentFileData[key])) html+=renderSectionCard(key,title,currentFileData[key]);});
+    if(Array.isArray(currentFileData.materiais)) html+=renderMaterials(currentFileData.materiais);
+    if(Array.isArray(currentFileData.pre_visualizacao)) html+=renderPreview(currentFileData.pre_visualizacao);
+    if(Array.isArray(currentFileData.respostas_duplas_NC)) html+=renderDoubleNC(currentFileData.respostas_duplas_NC);
+    const container=document.getElementById('etapaView');
+    container.innerHTML=html;
+    container.querySelectorAll('.pagination button').forEach(btn=>{
+        btn.onclick=()=>{
+            const sec=btn.dataset.section;
+            paginationState[sec]=parseInt(btn.dataset.pg);
+            renderEtapas();
+        };
+    });
+}
+
+function loadFolders(){
+    fetch('api/folders').then(r=>r.json()).then(data=>{folders=data;renderFolders();});
+}
+function renderFolders(){
+    const term=document.getElementById('folderFilter').value.toLowerCase();
+    const ul=document.getElementById('folderList');
+    ul.innerHTML='';
+    folders.filter(f=>f.toLowerCase().includes(term)).forEach(f=>{
+        const li=document.createElement('li');
+        li.textContent=f;li.tabIndex=0;
+        if(f===currentFolder) li.classList.add('selected');
+        li.onclick=()=>{currentFolder=f;currentFileName='';loadFiles();updatePath();};
+        li.onkeyup=e=>{if(e.key==='Enter')li.click();};
+        ul.appendChild(li);
+    });
+}
+function loadFiles(){
+    fetch(`api/files?folder=${encodeURIComponent(currentFolder)}`).then(r=>r.json()).then(data=>{files=data;renderFiles();});
+}
+function renderFiles(){
+    const term=document.getElementById('fileFilter').value.toLowerCase();
+    const ul=document.getElementById('fileList');
+    ul.innerHTML='';
+    files.filter(f=>f.name.toLowerCase().includes(term)).forEach(f=>{
+        const li=document.createElement('li');
+        li.textContent=f.name;li.tabIndex=0;
+        if(f.name===currentFileName) li.classList.add('selected');
+        li.onclick=()=>{loadFile(f.name);};
+        li.onkeyup=e=>{if(e.key==='Enter')li.click();};
+        ul.appendChild(li);
+    });
+}
+function loadFile(name){
+    fetch(`api/file?folder=${encodeURIComponent(currentFolder)}&name=${encodeURIComponent(name)}`)
+        .then(r=>r.json())
+        .then(data=>{currentFileData=data;currentFileName=name;document.getElementById('jsonView').textContent=JSON.stringify(data,null,2);renderEtapas();updatePath();renderFiles();});
+}
+
+// Tabs
+ document.querySelectorAll('.tab').forEach(t=>{
+    t.onclick=()=>{
+        document.querySelectorAll('.tab').forEach(z=>z.classList.remove('active'));
+        t.classList.add('active');
+        if(t.dataset.tab==='json'){
+            document.getElementById('jsonView').style.display='block';
+            document.getElementById('etapaView').style.display='none';
+        } else {
+            document.getElementById('jsonView').style.display='none';
+            document.getElementById('etapaView').style.display='block';
+        }
+    };
+ });
+
+document.getElementById('folderFilter').oninput=renderFolders;
+document.getElementById('fileFilter').oninput=renderFiles;
+document.getElementById('filterText').oninput=e=>{filters.text=e.target.value;renderEtapas();};
+document.getElementById('filterStatus').onchange=e=>{filters.status=e.target.value;renderEtapas();};
+document.getElementById('filterPapel').onchange=e=>{filters.papel=e.target.value;renderEtapas();};
+
+loadFolders();
+updatePath();
+</script>
+</body>
+</html>
