@@ -198,10 +198,28 @@ function renderEtapas(){
         ['posto08_teste','Posto 08 Teste'],
         ['expedicao','Expedição']
     ];
-    sections.forEach(([key,title])=>{if(Array.isArray(currentFileData[key])) html+=renderSectionCard(key,title,currentFileData[key]);});
-    if(Array.isArray(currentFileData.materiais)) html+=renderMaterials(currentFileData.materiais);
-    if(Array.isArray(currentFileData.pre_visualizacao)) html+=renderPreview(currentFileData.pre_visualizacao);
-    if(Array.isArray(currentFileData.respostas_duplas_NC)) html+=renderDoubleNC(currentFileData.respostas_duplas_NC);
+    sections.forEach(([key,title])=>{
+        const sec=currentFileData[key];
+        let items=null;
+        if(Array.isArray(sec)) items=sec;
+        else if(sec && Array.isArray(sec.itens)) items=sec.itens;
+        if(items) html+=renderSectionCard(key,title,items);
+    });
+    const mats=currentFileData.materiais;
+    if(mats){
+        const list=Array.isArray(mats)?mats:mats.itens;
+        if(Array.isArray(list)) html+=renderMaterials(list);
+    }
+    const pre=currentFileData.pre_visualizacao;
+    if(pre){
+        const list=Array.isArray(pre)?pre:pre.itens;
+        if(Array.isArray(list)) html+=renderPreview(list);
+    }
+    const dbl=currentFileData.respostas_duplas_NC;
+    if(dbl){
+        const list=Array.isArray(dbl)?dbl:dbl.itens;
+        if(Array.isArray(list)) html+=renderDoubleNC(list);
+    }
     const container=document.getElementById('etapaView');
     container.innerHTML=html;
     container.querySelectorAll('.pagination button').forEach(btn=>{
