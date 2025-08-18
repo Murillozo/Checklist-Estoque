@@ -13,6 +13,7 @@ import com.example.apestoque.fragments.AprovadoFragment
 import com.example.apestoque.fragments.ComprasFragment
 import com.example.apestoque.fragments.SolicitacoesFragment
 import com.example.apestoque.fragments.RevisaoFragment
+import com.example.apestoque.fragments.LogisticaFragment
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -49,9 +50,10 @@ class MainActivity : AppCompatActivity() {
             SolicitacoesFragment(),
             ComprasFragment(),
             AprovadoFragment(),
-            RevisaoFragment()
+            RevisaoFragment(),
+            LogisticaFragment()
         )
-        val titles = listOf("Solicitações", "Compras", "Aprovadas", "Revisão")
+        val titles = listOf("Solicitações", "Compras", "Aprovadas", "Revisão", "Logística")
 
         // Adapter
         pager.adapter = ViewPagerAdapter(this, frags)
