@@ -272,6 +272,84 @@ def listar_projetos():
     return jsonify({'projetos': projetos})
 
 
+@bp.route('/expedicao/projects', methods=['GET'])
+def listar_expedicao_projetos():
+    """List projects awaiting logística checklist."""
+    dir_path = os.path.join(BASE_DIR, 'EXPEDICAO')
+    if not os.path.isdir(dir_path):
+        return jsonify({'projetos': []})
+    arquivos = [f for f in os.listdir(dir_path) if f.endswith('.json')]
+    projetos = []
+    for nome in sorted(arquivos):
+        caminho = path.join(dir_path, nome)
+        try:
+            with open(caminho, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            projetos.append(
+                {
+                    'arquivo': nome,
+                    'obra': data.get('obra', path.splitext(nome)[0]),
+                    'ano': data.get('ano', ''),
+                }
+            )
+        except Exception:
+            continue
+    return jsonify({'projetos': projetos})
+
+
+@bp.route('/expedicao/checklist', methods=['GET'])
+def obter_expedicao_checklist():
+    """Return checklist data for a given obra in EXPEDICAO."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'EXPEDICAO', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+
+@bp.route('/expedicao/upload', methods=['POST'])
+def expedicao_upload():
+    """Append logística answers and move checklist to final directory."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    src_path = os.path.join(BASE_DIR, 'EXPEDICAO', f'checklist_{obra}.json')
+    if not os.path.exists(src_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(src_path, 'r', encoding='utf-8') as f:
+        base = json.load(f)
+
+    itens = []
+    for item in data.get('itens', []):
+        numero = item.get('numero')
+        pergunta = item.get('pergunta')
+        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        itens.append({'numero': numero, 'pergunta': pergunta, 'respostas': {'logistica': resposta}})
+
+    base['expedicao'] = {'itens': itens}
+
+    dest_dir = os.path.join(BASE_DIR, 'CHECKLIST_FINAL')
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, f'checklist_{obra}.json')
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    return jsonify({'caminho': dest_path})
+
+
 @bp.route('/posto02/projects', methods=['GET'])
 def listar_posto02_projetos():
     """Return obra/ano info for each checklist JSON file in Posto02_Oficina."""
