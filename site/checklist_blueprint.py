@@ -46,6 +46,19 @@ def list_folders():
     return jsonify(folders)
 
 
+@bp.route('/api/folders')
+def list_folders():
+    try:
+        folders = [
+            d for d in os.listdir(BASE_DIR)
+            if os.path.isdir(os.path.join(BASE_DIR, d))
+        ]
+    except OSError as e:
+        return jsonify({'error': str(e)}), 500
+    folders.sort()
+    return jsonify(folders)
+
+
 @bp.route('/api/files')
 def list_files():
     folder = request.args.get('folder', '')
