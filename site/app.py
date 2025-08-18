@@ -6,6 +6,7 @@ from projetista import bp as projetista_bp
 from compras import bp as compras_bp
 from auth import bp as auth_bp
 from json_api import bp as json_api_bp, merge_directory, move_matching_checklists
+from json_api.list_checklists import collect_checklists
 from checklist_blueprint import bp as checklist_bp
 from flask_login import LoginManager, login_user, current_user
 from flask import Flask, request
@@ -52,6 +53,12 @@ def create_app():
     base_json = os.path.join(os.path.dirname(__file__), 'json_api')
     merge_directory(base_json)
     move_matching_checklists(base_json)
+
+    # Lista automaticamente os arquivos de checklist disponíveis
+    for folder, items in collect_checklists().items():
+        print(f"{folder}:")
+        for item in items:
+            print(f"  - {item['file']}")
 
     with app.app_context():
         db.create_all()
