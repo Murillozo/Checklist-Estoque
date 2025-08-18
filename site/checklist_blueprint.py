@@ -23,9 +23,27 @@ def _validate_part(part: str) -> bool:
     return bool(ALLOWED_RE.fullmatch(part))
 
 
-@bp.route('/')
+@bp.route('/', strict_slashes=False)
 def index():
+    """Renderiza a página principal de checklists.
+
+    strict_slashes=False permite acessar tanto
+    "/projetista/checklist" quanto "/projetista/checklist/".
+    """
     return render_template('checklist.html')
+
+
+@bp.route('/api/folders')
+def list_folders():
+    try:
+        folders = [
+            d for d in os.listdir(BASE_DIR)
+            if os.path.isdir(os.path.join(BASE_DIR, d))
+        ]
+    except OSError as e:
+        return jsonify({'error': str(e)}), 500
+    folders.sort()
+    return jsonify(folders)
 
 
 @bp.route('/api/folders')
