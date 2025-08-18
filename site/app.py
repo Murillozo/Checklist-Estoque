@@ -105,5 +105,8 @@ def create_app():
     return app
 
 if __name__ == '__main__':
+    from json_api import list_checklists
+
+    list_checklists.main()
     app = create_app()
     app.run(debug=True, host='0.0.0.0')
