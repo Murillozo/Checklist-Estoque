@@ -23,6 +23,7 @@ def _validate_part(part: str) -> bool:
     return bool(ALLOWED_RE.fullmatch(part))
 
 
+
 @bp.route('/api/folders')
 def list_folders():
     try:
