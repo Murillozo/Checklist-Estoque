@@ -6,6 +6,7 @@ from projetista import bp as projetista_bp
 from compras import bp as compras_bp
 from auth import bp as auth_bp
 from json_api import bp as json_api_bp, merge_directory, move_matching_checklists
+from checklist_blueprint import bp as checklist_bp
 from flask_login import LoginManager, login_user, current_user
 from flask import Flask, request
 from sqlalchemy import inspect
@@ -46,6 +47,7 @@ def create_app():
     app.register_blueprint(projetista_bp, url_prefix='/projetista')
     app.register_blueprint(compras_bp, url_prefix='/compras')
     app.register_blueprint(json_api_bp, url_prefix='/json_api')
+    app.register_blueprint(checklist_bp, url_prefix='/projetista/checklist')
     app.register_blueprint(auth_bp)
     base_json = os.path.join(os.path.dirname(__file__), 'json_api')
     merge_directory(base_json)
