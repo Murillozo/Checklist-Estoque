@@ -29,6 +29,7 @@ pre{background:#111;padding:10px;overflow:auto;}
 .filter-row input,.filter-row select{margin-right:5px;padding:4px;background:#333;color:#eee;border:1px solid #555;}
 .pagination{margin-top:5px;text-align:center;}
 .pagination button{margin:2px;padding:4px 8px;background:#333;color:#eee;border:1px solid #555;cursor:pointer;}
+.selected{background:#555;}
 </style>
 </head>
 <body>
@@ -46,6 +47,7 @@ pre{background:#111;padding:10px;overflow:auto;}
 <div class="tab active" data-tab="etapa">Visão por Etapa</div>
 <div class="tab" data-tab="json">JSON bruto</div>
 </div>
+<div id="currentPath" style="margin-bottom:5px;"></div>
 <div class="filter-row">
 <input type="text" id="filterText" placeholder="Filtrar pergunta...">
 <select id="filterStatus">
@@ -67,9 +69,13 @@ pre{background:#111;padding:10px;overflow:auto;}
 </div>
 </div>
 <script>
-let folders=[], files=[], currentFolder='', currentFileData=null;
+let folders=[], files=[], currentFolder='', currentFileName='', currentFileData=null;
 let filters={text:'',status:'',papel:''};
 let paginationState={};
+
+function updatePath(){
+    document.getElementById('currentPath').textContent=currentFolder+(currentFileName?`/${currentFileName}`:'');
+}
 
 function cellStatus(arr){
     if(!Array.isArray(arr) || !arr.length) return '-';
@@ -217,7 +223,8 @@ function renderFolders(){
     folders.filter(f=>f.toLowerCase().includes(term)).forEach(f=>{
         const li=document.createElement('li');
         li.textContent=f;li.tabIndex=0;
-        li.onclick=()=>{currentFolder=f;loadFiles();};
+        if(f===currentFolder) li.classList.add('selected');
+        li.onclick=()=>{currentFolder=f;currentFileName='';loadFiles();updatePath();};
         li.onkeyup=e=>{if(e.key==='Enter')li.click();};
         ul.appendChild(li);
     });
@@ -232,6 +239,7 @@ function renderFiles(){
     files.filter(f=>f.name.toLowerCase().includes(term)).forEach(f=>{
         const li=document.createElement('li');
         li.textContent=f.name;li.tabIndex=0;
+        if(f.name===currentFileName) li.classList.add('selected');
         li.onclick=()=>{loadFile(f.name);};
         li.onkeyup=e=>{if(e.key==='Enter')li.click();};
         ul.appendChild(li);
@@ -240,7 +248,7 @@ function renderFiles(){
 function loadFile(name){
     fetch(`api/file?folder=${encodeURIComponent(currentFolder)}&name=${encodeURIComponent(name)}`)
         .then(r=>r.json())
-        .then(data=>{currentFileData=data;document.getElementById('jsonView').textContent=JSON.stringify(data,null,2);renderEtapas();});
+        .then(data=>{currentFileData=data;currentFileName=name;document.getElementById('jsonView').textContent=JSON.stringify(data,null,2);renderEtapas();updatePath();renderFiles();});
 }
 
 // Tabs
@@ -265,6 +273,7 @@ document.getElementById('filterStatus').onchange=e=>{filters.status=e.target.val
 document.getElementById('filterPapel').onchange=e=>{filters.papel=e.target.value;renderEtapas();};
 
 loadFolders();
+updatePath();
 </script>
 </body>
 </html>
