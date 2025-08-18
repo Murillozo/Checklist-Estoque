@@ -2,7 +2,7 @@ import os
 import re
 import json
 from datetime import datetime
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, request
 
 bp = Blueprint('checklist', __name__, template_folder='templates')
 
@@ -22,15 +22,6 @@ def safe_join(root, *paths):
 def _validate_part(part: str) -> bool:
     return bool(ALLOWED_RE.fullmatch(part))
 
-
-@bp.route('/', strict_slashes=False)
-def index():
-    """Renderiza a página principal de checklists.
-
-    strict_slashes=False permite acessar tanto
-    "/projetista/checklist" quanto "/projetista/checklist/".
-    """
-    return render_template('checklist.html')
 
 
 @bp.route('/api/folders')
@@ -96,7 +87,7 @@ def get_file():
         return jsonify({'error': str(e)}), 500
 
 
-@bp.route('/<path:filepath>')
+@bp.route('/raw/<path:filepath>')
 def get_any_file(filepath: str):
     """Retorna o conteúdo de um arquivo de checklist no escopo."""
     parts = filepath.split('/')
