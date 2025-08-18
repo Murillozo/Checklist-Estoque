@@ -231,8 +231,12 @@ function renderEtapas(){
     });
 }
 
+const foldersUrl = "{{ url_for('checklist.list_folders') }}";
+const filesUrl = "{{ url_for('checklist.list_files') }}";
+const fileUrl = "{{ url_for('checklist.get_file') }}";
+
 function loadFolders(){
-    fetch('api/folders').then(r=>r.json()).then(data=>{folders=data;renderFolders();});
+    fetch(foldersUrl).then(r=>r.json()).then(data=>{folders=data;renderFolders();});
 }
 function renderFolders(){
     const term=document.getElementById('folderFilter').value.toLowerCase();
@@ -248,7 +252,7 @@ function renderFolders(){
     });
 }
 function loadFiles(){
-    fetch(`api/files?folder=${encodeURIComponent(currentFolder)}`).then(r=>r.json()).then(data=>{files=data;renderFiles();});
+    fetch(`${filesUrl}?folder=${encodeURIComponent(currentFolder)}`).then(r=>r.json()).then(data=>{files=data;renderFiles();});
 }
 function renderFiles(){
     const term=document.getElementById('fileFilter').value.toLowerCase();
@@ -264,7 +268,7 @@ function renderFiles(){
     });
 }
 function loadFile(name){
-    fetch(`api/file?folder=${encodeURIComponent(currentFolder)}&name=${encodeURIComponent(name)}`)
+    fetch(`${fileUrl}?folder=${encodeURIComponent(currentFolder)}&name=${encodeURIComponent(name)}`)
         .then(r=>r.json())
         .then(data=>{currentFileData=data;currentFileName=name;document.getElementById('jsonView').textContent=JSON.stringify(data,null,2);renderEtapas();updatePath();renderFiles();});
 }
