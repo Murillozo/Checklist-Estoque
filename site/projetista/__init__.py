@@ -1,6 +1,6 @@
 # projetista/__init__.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Solicitacao, Item, User, AuthorizedIP
+from models import db, Solicitacao, Item, User, AuthorizedIP, EstoqueSolicitacao, EstoqueItem
 from flask_login import login_required, current_user
 import json
 import io
@@ -208,7 +208,16 @@ def verificar_estoque():
                 if not ref or not qt:
                     continue
                 itens.append({'referencia': ref, 'quantidade': int(qt)})
+
+        if itens:
+            sol = EstoqueSolicitacao()
+            for it in itens:
+                sol.itens.append(EstoqueItem(referencia=it['referencia'], quantidade=it['quantidade']))
+            db.session.add(sol)
+            db.session.commit()
     return render_template('verificar_estoque.html', itens=itens if itens else None)
+
+
 
 
 @bp.route('/subpastas', methods=['GET', 'POST'])
@@ -588,3 +597,11 @@ def config():
         compras_user=compras_user,
         ips=ips
     )
+
+
+@bp.route('/api/inspecoes')
+def api_inspecoes():
+    dados = []
+    for sol in EstoqueSolicitacao.query.order_by(EstoqueSolicitacao.id.desc()).all():
+        dados.append({'id': sol.id, 'itens': [{'referencia': i.referencia, 'quantidade': i.quantidade} for i in sol.itens]})
+    return jsonify(dados)
