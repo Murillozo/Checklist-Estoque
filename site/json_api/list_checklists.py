@@ -25,7 +25,6 @@ FOLDERS = [
     "CHECKLIST_FINAL",
 ]
 
-
 def humanize_folder(name: str) -> str:
     """Return a human friendly representation of ``name``.
 
