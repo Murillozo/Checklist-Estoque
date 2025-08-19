@@ -10,7 +10,7 @@ from json_api.list_checklists import collect_checklists
 from checklist_blueprint import bp as checklist_bp
 from flask_login import LoginManager, login_user, current_user
 from flask import Flask, request
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 def create_app():
     app = Flask(__name__, template_folder="projetista/templates")
@@ -69,17 +69,17 @@ def create_app():
             cols = [c['name'] for c in insp.get_columns('solicitacao')]
             if 'status' not in cols:
                 db.session.execute(
-                    "ALTER TABLE solicitacao ADD COLUMN status VARCHAR(20) DEFAULT 'analise'"
+                    text("ALTER TABLE solicitacao ADD COLUMN status VARCHAR(20) DEFAULT 'analise'")
                 )
                 db.session.commit()
             if 'pendencias' not in cols:
                 db.session.execute(
-                    "ALTER TABLE solicitacao ADD COLUMN pendencias TEXT"
+                    text("ALTER TABLE solicitacao ADD COLUMN pendencias TEXT")
                 )
                 db.session.commit()
             if 'data_entrega' not in cols:
                 db.session.execute(
-                    "ALTER TABLE solicitacao ADD COLUMN data_entrega DATE"
+                    text("ALTER TABLE solicitacao ADD COLUMN data_entrega DATE")
                 )
                 db.session.commit()
 
@@ -87,12 +87,12 @@ def create_app():
             cols = [c['name'] for c in insp.get_columns('item')]
             if 'status' not in cols:
                 db.session.execute(
-                    "ALTER TABLE item ADD COLUMN status VARCHAR(20) DEFAULT 'Nao iniciada'"
+                    text("ALTER TABLE item ADD COLUMN status VARCHAR(20) DEFAULT 'Nao iniciada'")
                 )
                 db.session.commit()
             if 'previsao_entrega' not in cols:
                 db.session.execute(
-                    "ALTER TABLE item ADD COLUMN previsao_entrega DATE"
+                    text("ALTER TABLE item ADD COLUMN previsao_entrega DATE")
                 )
                 db.session.commit()
 

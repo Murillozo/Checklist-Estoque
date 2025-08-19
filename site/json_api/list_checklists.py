@@ -46,7 +46,7 @@ def humanize_folder(name: str) -> str:
     for acr in ("IQM", "IQE"):
         text = text.replace(acr.title(), acr)
     return text
-  
+
 def collect_checklists() -> Dict[str, List[Dict[str, Any]]]:
     """Return a mapping of folder names to their JSON checklist contents.
 
