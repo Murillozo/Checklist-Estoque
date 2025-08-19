@@ -38,6 +38,24 @@ class Item(db.Model):
     previsao_entrega = db.Column(db.Date)
 
 
+# Solicitações de verificação de estoque enviadas pelo projetista
+class EstoqueSolicitacao(db.Model):
+    __tablename__ = 'estoque_solicitacao'
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    itens = db.relationship('EstoqueItem', backref='solicitacao', cascade='all, delete-orphan')
+
+
+class EstoqueItem(db.Model):
+    __tablename__ = 'estoque_item'
+    id = db.Column(db.Integer, primary_key=True)
+    solicitacao_id = db.Column(db.Integer, db.ForeignKey('estoque_solicitacao.id'), nullable=False)
+    referencia = db.Column(db.String(100), nullable=False)
+    quantidade = db.Column(db.Integer, nullable=False)
+    verificado = db.Column(db.Boolean, default=False)
+    faltante = db.Column(db.Integer, default=0)
+
+
 class ItemStatusHistory(db.Model):
     """Historico de mudancas de status de um item."""
     __tablename__ = 'item_status_history'

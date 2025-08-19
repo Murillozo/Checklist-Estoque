@@ -1,6 +1,6 @@
 # projetista/__init__.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Solicitacao, Item, User, AuthorizedIP
+from models import db, Solicitacao, Item, User, AuthorizedIP, EstoqueSolicitacao, EstoqueItem
 from flask_login import login_required, current_user
 import json
 import io
@@ -184,6 +184,47 @@ def nova_solicitacao():
         return redirect(url_for('projetista.solicitacoes'))
 
     return render_template('nova_solicitacao.html', anos=anos, obras_por_ano=obras_por_ano)
+
+
+@bp.route('/verificar_estoque', methods=['GET', 'POST'])
+@login_required
+def verificar_estoque():
+    if request.method == 'POST':
+        itens = []
+        file = request.files.get('xlsx_file')
+        if file and file.filename.lower().endswith(('.xls', '.xlsx')):
+            wb = openpyxl.load_workbook(io.BytesIO(file.read()), data_only=True)
+            ws = wb.active
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                ref, qt = row[0], row[1]
+                if not ref or not qt:
+                    continue
+                itens.append({'referencia': str(ref).strip(), 'quantidade': int(qt)})
+        else:
+            refs = request.form.get('referencias', '').strip().splitlines()
+            qts = request.form.get('quantidades', '').strip().splitlines()
+            for ref, qt in zip(refs, qts):
+                ref, qt = ref.strip(), qt.strip()
+                if not ref or not qt:
+                    continue
+                itens.append({'referencia': ref, 'quantidade': int(qt)})
+
+        if itens:
+            sol = EstoqueSolicitacao()
+            for it in itens:
+                sol.itens.append(
+                    EstoqueItem(
+                        referencia=it['referencia'],
+                        quantidade=it['quantidade']
+                    )
+                )
+            db.session.add(sol)
+            db.session.commit()
+            flash('Solicitação registrada', 'success')
+        return redirect(url_for('projetista.verificar_estoque'))
+
+    solicitacoes = EstoqueSolicitacao.query.order_by(EstoqueSolicitacao.id.desc()).all()
+    return render_template('verificar_estoque.html', solicitacoes=solicitacoes)
 
 
 @bp.route('/subpastas', methods=['GET', 'POST'])
@@ -563,3 +604,36 @@ def config():
         compras_user=compras_user,
         ips=ips
     )
+
+
+@bp.route('/api/inspecoes')
+def api_inspecoes():
+    dados = []
+    for sol in EstoqueSolicitacao.query.order_by(EstoqueSolicitacao.id.desc()).all():
+        dados.append({
+            'id': sol.id,
+            'itens': [
+                {
+                    'id': i.id,
+                    'referencia': i.referencia,
+                    'quantidade': i.quantidade,
+                    'verificado': i.verificado,
+                    'faltante': i.faltante,
+                }
+                for i in sol.itens
+            ]
+        })
+    return jsonify(dados)
+
+
+@bp.route('/api/inspecoes/<int:id>/resultado', methods=['POST'])
+def api_inspecao_resultado(id):
+    sol = EstoqueSolicitacao.query.get_or_404(id)
+    dados = request.get_json() or {}
+    for item_data in dados.get('itens', []):
+        item = EstoqueItem.query.get(item_data.get('id'))
+        if item and item.solicitacao_id == id:
+            item.verificado = item_data.get('verificado', False)
+            item.faltante = item_data.get('faltante', 0)
+    db.session.commit()
+    return jsonify({'ok': True})
