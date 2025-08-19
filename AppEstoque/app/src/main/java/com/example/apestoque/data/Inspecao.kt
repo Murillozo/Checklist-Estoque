@@ -28,4 +28,3 @@ data class InspecaoResultadoItem(
 data class InspecaoResultadoRequest(
     val itens: List<InspecaoResultadoItem>
 )
-

@@ -51,4 +51,3 @@ class InspecaoAdapter : RecyclerView.Adapter<InspecaoAdapter.VH>() {
         val et: EditText = view.findViewById(R.id.etFaltante)
     }
 }
-
