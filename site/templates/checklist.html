@@ -62,6 +62,7 @@ pre{background:#111;padding:10px;overflow:auto;}
 <option value="produção">Produção</option>
 <option value="montador">Montador</option>
 <option value="inspetor">Inspetor</option>
+<option value="logistica">Logística</option>
 </select>
 </div>
 <div id="etapaView"></div>
@@ -69,12 +70,13 @@ pre{background:#111;padding:10px;overflow:auto;}
 </div>
 </div>
 <script>
-let folders=[], files=[], currentFolder='', currentFileName='', currentFileData=null;
+let folders=[], files=[], currentFolder='', currentFolderLabel='', currentFileName='', currentFileData=null;
 let filters={text:'',status:'',papel:''};
 let paginationState={};
 
 function updatePath(){
-    document.getElementById('currentPath').textContent=currentFolder+(currentFileName?`/${currentFileName}`:'');
+    const base=currentFolderLabel||currentFolder;
+    document.getElementById('currentPath').textContent=base+(currentFileName?`/${currentFileName}`:'');
 }
 
 function cellStatus(arr){
@@ -91,11 +93,12 @@ function itemAggregate(item){
     const p=cellStatus(r['produção']);
     const m=cellStatus(r.montador);
     const i=cellStatus(r.inspetor);
+    const l=cellStatus(r.logistica);
     let overall='-';
-    if([s,p,m,i].includes('NC')) overall='NC';
-    else if([s,p,m,i].includes('C')) overall='C';
+    if([s,p,m,i,l].includes('NC')) overall='NC';
+    else if([s,p,m,i,l].includes('C')) overall='C';
     const hasDoubleNC=(m==='NC' && i==='NC');
-    return {s,p,m,i,overall,hasDoubleNC};
+    return {s,p,m,i,l,overall,hasDoubleNC};
 }
 
 function applyGlobalFilters(items){
@@ -104,7 +107,7 @@ function applyGlobalFilters(items){
         const agg=itemAggregate(it);
         if(filters.status){
             if(filters.papel){
-                const map={suprimento:'s','produção':'p',montador:'m',inspetor:'i'};
+                const map={suprimento:'s','produção':'p',montador:'m',inspetor:'i',logistica:'l'};
                 if(agg[map[filters.papel]]!==filters.status) return false;
             } else if(agg.overall!==filters.status) return false;
         }
@@ -131,12 +134,13 @@ function renderSectionCard(key, title, items){
                    `<td><span class="badge ${agg.p==='NC'?'bad':agg.p==='C'?'ok':'nil'}">${agg.p}</span></td>`+
                    `<td><span class="badge ${agg.m==='NC'?'bad':agg.m==='C'?'ok':'nil'}">${agg.m}</span></td>`+
                    `<td><span class="badge ${agg.i==='NC'?'bad':agg.i==='C'?'ok':'nil'}">${agg.i}</span></td>`+
+                   `<td><span class="badge ${agg.l==='NC'?'bad':agg.l==='C'?'ok':'nil'}">${agg.l}</span></td>`+
                    `<td><span class="badge ${agg.overall==='NC'?'bad':agg.overall==='C'?'ok':'nil'}">${agg.overall}</span></td></tr>`;
         }).join('');
     }
     let html=`<div class="card"><h3>${title}</h3>`+
              `<div>Itens: ${total} | %C ${pct(c)} | %NC ${pct(nc)}</div>`+
-             `<table><tr><th>Nº</th><th>Pergunta</th><th>Supr.</th><th>Prod.</th><th>Mont.</th><th>Insp.</th><th>Status</th></tr>`+
+             `<table><tr><th>Nº</th><th>Pergunta</th><th>Supr.</th><th>Prod.</th><th>Mont.</th><th>Insp.</th><th>Log.</th><th>Status</th></tr>`+
              `${rowsFor(page)}</table>`;
     if(pages>1){
         html+=`<div class="pagination">`;
@@ -231,24 +235,28 @@ function renderEtapas(){
     });
 }
 
+const foldersUrl = "{{ url_for('checklist.list_folders') }}";
+const filesUrl = "{{ url_for('checklist.list_files') }}";
+const fileUrl = "{{ url_for('checklist.get_file') }}";
+
 function loadFolders(){
-    fetch('api/folders').then(r=>r.json()).then(data=>{folders=data;renderFolders();});
+    fetch(foldersUrl).then(r=>r.json()).then(data=>{folders=data;renderFolders();});
 }
 function renderFolders(){
     const term=document.getElementById('folderFilter').value.toLowerCase();
     const ul=document.getElementById('folderList');
     ul.innerHTML='';
-    folders.filter(f=>f.toLowerCase().includes(term)).forEach(f=>{
+    folders.filter(f=>f.label.toLowerCase().includes(term)).forEach(f=>{
         const li=document.createElement('li');
-        li.textContent=f;li.tabIndex=0;
-        if(f===currentFolder) li.classList.add('selected');
-        li.onclick=()=>{currentFolder=f;currentFileName='';loadFiles();updatePath();};
+        li.textContent=f.label;li.tabIndex=0;
+        if(f.path===currentFolder) li.classList.add('selected');
+        li.onclick=()=>{currentFolder=f.path;currentFolderLabel=f.label;currentFileName='';loadFiles();updatePath();};
         li.onkeyup=e=>{if(e.key==='Enter')li.click();};
         ul.appendChild(li);
     });
 }
 function loadFiles(){
-    fetch(`api/files?folder=${encodeURIComponent(currentFolder)}`).then(r=>r.json()).then(data=>{files=data;renderFiles();});
+    fetch(`${filesUrl}?folder=${encodeURIComponent(currentFolder)}`).then(r=>r.json()).then(data=>{files=data;renderFiles();});
 }
 function renderFiles(){
     const term=document.getElementById('fileFilter').value.toLowerCase();
@@ -264,7 +272,7 @@ function renderFiles(){
     });
 }
 function loadFile(name){
-    fetch(`api/file?folder=${encodeURIComponent(currentFolder)}&name=${encodeURIComponent(name)}`)
+    fetch(`${fileUrl}?folder=${encodeURIComponent(currentFolder)}&name=${encodeURIComponent(name)}`)
         .then(r=>r.json())
         .then(data=>{currentFileData=data;currentFileName=name;document.getElementById('jsonView').textContent=JSON.stringify(data,null,2);renderEtapas();updatePath();renderFiles();});
 }

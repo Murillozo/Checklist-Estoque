@@ -402,34 +402,8 @@ def api_compras(id):
 @bp.route('/checklist')
 @login_required
 def checklist_list():
-    """Lista os checklists agrupados por obra.
-
-    Também identifica o checklist anterior de cada obra para que o
-    usuário possa visualizar as diferenças entre versões.
-    """
-    projetos = {}
-    if os.path.isdir(CHECKLIST_DIR):
-        for nome in os.listdir(CHECKLIST_DIR):
-            if not nome.lower().endswith('.json'):
-                continue
-            caminho = os.path.join(CHECKLIST_DIR, nome)
-            try:
-                with open(caminho, encoding='utf-8') as f:
-                    dados = json.load(f)
-                obra = dados.get('obra', 'Desconhecida') or 'Desconhecida'
-            except Exception:
-                obra = 'Desconhecida'
-            projetos.setdefault(obra, []).append({'filename': nome})
-
-    # Ordena os arquivos de cada obra e define o checklist anterior
-    for obra, arquivos in projetos.items():
-        arquivos.sort(key=lambda a: a['filename'])
-        for idx, arq in enumerate(arquivos, start=1):
-            arq['revisao'] = idx
-            if idx > 1:
-                arq['diff'] = arquivos[idx - 1]['filename']
-
-    return render_template('checklist_list.html', projetos=projetos)
+    """Renderiza a interface de visualização dos checklists."""
+    return render_template('checklist.html')
 
 
 @bp.route('/checklist/<path:filename>')

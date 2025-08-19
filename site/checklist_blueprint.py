@@ -2,7 +2,8 @@ import os
 import re
 import json
 from datetime import datetime
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, request
+from json_api.list_checklists import FOLDERS, humanize_folder
 
 bp = Blueprint('checklist', __name__, template_folder='templates')
 
@@ -23,40 +24,33 @@ def _validate_part(part: str) -> bool:
     return bool(ALLOWED_RE.fullmatch(part))
 
 
-@bp.route('/', strict_slashes=False)
-def index():
-    """Renderiza a página principal de checklists.
+@bp.route('/api/folders')
+def list_folders():
+    """Return available checklist folders with friendly labels.
 
-    strict_slashes=False permite acessar tanto
-    "/projetista/checklist" quanto "/projetista/checklist/".
+    The folders are returned in the predefined order from ``FOLDERS`` and
+    enumerated starting at 1. Missing folders are skipped; any extra folders on
+    disk are appended at the end in alphabetical order.
     """
-    return render_template('checklist.html')
-
-
-@bp.route('/api/folders')
-def list_folders():
     try:
-        folders = [
+        available = [
             d for d in os.listdir(BASE_DIR)
             if os.path.isdir(os.path.join(BASE_DIR, d))
         ]
     except OSError as e:
         return jsonify({'error': str(e)}), 500
-    folders.sort()
-    return jsonify(folders)
 
+    ordered = [f for f in FOLDERS if f in available]
+    extras = sorted(
+        [d for d in available if d not in FOLDERS and not d.startswith('__')]
+    )
+    ordered.extend(extras)
 
-@bp.route('/api/folders')
-def list_folders():
-    try:
-        folders = [
-            d for d in os.listdir(BASE_DIR)
-            if os.path.isdir(os.path.join(BASE_DIR, d))
-        ]
-    except OSError as e:
-        return jsonify({'error': str(e)}), 500
-    folders.sort()
-    return jsonify(folders)
+    result = []
+    for idx, folder in enumerate(ordered, 1):
+        label = f"{idx:02d} - {humanize_folder(folder)}"
+        result.append({'path': folder, 'label': label})
+    return jsonify(result)
 
 
 @bp.route('/api/files')
@@ -93,6 +87,33 @@ def get_file():
         return jsonify({'error': 'Parâmetros inválidos'}), 400
     try:
         file_path = safe_join(BASE_DIR, folder, name)
+        st = os.stat(file_path)
+        if st.st_size > MAX_FILE_SIZE:
+            return jsonify({'error': 'Arquivo muito grande'}), 413
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except FileNotFoundError:
+        return jsonify({'error': 'Arquivo não encontrado'}), 404
+    except PermissionError:
+        return jsonify({'error': 'Permissão negada'}), 403
+    except json.JSONDecodeError:
+        return jsonify({'error': 'JSON inválido'}), 400
+    except OSError as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/raw/<path:filepath>')
+def get_any_file(filepath: str):
+    """Retorna o conteúdo de um arquivo de checklist no escopo."""
+    parts = filepath.split('/')
+    if not parts or not parts[-1].lower().endswith('.json'):
+        return jsonify({'error': 'Arquivo inválido'}), 400
+    folders, filename = parts[:-1], parts[-1]
+    if any(not _validate_part(p) for p in folders) or not _validate_part(filename[:-5]):
+        return jsonify({'error': 'Parâmetros inválidos'}), 400
+    try:
+        file_path = safe_join(BASE_DIR, *folders, filename)
         st = os.stat(file_path)
         if st.st_size > MAX_FILE_SIZE:
             return jsonify({'error': 'Arquivo muito grande'}), 413
