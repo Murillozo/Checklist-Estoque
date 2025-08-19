@@ -17,18 +17,25 @@
 
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="landscape"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".checklist.ChecklistActivity"/>
-        <activity android:name=".checklist.PendenciasActivity"/>
-        <activity android:name=".checklist.ChecklistPosto01Activity"/>
-        <activity android:name=".checklist.ChecklistPosto01Parte2Activity"/>
-        <activity android:name=".RevisaoDetailActivity"/>
-        <activity android:name=".checklist.ChecklistExpedicaoActivity"/>
+        <activity android:name=".checklist.ChecklistActivity"
+            android:screenOrientation="landscape"/>
+        <activity android:name=".checklist.PendenciasActivity"
+            android:screenOrientation="landscape"/>
+        <activity android:name=".checklist.ChecklistPosto01Activity"
+            android:screenOrientation="landscape"/>
+        <activity android:name=".checklist.ChecklistPosto01Parte2Activity"
+            android:screenOrientation="landscape"/>
+        <activity android:name=".RevisaoDetailActivity"
+            android:screenOrientation="landscape"/>
+        <activity android:name=".checklist.ChecklistExpedicaoActivity"
+            android:screenOrientation="landscape"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
