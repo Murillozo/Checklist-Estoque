@@ -52,6 +52,8 @@ class EstoqueItem(db.Model):
     solicitacao_id = db.Column(db.Integer, db.ForeignKey('estoque_solicitacao.id'), nullable=False)
     referencia = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False)
+    verificado = db.Column(db.Boolean, default=False)
+    faltante = db.Column(db.Integer, default=0)
 
 
 class ItemStatusHistory(db.Model):

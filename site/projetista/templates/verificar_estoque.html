@@ -19,17 +19,23 @@
   <button type="submit" class="btn btn-primary">Enviar</button>
 </form>
 
-{% if itens %}
-<table class="table">
-  <thead>
-    <tr><th>Referência</th><th>Quantidade</th></tr>
-  </thead>
-  <tbody>
-  {% for it in itens %}
-    <tr><td>{{ it.referencia }}</td><td>{{ it.quantidade }}</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-{% endif %}
+{% for sol in solicitacoes %}
+  <h3 class="mt-4">Solicitação {{ sol.id }}</h3>
+  <table class="table">
+    <thead>
+      <tr><th>Referência</th><th>Quantidade</th><th>Verificado</th><th>Faltante</th></tr>
+    </thead>
+    <tbody>
+    {% for it in sol.itens %}
+      <tr>
+        <td>{{ it.referencia }}</td>
+        <td>{{ it.quantidade }}</td>
+        <td>{{ 'Sim' if it.verificado else 'Não' }}</td>
+        <td>{{ it.faltante }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endfor %}
 
 {% endblock %}
