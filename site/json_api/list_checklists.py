@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from typing import Dict, List, Any
 
@@ -24,6 +25,28 @@ FOLDERS = [
     "CHECKLIST_FINAL",
 ]
 
+def humanize_folder(name: str) -> str:
+    """Return a human friendly representation of ``name``.
+
+    Examples
+    --------
+    >>> humanize_folder("Posto01_Oficina")
+    'Posto 01 Oficina'
+    >>> humanize_folder("POSTO08_TESTE")
+    'Posto 08 Teste'
+    """
+    text = name.replace("_", " ")
+
+    def repl(match: re.Match) -> str:
+        return f"Posto {int(match.group(1)):02d}"
+
+    text = re.sub(r"posto\s*(\d+)", repl, text, flags=re.I)
+    text = text.title()
+    # Preserve acronyms in upper-case
+    for acr in ("IQM", "IQE"):
+        text = text.replace(acr.title(), acr)
+    return text
+  
 def collect_checklists() -> Dict[str, List[Dict[str, Any]]]:
     """Return a mapping of folder names to their JSON checklist contents.
 

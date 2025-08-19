@@ -70,12 +70,13 @@ pre{background:#111;padding:10px;overflow:auto;}
 </div>
 </div>
 <script>
-let folders=[], files=[], currentFolder='', currentFileName='', currentFileData=null;
+let folders=[], files=[], currentFolder='', currentFolderLabel='', currentFileName='', currentFileData=null;
 let filters={text:'',status:'',papel:''};
 let paginationState={};
 
 function updatePath(){
-    document.getElementById('currentPath').textContent=currentFolder+(currentFileName?`/${currentFileName}`:'');
+    const base=currentFolderLabel||currentFolder;
+    document.getElementById('currentPath').textContent=base+(currentFileName?`/${currentFileName}`:'');
 }
 
 function cellStatus(arr){
@@ -245,11 +246,11 @@ function renderFolders(){
     const term=document.getElementById('folderFilter').value.toLowerCase();
     const ul=document.getElementById('folderList');
     ul.innerHTML='';
-    folders.filter(f=>f.toLowerCase().includes(term)).forEach(f=>{
+    folders.filter(f=>f.label.toLowerCase().includes(term)).forEach(f=>{
         const li=document.createElement('li');
-        li.textContent=f;li.tabIndex=0;
-        if(f===currentFolder) li.classList.add('selected');
-        li.onclick=()=>{currentFolder=f;currentFileName='';loadFiles();updatePath();};
+        li.textContent=f.label;li.tabIndex=0;
+        if(f.path===currentFolder) li.classList.add('selected');
+        li.onclick=()=>{currentFolder=f.path;currentFolderLabel=f.label;currentFileName='';loadFiles();updatePath();};
         li.onkeyup=e=>{if(e.key==='Enter')li.click();};
         ul.appendChild(li);
     });

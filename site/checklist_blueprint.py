@@ -3,6 +3,7 @@ import re
 import json
 from datetime import datetime
 from flask import Blueprint, jsonify, request
+from json_api.list_checklists import FOLDERS, humanize_folder
 
 bp = Blueprint('checklist', __name__, template_folder='templates')
 
@@ -25,15 +26,31 @@ def _validate_part(part: str) -> bool:
 
 @bp.route('/api/folders')
 def list_folders():
+    """Return available checklist folders with friendly labels.
+
+    The folders are returned in the predefined order from ``FOLDERS`` and
+    enumerated starting at 1. Missing folders are skipped; any extra folders on
+    disk are appended at the end in alphabetical order.
+    """
     try:
-        folders = [
+        available = [
             d for d in os.listdir(BASE_DIR)
             if os.path.isdir(os.path.join(BASE_DIR, d))
         ]
     except OSError as e:
         return jsonify({'error': str(e)}), 500
-    folders.sort()
-    return jsonify(folders)
+
+    ordered = [f for f in FOLDERS if f in available]
+    extras = sorted(
+        [d for d in available if d not in FOLDERS and not d.startswith('__')]
+    )
+    ordered.extend(extras)
+
+    result = []
+    for idx, folder in enumerate(ordered, 1):
+        label = f"{idx:02d} - {humanize_folder(folder)}"
+        result.append({'path': folder, 'label': label})
+    return jsonify(result)
 
 
 @bp.route('/api/files')
