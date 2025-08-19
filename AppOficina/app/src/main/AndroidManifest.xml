@@ -17,31 +17,32 @@
         android:theme="@style/Theme.AppOficina">
        <activity
             android:name=".MainActivity"
+            android:screenOrientation="landscape"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ChecklistPosto01Parte2Activity" android:exported="false" />
-        <activity android:name=".ChecklistPosto02Activity" android:exported="false" />
-        <activity android:name=".ChecklistPosto02InspActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto03PreActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto03PreInspActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto04BarramentoActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto04BarramentoInspActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto05CablagemActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto05CablagemInspActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto06PreActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto06PreInspActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto06Cablagem02Activity" android:exported="false" />
-        <activity android:name=".ChecklistPosto06Cablagem02InspActivity" android:exported="false" />
-        <activity android:name=".PreviewDivergenciasActivity" android:exported="false" />
-        <activity android:name=".AdminConfigActivity" android:exported="false" />
-        <activity android:name=".InspetorActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto08IqeActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto08IqmActivity" android:exported="false" />
-        <activity android:name=".ChecklistPosto08TesteActivity" android:exported="false" />
+        <activity android:name=".ChecklistPosto01Parte2Activity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto02Activity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto02InspActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto03PreActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto03PreInspActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto04BarramentoActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto04BarramentoInspActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto05CablagemActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto05CablagemInspActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto06PreActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto06PreInspActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto06Cablagem02Activity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto06Cablagem02InspActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".PreviewDivergenciasActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".AdminConfigActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".InspetorActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto08IqeActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto08IqmActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".ChecklistPosto08TesteActivity" android:exported="false" android:screenOrientation="landscape" />
 
     </application>
 
