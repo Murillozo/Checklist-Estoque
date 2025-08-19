@@ -6,6 +6,9 @@ import retrofit2.http.Path
 import retrofit2.http.Body
 
 interface ApiService {
+    @GET("api/inspecoes")
+    suspend fun listarInspecoes(): List<InspecaoSolicitacao>
+
     @GET("api/solicitacoes")
     suspend fun listarSolicitacoes(): List<Solicitacao>
 

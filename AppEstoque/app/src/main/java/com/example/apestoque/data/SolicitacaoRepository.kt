@@ -1,6 +1,9 @@
 package com.example.apestoque.data
 
 class SolicitacaoRepository(private val api: ApiService) {
+    suspend fun fetchInspecoes(): Result<List<InspecaoSolicitacao>> =
+        runCatching { api.listarInspecoes() }
+
     suspend fun fetchSolicitacoes(): Result<List<Solicitacao>> =
         runCatching { api.listarSolicitacoes() }
 
