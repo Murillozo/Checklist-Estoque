@@ -266,7 +266,8 @@ function renderFiles(){
     ul.innerHTML='';
     files.filter(f=>f.name.toLowerCase().includes(term)).forEach(f=>{
         const li=document.createElement('li');
-        li.textContent=f.name;li.tabIndex=0;
+        const label=f.name.replace(/\.json$/,'').replace(/^checklist_/,'');
+        li.textContent=label; li.tabIndex=0;
         if(f.name===currentFileName) li.classList.add('selected');
         li.onclick=()=>{loadFile(f.name);};
         li.onkeyup=e=>{if(e.key==='Enter')li.click();};
