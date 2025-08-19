@@ -218,6 +218,8 @@ def verificar_estoque():
     return render_template('verificar_estoque.html', itens=itens if itens else None)
 
 
+
+
 @bp.route('/subpastas', methods=['GET', 'POST'])
 @login_required
 def criar_subpastas():
