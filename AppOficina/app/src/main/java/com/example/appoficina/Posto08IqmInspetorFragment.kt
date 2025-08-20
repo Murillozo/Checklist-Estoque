@@ -15,6 +15,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
+
 
 class Posto08IqmInspetorFragment : Fragment() {
     override fun onCreateView(
