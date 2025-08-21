@@ -36,6 +36,7 @@ class CameraFragment : Fragment() {
 
     private lateinit var listView: ExpandableListView
     private lateinit var btnCamera: FloatingActionButton
+    private lateinit var imagePreview: ImageView
 
     private var currentPhoto: File? = null
     private var anoSelecionado: String = ""
@@ -57,6 +58,8 @@ class CameraFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_camera, container, false)
         listView = view.findViewById(R.id.fotoList)
         btnCamera = view.findViewById(R.id.btnCamera)
+        imagePreview = view.findViewById(R.id.imagePreview)
+        imagePreview.visibility = View.GONE
 
         btnCamera.setOnClickListener { showInputDialog() }
 
@@ -119,11 +122,11 @@ class CameraFragment : Fragment() {
                 val adapter = SimpleExpandableListAdapter(
                     requireContext(),
                     groupData,
-                    android.R.layout.simple_expandable_list_item_1,
+                    R.layout.list_group,
                     arrayOf("NAME"),
                     intArrayOf(android.R.id.text1),
                     childData,
-                    android.R.layout.simple_list_item_1,
+                    R.layout.list_child,
                     arrayOf("NAME"),
                     intArrayOf(android.R.id.text1)
                 )
@@ -166,12 +169,8 @@ class CameraFragment : Fragment() {
                         BitmapFactory.decodeStream(stream)
                     }
                 }
-                val imageView = ImageView(requireContext())
-                imageView.setImageBitmap(bitmap)
-                AlertDialog.Builder(requireContext())
-                    .setView(imageView)
-                    .setPositiveButton("Fechar", null)
-                    .show()
+                imagePreview.setImageBitmap(bitmap)
+                imagePreview.visibility = View.VISIBLE
             } catch (e: Exception) {
                 e.printStackTrace()
             }
