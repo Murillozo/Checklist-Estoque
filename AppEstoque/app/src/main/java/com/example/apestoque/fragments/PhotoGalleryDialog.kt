@@ -30,9 +30,10 @@ class PhotoGalleryDialog : DialogFragment() {
 
         val prefs = requireContext().getSharedPreferences("app", 0)
         val ip = prefs.getString("api_ip", "192.168.0.135")
-        val baseUrl = "http://$ip:5000/projetista/api/fotos/raw"
+        val thumbUrl = "http://$ip:5000/projetista/api/fotos/thumb"
+        val rawUrl = "http://$ip:5000/projetista/api/fotos/raw"
 
-        recycler.adapter = GalleryAdapter(dir, files, baseUrl) { url ->
+        recycler.adapter = GalleryAdapter(dir, files, thumbUrl, rawUrl) { url ->
             ImageViewerDialog.newInstance(url).show(parentFragmentManager, "viewer")
         }
     }
@@ -40,7 +41,8 @@ class PhotoGalleryDialog : DialogFragment() {
     private class GalleryAdapter(
         private val baseDir: String,
         private val files: List<String>,
-        private val baseUrl: String,
+        private val thumbBaseUrl: String,
+        private val rawBaseUrl: String,
         private val onClick: (String) -> Unit
     ) : RecyclerView.Adapter<GalleryAdapter.VH>() {
 
@@ -56,10 +58,11 @@ class PhotoGalleryDialog : DialogFragment() {
             val file = files[position]
             val path = "$baseDir/AS BUILT/FOTOS/$file"
             val encoded = Uri.encode(path).replace("%2F", "/")
-            val url = "$baseUrl/$encoded"
+            val thumbUrl = "$thumbBaseUrl/$encoded"
+            val rawUrl = "$rawBaseUrl/$encoded"
             val size = holder.image.resources.displayMetrics.widthPixels / 3
-            ImageLoader.loadThumbnail(holder.image, url, size, size)
-            holder.image.setOnClickListener { onClick(url) }
+            ImageLoader.loadThumbnail(holder.image, thumbUrl, size, size)
+            holder.image.setOnClickListener { onClick(rawUrl) }
         }
 
         override fun getItemCount() = files.size
