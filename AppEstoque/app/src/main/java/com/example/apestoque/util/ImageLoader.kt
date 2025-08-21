@@ -19,7 +19,6 @@ object ImageLoader {
         Glide.with(iv.context)
             .load(uri)
             .apply(listOptions)
-            .override(targetW, targetH)
             .centerCrop()
             .thumbnail(0.25f)
             .into(iv)
