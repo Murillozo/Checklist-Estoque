@@ -6,10 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import org.json.JSONArray
 import org.json.JSONObject
@@ -83,20 +81,13 @@ class Posto02InspetorFragment : Fragment() {
                                             intent.putExtra("tipo", "insp_posto02")
                                             startActivity(intent)
                                         } else {
-                                            val input = EditText(requireContext())
-                                            AlertDialog.Builder(requireContext())
-                                                .setTitle("Nome do inspetor")
-                                                .setView(input)
-                                                .setPositiveButton("OK") { _, _ ->
-                                                    val nome = input.text.toString()
-                                                    val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
-                                                    intent.putExtra("obra", obra)
-                                                    intent.putExtra("ano", ano)
-                                                    intent.putExtra("inspetor", nome)
-                                                    startActivity(intent)
-                                                }
-                                                .setNegativeButton("Cancelar", null)
-                                                .show()
+                                            promptName(requireContext(), "Nome do inspetor") { nome ->
+                                                val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
+                                                intent.putExtra("obra", obra)
+                                                intent.putExtra("ano", ano)
+                                                intent.putExtra("inspetor", nome)
+                                                startActivity(intent)
+                                            }
                                         }
                                     }
                                 }.start()
