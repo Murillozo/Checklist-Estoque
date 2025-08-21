@@ -15,14 +15,21 @@ object ImageLoader {
         .dontAnimate()
         .dontTransform()
 
-    fun loadThumbnail(iv: ImageView, uri: Any, targetW: Int, targetH: Int) {
-        Glide.with(iv.context)
+    fun loadThumbnail(iv: ImageView, uri: Any, fallbackUri: Any? = null) {
+        var req = Glide.with(iv.context)
             .load(uri)
             .apply(listOptions)
-            .override(targetW, targetH)
             .centerCrop()
             .thumbnail(0.25f)
-            .into(iv)
+        if (fallbackUri != null) {
+            req = req.error(
+                Glide.with(iv.context)
+                    .load(fallbackUri)
+                    .apply(listOptions)
+                    .centerCrop()
+            )
+        }
+        req.into(iv)
     }
 
     fun loadFullScreen(iv: ImageView, uri: Any, max: Int = 2160) {

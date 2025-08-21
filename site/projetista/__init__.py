@@ -13,6 +13,7 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.parse
+from PIL import Image
 
 bp = Blueprint('projetista', __name__)
 
@@ -35,6 +36,10 @@ FOTOS_DIR = os.environ.get(
 
 # Garante que o diretório base exista para evitar erros de leitura
 os.makedirs(FOTOS_DIR, exist_ok=True)
+
+# Diretório onde miniaturas geradas são armazenadas para cache
+THUMB_CACHE_DIR = os.path.join(FOTOS_DIR, "_thumb_cache")
+os.makedirs(THUMB_CACHE_DIR, exist_ok=True)
 
 # Subpastas que devem ser criadas para cada obra
 SUBPASTAS_OBRA = [
@@ -704,6 +709,31 @@ def _build_asbuilt_tree(base: str) -> list:
 def api_listar_fotos():
     """Lista apenas as fotos encontradas em pastas ``AS BUILT/FOTOS``."""
     return jsonify(_build_asbuilt_tree(FOTOS_DIR))
+
+
+@bp.route('/api/fotos/thumb/<path:filepath>')
+def api_foto_thumb(filepath: str):
+    """Retorna miniaturas de até 300px, geradas e armazenadas em cache."""
+    filepath = urllib.parse.unquote(filepath)
+    try:
+        orig_path = _safe_join(FOTOS_DIR, *filepath.split('/'))
+    except ValueError:
+        return jsonify({'error': 'Caminho inválido'}), 400
+    if not os.path.isfile(orig_path):
+        return jsonify({'error': 'Arquivo não encontrado'}), 404
+    try:
+        thumb_path = _safe_join(THUMB_CACHE_DIR, *filepath.split('/'))
+    except ValueError:
+        return jsonify({'error': 'Caminho inválido'}), 400
+    os.makedirs(os.path.dirname(thumb_path), exist_ok=True)
+    if (
+        not os.path.isfile(thumb_path)
+        or os.path.getmtime(thumb_path) < os.path.getmtime(orig_path)
+    ):
+        with Image.open(orig_path) as img:
+            img.thumbnail((300, 300))
+            img.save(thumb_path)
+    return send_file(thumb_path)
 
 
 @bp.route('/api/fotos/raw/<path:filepath>')
