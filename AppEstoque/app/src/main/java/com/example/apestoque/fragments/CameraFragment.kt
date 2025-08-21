@@ -1,8 +1,9 @@
 package com.example.apestoque.fragments
 
 import android.app.AlertDialog
-import android.content.Intent
+import android.content.Context
 import android.net.Uri
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,13 +22,15 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.widget.ImageView
+import java.net.URL
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import android.widget.SimpleExpandableListAdapter
-import android.content.Context
-
 
 class CameraFragment : Fragment() {
 
@@ -160,8 +163,24 @@ class CameraFragment : Fragment() {
     private fun openImage(dir: String, file: String) {
         val prefs = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE)
         val ip = prefs.getString("api_ip", "192.168.0.135")
-        val url = "http://$ip:5000/projetista/api/fotos/raw/${Uri.encode("$dir/$file")}".replace("%2F", "/")
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        startActivity(intent)
+        val encoded = Uri.encode("$dir/AS BUILT/FOTOS/$file").replace("%2F", "/")
+        val url = "http://$ip:5000/projetista/api/fotos/raw/$encoded"
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val bitmap = withContext(Dispatchers.IO) {
+                    URL(url).openStream().use { stream ->
+                        BitmapFactory.decodeStream(stream)
+                    }
+                }
+                val imageView = ImageView(requireContext())
+                imageView.setImageBitmap(bitmap)
+                AlertDialog.Builder(requireContext())
+                    .setView(imageView)
+                    .setPositiveButton("Fechar", null)
+                    .show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }

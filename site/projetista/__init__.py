@@ -659,28 +659,52 @@ def _safe_join(root: str, *paths: str) -> str:
     return path
 
 
-def _build_photo_tree(base: str) -> list:
+def _build_asbuilt_tree(base: str) -> list:
+    """Retorna somente as fotos dentro de ``AS BUILT/FOTOS``."""
     tree = []
     try:
-        entries = sorted(os.listdir(base))
+        anos = sorted(
+            d for d in os.listdir(base) if os.path.isdir(os.path.join(base, d))
+        )
     except OSError:
         return tree
-    for name in entries:
-        full = os.path.join(base, name)
-        if os.path.isdir(full):
-            tree.append({
-                'name': name,
-                'children': _build_photo_tree(full)
-            })
-        elif name.lower().endswith(('.jpg', '.jpeg')):
-            tree.append({'name': name})
+
+    for ano in anos:
+        ano_dir = os.path.join(base, ano)
+        try:
+            obras = sorted(
+                d for d in os.listdir(ano_dir) if os.path.isdir(os.path.join(ano_dir, d))
+            )
+        except OSError:
+            continue
+
+        ano_children = []
+        for obra in obras:
+            fotos_dir = os.path.join(ano_dir, obra, 'AS BUILT', 'FOTOS')
+            if not os.path.isdir(fotos_dir):
+                continue
+            try:
+                arquivos = [
+                    f for f in sorted(os.listdir(fotos_dir))
+                    if f.lower().endswith(('.jpg', '.jpeg'))
+                ]
+            except OSError:
+                continue
+            if arquivos:
+                ano_children.append({
+                    'name': obra,
+                    'children': [{'name': f} for f in arquivos]
+                })
+        if ano_children:
+            tree.append({'name': ano, 'children': ano_children})
+
     return tree
 
 
 @bp.route('/api/fotos')
 def api_listar_fotos():
-    """Lista recursivamente as fotos em ``FOTOS_DIR``."""
-    return jsonify(_build_photo_tree(FOTOS_DIR))
+    """Lista apenas as fotos encontradas em pastas ``AS BUILT/FOTOS``."""
+    return jsonify(_build_asbuilt_tree(FOTOS_DIR))
 
 
 @bp.route('/api/fotos/raw/<path:filepath>')
@@ -703,7 +727,7 @@ def api_enviar_foto():
         return jsonify({'error': 'Dados incompletos'}), 400
     filename = secure_filename(arquivo.filename)
     try:
-        destino = _safe_join(FOTOS_DIR, ano, obra)
+        destino = _safe_join(FOTOS_DIR, ano, obra, 'AS BUILT', 'FOTOS')
         os.makedirs(destino, exist_ok=True)
     except ValueError:
         return jsonify({'error': 'Caminho inválido'}), 400
