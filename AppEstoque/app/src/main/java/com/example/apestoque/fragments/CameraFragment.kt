@@ -1,8 +1,6 @@
 package com.example.apestoque.fragments
 
 import android.app.AlertDialog
-import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +14,7 @@ import com.example.apestoque.R
 import com.example.apestoque.data.FotoNode
 import com.example.apestoque.data.NetworkModule
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.util.ArrayList
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -26,7 +25,6 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import android.widget.SimpleExpandableListAdapter
-
 
 class CameraFragment : Fragment() {
 
@@ -141,20 +139,7 @@ class CameraFragment : Fragment() {
     private fun showPhotoChooser(ano: String, obra: FotoNode) {
         val arquivos = obra.children?.map { it.name } ?: emptyList()
         if (arquivos.isEmpty()) return
-        AlertDialog.Builder(requireContext())
-            .setTitle("Fotos - ${obra.name}")
-            .setItems(arquivos.toTypedArray()) { _, which ->
-                val nomeArquivo = arquivos[which]
-                openImage("${ano}/${obra.name}", nomeArquivo)
-            }
-            .show()
-    }
-
-    private fun openImage(dir: String, file: String) {
-        val prefs = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE)
-        val ip = prefs.getString("api_ip", "192.168.0.135")
-        val encoded = Uri.encode("$dir/AS BUILT/FOTOS/$file").replace("%2F", "/")
-        val url = "http://$ip:5000/projetista/api/fotos/raw/$encoded"
-        ImageViewerDialog.newInstance(url).show(parentFragmentManager, "viewer")
+        PhotoGalleryDialog.newInstance(ano, obra.name, ArrayList(arquivos))
+            .show(parentFragmentManager, "gallery")
     }
 }
