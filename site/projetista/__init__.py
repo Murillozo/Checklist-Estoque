@@ -14,6 +14,8 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.parse
 from PIL import Image
+import time
+import logging
 
 bp = Blueprint('projetista', __name__)
 
@@ -40,6 +42,21 @@ os.makedirs(FOTOS_DIR, exist_ok=True)
 # Diretório onde miniaturas geradas são armazenadas para cache
 THUMB_CACHE_DIR = os.path.join(FOTOS_DIR, "_thumb_cache")
 os.makedirs(THUMB_CACHE_DIR, exist_ok=True)
+
+# Tempo (em segundos) para expiração automática do cache de fotos
+FOTOS_CACHE_TTL = int(os.environ.get("FOTOS_CACHE_TTL", "300"))
+
+# Estrutura simples para cache em memória das árvores de fotos
+_fotos_cache = {"data": None, "timestamp": 0.0, "dir_mtime": 0.0}
+
+logger = logging.getLogger(__name__)
+
+
+def _invalidate_fotos_cache() -> None:
+    """Limpa o cache de fotos, forçando reconstrução futura."""
+    _fotos_cache["data"] = None
+    _fotos_cache["timestamp"] = 0
+    _fotos_cache["dir_mtime"] = 0
 
 # Subpastas que devem ser criadas para cada obra
 SUBPASTAS_OBRA = [
@@ -708,7 +725,26 @@ def _build_asbuilt_tree(base: str) -> list:
 @bp.route('/api/fotos')
 def api_listar_fotos():
     """Lista apenas as fotos encontradas em pastas ``AS BUILT/FOTOS``."""
-    return jsonify(_build_asbuilt_tree(FOTOS_DIR))
+    now = time.time()
+    try:
+        dir_mtime = os.path.getmtime(FOTOS_DIR)
+    except OSError:
+        dir_mtime = 0
+
+    cached = (
+        _fotos_cache["data"] is not None
+        and (now - _fotos_cache["timestamp"]) < FOTOS_CACHE_TTL
+        and _fotos_cache["dir_mtime"] == dir_mtime
+    )
+
+    if cached:
+        logger.info("api_listar_fotos cache hit")
+        return jsonify(_fotos_cache["data"])
+
+    logger.info("api_listar_fotos cache miss")
+    data = _build_asbuilt_tree(FOTOS_DIR)
+    _fotos_cache.update({"data": data, "timestamp": now, "dir_mtime": dir_mtime})
+    return jsonify(data)
 
 
 @bp.route('/api/fotos/thumb/<path:filepath>')
@@ -763,4 +799,6 @@ def api_enviar_foto():
         return jsonify({'error': 'Caminho inválido'}), 400
     caminho = os.path.join(destino, filename)
     arquivo.save(caminho)
+    _invalidate_fotos_cache()
+    logger.info("foto upload; cache invalidated")
     return jsonify({'ok': True})
