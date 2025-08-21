@@ -41,6 +41,8 @@ class CameraFragment : Fragment() {
     private var anoSelecionado: String = ""
     private var obraSelecionada: String = ""
 
+    private var fotoTree: List<FotoNode> = emptyList()
+
     private val takePicture = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.TakePicture()) { success ->
         if (success && currentPhoto != null) {
             uploadPhoto(currentPhoto!!, anoSelecionado, obraSelecionada)
@@ -109,15 +111,13 @@ class CameraFragment : Fragment() {
         val api = NetworkModule.api(requireContext())
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val tree = api.listarFotos()
-                val data = flatten(tree, "")
-                val groups = data.keys.sorted()
-                val groupData = groups.map { mapOf("NAME" to it) }
-                val childData = groups.map { dir ->
-                    data[dir]!!.sorted().map { mapOf("NAME" to it) }
+                fotoTree = api.listarFotos()
+                val groupData = fotoTree.map { mapOf("NAME" to it.name) }
+                val childData = fotoTree.map { ano ->
+                    ano.children?.map { mapOf("NAME" to it.name) } ?: emptyList()
                 }
                 val adapter = SimpleExpandableListAdapter(
-                    context,
+                    requireContext(),
                     groupData,
                     android.R.layout.simple_expandable_list_item_1,
                     arrayOf("NAME"),
@@ -129,9 +129,11 @@ class CameraFragment : Fragment() {
                 )
                 listView.setAdapter(adapter)
                 listView.setOnChildClickListener { _, _, groupPosition, childPosition, _ ->
-                    val dir = groups[groupPosition]
-                    val fileName = data[dir]!![childPosition]
-                    openImage(dir, fileName)
+                    val ano = fotoTree[groupPosition]
+                    val obra = ano.children?.getOrNull(childPosition)
+                    if (obra != null) {
+                        showPhotoChooser(ano.name, obra)
+                    }
                     true
                 }
             } catch (e: Exception) {
@@ -140,24 +142,16 @@ class CameraFragment : Fragment() {
         }
     }
 
-    private fun flatten(nodes: List<FotoNode>, base: String): MutableMap<String, MutableList<String>> {
-        val map = mutableMapOf<String, MutableList<String>>()
-        for (node in nodes) {
-            val currentPath = if (base.isEmpty()) node.name else "$base/${node.name}"
-            if (node.children.isNullOrEmpty()) {
-                val dir = base
-                if (dir.isNotEmpty()) {
-                    map.getOrPut(dir) { mutableListOf() }.add(node.name)
-                }
-            } else {
-                val childMap = flatten(node.children, currentPath)
-                for ((k, v) in childMap) {
-                    val list = map.getOrPut(k) { mutableListOf() }
-                    list.addAll(v)
-                }
+    private fun showPhotoChooser(ano: String, obra: FotoNode) {
+        val arquivos = obra.children?.map { it.name } ?: emptyList()
+        if (arquivos.isEmpty()) return
+        AlertDialog.Builder(requireContext())
+            .setTitle("Fotos - ${'$'}{obra.name}")
+            .setItems(arquivos.toTypedArray()) { _, which ->
+                val nomeArquivo = arquivos[which]
+                openImage("${'$'}ano/${'$'}{obra.name}", nomeArquivo)
             }
-        }
-        return map
+            .show()
     }
 
     private fun openImage(dir: String, file: String) {
