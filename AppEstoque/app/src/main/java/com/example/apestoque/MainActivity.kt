@@ -13,6 +13,7 @@ import com.example.apestoque.fragments.SolicitacoesFragment
 import com.example.apestoque.fragments.RevisaoFragment
 import com.example.apestoque.fragments.LogisticaFragment
 import com.example.apestoque.fragments.InspecionarFragment
+import com.example.apestoque.fragments.CameraFragment
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import android.view.Menu
@@ -39,9 +40,27 @@ class MainActivity : AppCompatActivity() {
             AprovadoFragment(),
             RevisaoFragment(),
             LogisticaFragment(),
-            InspecionarFragment()
+            InspecionarFragment(),
+            CameraFragment()
         )
-        val titles = listOf("Solicitações", "Compras", "Aprovadas", "Revisão", "Logística", "Inspecionar")
+        val titles = listOf(
+            "Solicitações",
+            "Compras",
+            "Aprovadas",
+            "Revisão",
+            "Logística",
+            "Inspecionar",
+            ""
+        )
+        val icons = listOf(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            android.R.drawable.ic_menu_camera
+        )
 
         // Adapter
         pager.adapter = ViewPagerAdapter(this, frags)
@@ -49,6 +68,7 @@ class MainActivity : AppCompatActivity() {
         // Conecta abas ao pager
         TabLayoutMediator(tabs, pager) { tab, i ->
             tab.text = titles[i]
+            icons[i]?.let { tab.setIcon(it) }
         }.attach()
 
         // Pull to refresh
