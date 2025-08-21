@@ -27,6 +27,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import android.widget.SimpleExpandableListAdapter
 
+
 class CameraFragment : Fragment() {
 
     private lateinit var listView: ExpandableListView
