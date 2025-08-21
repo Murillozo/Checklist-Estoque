@@ -2,6 +2,12 @@
 
 This module exposes endpoints for working with project photos.
 
+## GET /api/fotos
+Returns a tree of available years, works and photo files found under
+`FOTOS_DIR`. Each node has a `name` and optional `children`. File nodes also
+include a `path` relative to `FOTOS_DIR`, which can be used with the thumbnail
+or raw-photo endpoints.
+
 ## GET /api/fotos/raw/<path>
 Returns the original image file located under `FOTOS_DIR`.
 

@@ -23,7 +23,6 @@ class PhotoGalleryDialog : DialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val dir = requireArguments().getString(ARG_DIR)!!
         val files = requireArguments().getStringArrayList(ARG_FILES)!!
         val recycler = view.findViewById<RecyclerView>(R.id.rvGallery)
         recycler.layoutManager = GridLayoutManager(context, 3)
@@ -33,13 +32,12 @@ class PhotoGalleryDialog : DialogFragment() {
         val thumbUrl = "http://$ip:5000/projetista/api/fotos/thumb"
         val rawUrl = "http://$ip:5000/projetista/api/fotos/raw"
 
-        recycler.adapter = GalleryAdapter(dir, files, thumbUrl, rawUrl) { url ->
+        recycler.adapter = GalleryAdapter(files, thumbUrl, rawUrl) { url ->
             ImageViewerDialog.newInstance(url).show(parentFragmentManager, "viewer")
         }
     }
 
     private class GalleryAdapter(
-        private val baseDir: String,
         private val files: List<String>,
         private val thumbBaseUrl: String,
         private val rawBaseUrl: String,
@@ -55,8 +53,7 @@ class PhotoGalleryDialog : DialogFragment() {
         }
 
         override fun onBindViewHolder(holder: VH, position: Int) {
-            val file = files[position]
-            val path = "$baseDir/AS BUILT/FOTOS/$file"
+            val path = files[position]
             val encoded = Uri.encode(path).replace("%2F", "/")
             val thumbUrl = "$thumbBaseUrl/$encoded"
             val rawUrl = "$rawBaseUrl/$encoded"
@@ -68,14 +65,11 @@ class PhotoGalleryDialog : DialogFragment() {
     }
 
     companion object {
-        private const val ARG_DIR = "dir"
         private const val ARG_FILES = "files"
 
-        fun newInstance(ano: String, obra: String, arquivos: ArrayList<String>): PhotoGalleryDialog {
-            val dir = "$ano/$obra"
+        fun newInstance(arquivos: ArrayList<String>): PhotoGalleryDialog {
             return PhotoGalleryDialog().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_DIR, dir)
                     putStringArrayList(ARG_FILES, arquivos)
                 }
             }

@@ -123,10 +123,9 @@ class CameraFragment : Fragment() {
                 )
                 listView.setAdapter(adapter)
                 listView.setOnChildClickListener { _, _, groupPosition, childPosition, _ ->
-                    val ano = fotoTree[groupPosition]
-                    val obra = ano.children?.getOrNull(childPosition)
+                    val obra = fotoTree[groupPosition].children?.getOrNull(childPosition)
                     if (obra != null) {
-                        showPhotoChooser(ano.name, obra)
+                        showPhotoChooser(obra)
                     }
                     true
                 }
@@ -136,10 +135,10 @@ class CameraFragment : Fragment() {
         }
     }
 
-    private fun showPhotoChooser(ano: String, obra: FotoNode) {
-        val arquivos = obra.children?.map { it.name } ?: emptyList()
+    private fun showPhotoChooser(obra: FotoNode) {
+        val arquivos = obra.children?.mapNotNull { it.path } ?: emptyList()
         if (arquivos.isEmpty()) return
-        PhotoGalleryDialog.newInstance(ano, obra.name, ArrayList(arquivos))
+        PhotoGalleryDialog.newInstance(ArrayList(arquivos))
             .show(parentFragmentManager, "gallery")
     }
 }
