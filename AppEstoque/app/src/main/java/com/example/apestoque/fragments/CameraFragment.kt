@@ -21,20 +21,17 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import android.widget.ImageView
-import com.example.apestoque.util.ImageLoader
-import kotlin.math.min
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import android.widget.SimpleExpandableListAdapter
 
+
 class CameraFragment : Fragment() {
 
     private lateinit var listView: ExpandableListView
     private lateinit var btnCamera: FloatingActionButton
-    private lateinit var imagePreview: ImageView
 
     private var currentPhoto: File? = null
     private var anoSelecionado: String = ""
@@ -56,8 +53,6 @@ class CameraFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_camera, container, false)
         listView = view.findViewById(R.id.fotoList)
         btnCamera = view.findViewById(R.id.btnCamera)
-        imagePreview = view.findViewById(R.id.imagePreview)
-        imagePreview.visibility = View.GONE
 
         btnCamera.setOnClickListener { showInputDialog() }
 
@@ -160,8 +155,6 @@ class CameraFragment : Fragment() {
         val ip = prefs.getString("api_ip", "192.168.0.135")
         val encoded = Uri.encode("$dir/AS BUILT/FOTOS/$file").replace("%2F", "/")
         val url = "http://$ip:5000/projetista/api/fotos/raw/$encoded"
-        imagePreview.visibility = View.VISIBLE
-        val max = min(imagePreview.resources.displayMetrics.widthPixels, 1080)
-        ImageLoader.loadThumbnail(imagePreview, url, max, max)
+        ImageViewerDialog.newInstance(url).show(parentFragmentManager, "viewer")
     }
 }
