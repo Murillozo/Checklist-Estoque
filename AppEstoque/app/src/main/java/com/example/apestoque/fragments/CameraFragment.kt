@@ -1,7 +1,6 @@
 package com.example.apestoque.fragments
 
 import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -27,6 +26,8 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import android.widget.SimpleExpandableListAdapter
+import android.content.Context
+
 
 class CameraFragment : Fragment() {
 

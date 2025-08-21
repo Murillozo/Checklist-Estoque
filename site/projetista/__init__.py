@@ -45,6 +45,7 @@ SUBPASTAS_OBRA = [
     'PROJETO ELETROMECÂNICO',
 ]
 
+
 @bp.route('/')
 @login_required
 def index():
