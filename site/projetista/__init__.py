@@ -11,6 +11,7 @@ from collections import Counter
 from flask import jsonify
 import os
 from datetime import datetime
+from werkzeug.utils import secure_filename
 
 bp = Blueprint('projetista', __name__)
 
@@ -23,6 +24,12 @@ CHECKLIST_DIR = os.environ.get(
 
 # Diretório base onde os projetos são armazenados no servidor
 BASE_PRODUCAO = r"F:\03 - ENGENHARIA\03 - PRODUCAO"
+
+# Diretório onde as fotos são salvas
+FOTOS_DIR = os.environ.get(
+    "FOTOS_DIR",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'fotos')),
+)
 
 # Subpastas que devem ser criadas para cada obra
 SUBPASTAS_OBRA = [
@@ -636,4 +643,65 @@ def api_inspecao_resultado(id):
             item.verificado = item_data.get('verificado', False)
             item.faltante = item_data.get('faltante', 0)
     db.session.commit()
+    return jsonify({'ok': True})
+
+
+def _safe_join(root: str, *paths: str) -> str:
+    root = os.path.abspath(root)
+    path = os.path.abspath(os.path.join(root, *paths))
+    if not path.startswith(root + os.sep):
+        raise ValueError('Caminho inválido')
+    return path
+
+
+def _build_photo_tree(base: str) -> list:
+    tree = []
+    try:
+        entries = sorted(os.listdir(base))
+    except OSError:
+        return tree
+    for name in entries:
+        full = os.path.join(base, name)
+        if os.path.isdir(full):
+            tree.append({
+                'name': name,
+                'children': _build_photo_tree(full)
+            })
+        elif name.lower().endswith('.jpg'):
+            tree.append({'name': name})
+    return tree
+
+
+@bp.route('/api/fotos')
+def api_listar_fotos():
+    """Lista recursivamente as fotos em ``FOTOS_DIR``."""
+    return jsonify(_build_photo_tree(FOTOS_DIR))
+
+
+@bp.route('/api/fotos/raw/<path:filepath>')
+def api_foto_raw(filepath: str):
+    try:
+        file_path = _safe_join(FOTOS_DIR, filepath)
+    except ValueError:
+        return jsonify({'error': 'Caminho inválido'}), 400
+    if not os.path.isfile(file_path):
+        return jsonify({'error': 'Arquivo não encontrado'}), 404
+    return send_file(file_path)
+
+
+@bp.route('/api/fotos/upload', methods=['POST'])
+def api_enviar_foto():
+    ano = request.form.get('ano', '').strip()
+    obra = request.form.get('obra', '').strip()
+    arquivo = request.files.get('foto')
+    if not ano or not obra or not arquivo:
+        return jsonify({'error': 'Dados incompletos'}), 400
+    filename = secure_filename(arquivo.filename)
+    try:
+        destino = _safe_join(FOTOS_DIR, ano, obra)
+        os.makedirs(destino, exist_ok=True)
+    except ValueError:
+        return jsonify({'error': 'Caminho inválido'}), 400
+    caminho = os.path.join(destino, filename)
+    arquivo.save(caminho)
     return jsonify({'ok': True})
