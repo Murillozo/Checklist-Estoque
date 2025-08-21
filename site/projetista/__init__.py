@@ -25,11 +25,15 @@ CHECKLIST_DIR = os.environ.get(
 # Diretório base onde os projetos são armazenados no servidor
 BASE_PRODUCAO = r"F:\03 - ENGENHARIA\03 - PRODUCAO"
 
-# Diretório onde as fotos são salvas
+# Diretório onde as fotos são salvas (pode ser sobrescrito via FOTOS_DIR)
+# Por padrão aponta para a estrutura de projetos utilizada no servidor
 FOTOS_DIR = os.environ.get(
     "FOTOS_DIR",
-    os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'fotos')),
+    r"F:\\03 - ENGENHARIA\\02 - PROJETOS"
 )
+
+# Garante que o diretório base exista para evitar erros de leitura
+os.makedirs(FOTOS_DIR, exist_ok=True)
 
 # Subpastas que devem ser criadas para cada obra
 SUBPASTAS_OBRA = [
@@ -40,6 +44,7 @@ SUBPASTAS_OBRA = [
     'LAYOUT',
     'PROJETO ELETROMECÂNICO',
 ]
+
 
 @bp.route('/')
 @login_required
@@ -667,7 +672,7 @@ def _build_photo_tree(base: str) -> list:
                 'name': name,
                 'children': _build_photo_tree(full)
             })
-        elif name.lower().endswith('.jpg'):
+        elif name.lower().endswith(('.jpg', '.jpeg')):
             tree.append({'name': name})
     return tree
 
