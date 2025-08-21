@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<h1>Verificar Estoque</h1>
+
+<form method="post" enctype="multipart/form-data" class="mb-3">
+  <div class="mb-3">
+    <label class="form-label">Planilha Excel</label>
+    <input type="file" class="form-control" name="xlsx_file">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Referências (uma por linha)</label>
+    <textarea class="form-control" name="referencias" rows="5"></textarea>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Quantidades (uma por linha)</label>
+    <textarea class="form-control" name="quantidades" rows="5"></textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Enviar</button>
+</form>
+
+{% for sol in solicitacoes %}
+  <h3 class="mt-4">Solicitação {{ sol.id }}</h3>
+  <table class="table">
+    <thead>
+      <tr><th>Referência</th><th>Quantidade</th><th>Verificado</th><th>Faltante</th></tr>
+    </thead>
+    <tbody>
+    {% for it in sol.itens %}
+      <tr>
+        <td>{{ it.referencia }}</td>
+        <td>{{ it.quantidade }}</td>
+        <td>{{ 'Sim' if it.verificado else 'Não' }}</td>
+        <td>{{ it.faltante }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,282 @@
+{
+  "obra": "PROJETO_TESTE",
+  "ano": "2025",
+  "posto08_teste": {
+    "inspetor": "muri",
+    "itens": [
+      {
+        "numero": 8301,
+        "pergunta": "Responsável",
+        "respostas": {
+          "inspetor": [
+            "tomtom"
+          ]
+        }
+      },
+      {
+        "numero": 8302,
+        "pergunta": "Altitude em relação ao nivel do mar",
+        "respostas": {
+          "inspetor": [
+            "56"
+          ]
+        }
+      },
+      {
+        "numero": 8303,
+        "pergunta": "Tipo de ambiente",
+        "respostas": {
+          "inspetor": [
+            "b9m"
+          ]
+        }
+      },
+      {
+        "numero": 8304,
+        "pergunta": "Temperatura Ambiente",
+        "respostas": {
+          "inspetor": [
+            "67"
+          ]
+        }
+      },
+      {
+        "numero": 8305,
+        "pergunta": "Humidade relatíva",
+        "respostas": {
+          "inspetor": [
+            "88"
+          ]
+        }
+      },
+      {
+        "numero": 8306,
+        "pergunta": "Tensão de comando",
+        "respostas": {
+          "inspetor": [
+            "222"
+          ]
+        }
+      },
+      {
+        "numero": 8307,
+        "pergunta": "Tensão circuito auxiliar",
+        "respostas": {
+          "inspetor": [
+            "23"
+          ]
+        }
+      },
+      {
+        "numero": 8308,
+        "pergunta": "Tensão circuito de força",
+        "respostas": {
+          "inspetor": [
+            "222"
+          ]
+        }
+      },
+      {
+        "numero": 8309,
+        "pergunta": "4.2 - Comando x Terra",
+        "respostas": {
+          "inspetor": [
+            "v",
+            "23",
+            "v",
+            "34",
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8310,
+        "pergunta": "4.3 - Força - Fase A x BC Terra",
+        "respostas": {
+          "inspetor": [
+            "45",
+            "u88",
+            "56",
+            "34",
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8311,
+        "pergunta": "4.4 - Força - Fase B x AC Terra",
+        "respostas": {
+          "inspetor": [
+            "y",
+            "66",
+            "mm",
+            "76",
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8312,
+        "pergunta": "4.5 - Força - Fase C x AB Terra",
+        "respostas": {
+          "inspetor": [
+            "vb",
+            "22",
+            "bv",
+            "67",
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8313,
+        "pergunta": "4.6 - Força - Fase ABC x Terra",
+        "respostas": {
+          "inspetor": [
+            "mn",
+            "222",
+            "mn",
+            "55",
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8314,
+        "pergunta": "Multimedidores",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8315,
+        "pergunta": "Controladores",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8316,
+        "pergunta": "Drives",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8317,
+        "pergunta": "Monitores",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8318,
+        "pergunta": "Sensores",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8319,
+        "pergunta": "IHMs",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8320,
+        "pergunta": "Timers",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8321,
+        "pergunta": "Dispositivos de proteção ajustável",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8322,
+        "pergunta": "Sinalizadores",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8323,
+        "pergunta": "Status à campo",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8324,
+        "pergunta": "Leituras",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8325,
+        "pergunta": "Intertravamentos",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8326,
+        "pergunta": "Lógica de acionamento",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8327,
+        "pergunta": "Programa",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      },
+      {
+        "numero": 8328,
+        "pergunta": "Tensão das saídas à campo",
+        "respostas": {
+          "inspetor": [
+            "C"
+          ]
+        }
+      }
+    ]
+  }
+}
+

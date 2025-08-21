@@ -1,0 +1,53 @@
+package com.example.apestoque.adapter
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.EditText
+import androidx.recyclerview.widget.RecyclerView
+import com.example.apestoque.R
+import com.example.apestoque.data.InspecaoItem
+
+class InspecaoAdapter : RecyclerView.Adapter<InspecaoAdapter.VH>() {
+    private val itens = mutableListOf<InspecaoItem>()
+
+    fun submitList(lista: List<InspecaoItem>) {
+        itens.clear()
+        itens.addAll(lista)
+        notifyDataSetChanged()
+    }
+
+    fun getItens(): List<InspecaoItem> = itens
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_inspecao, parent, false)
+        return VH(view)
+    }
+
+    override fun getItemCount(): Int = itens.size
+
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val item = itens[position]
+        holder.cb.text = "${item.referencia} (${item.quantidade})"
+        holder.cb.isChecked = item.verificado
+        holder.et.visibility = if (item.verificado) View.GONE else View.VISIBLE
+        holder.et.setText(if (item.faltante > 0) item.faltante.toString() else "")
+
+        holder.cb.setOnCheckedChangeListener { _, checked ->
+            item.verificado = checked
+            if (checked) {
+                item.faltante = 0
+                holder.et.visibility = View.GONE
+            } else {
+                holder.et.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val cb: CheckBox = view.findViewById(R.id.cbItem)
+        val et: EditText = view.findViewById(R.id.etFaltante)
+    }
+}
