@@ -3,7 +3,6 @@ package com.example.apestoque.fragments
 import android.app.AlertDialog
 import android.content.Context
 import android.net.Uri
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,9 +22,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.widget.ImageView
-import java.net.URL
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.apestoque.util.ImageLoader
+import kotlin.math.min
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -162,18 +160,8 @@ class CameraFragment : Fragment() {
         val ip = prefs.getString("api_ip", "192.168.0.135")
         val encoded = Uri.encode("$dir/AS BUILT/FOTOS/$file").replace("%2F", "/")
         val url = "http://$ip:5000/projetista/api/fotos/raw/$encoded"
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val bitmap = withContext(Dispatchers.IO) {
-                    URL(url).openStream().use { stream ->
-                        BitmapFactory.decodeStream(stream)
-                    }
-                }
-                imagePreview.setImageBitmap(bitmap)
-                imagePreview.visibility = View.VISIBLE
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        imagePreview.visibility = View.VISIBLE
+        val max = min(imagePreview.resources.displayMetrics.widthPixels, 1080)
+        ImageLoader.loadThumbnail(imagePreview, url, max, max)
     }
 }
