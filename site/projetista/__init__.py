@@ -11,6 +11,8 @@ from collections import Counter
 from flask import jsonify
 import os
 from datetime import datetime
+from werkzeug.utils import secure_filename
+import urllib.parse
 
 bp = Blueprint('projetista', __name__)
 
@@ -23,6 +25,16 @@ CHECKLIST_DIR = os.environ.get(
 
 # Diretório base onde os projetos são armazenados no servidor
 BASE_PRODUCAO = r"F:\03 - ENGENHARIA\03 - PRODUCAO"
+
+# Diretório onde as fotos são salvas (pode ser sobrescrito via FOTOS_DIR)
+# Por padrão aponta para a estrutura de projetos utilizada no servidor
+FOTOS_DIR = os.environ.get(
+    "FOTOS_DIR",
+    r"F:\\03 - ENGENHARIA\\02 - PROJETOS"
+)
+
+# Garante que o diretório base exista para evitar erros de leitura
+os.makedirs(FOTOS_DIR, exist_ok=True)
 
 # Subpastas que devem ser criadas para cada obra
 SUBPASTAS_OBRA = [
@@ -636,4 +648,88 @@ def api_inspecao_resultado(id):
             item.verificado = item_data.get('verificado', False)
             item.faltante = item_data.get('faltante', 0)
     db.session.commit()
+    return jsonify({'ok': True})
+
+
+def _safe_join(root: str, *paths: str) -> str:
+    root = os.path.abspath(root)
+    path = os.path.abspath(os.path.join(root, *paths))
+    if not path.startswith(root + os.sep):
+        raise ValueError('Caminho inválido')
+    return path
+
+
+def _build_asbuilt_tree(base: str) -> list:
+    """Percorre todo ``base`` e lista fotos em pastas ``AS BUILT/FOTOS``."""
+    extensoes = (".jpg", ".jpeg", ".png")
+    dados = {}
+
+    # Procura por qualquer pasta que termine com "AS BUILT/FOTOS"
+    for root, _dirs, files in os.walk(base):
+        if not root.upper().endswith(os.path.join("AS BUILT", "FOTOS").upper()):
+            continue
+
+        rel = os.path.relpath(root, base)
+        partes = rel.split(os.sep)
+        if len(partes) < 3:
+            # precisa ter pelo menos ano/obra/AS BUILT/FOTOS
+            continue
+
+        ano = partes[0]
+        # Caminho relativo da obra até antes de "AS BUILT"
+        obra_path = "/".join(partes[1:-2])
+
+        arquivos = [
+            f for f in sorted(files) if f.lower().endswith(extensoes)
+        ]
+        if not arquivos:
+            continue
+
+        ano_dict = dados.setdefault(ano, {})
+        ano_dict[obra_path] = [{'name': f} for f in arquivos]
+
+    # Converte dicionário em lista no formato esperado pela API
+    arvore = []
+    for ano in sorted(dados.keys()):
+        obras = []
+        for obra in sorted(dados[ano].keys()):
+            obras.append({'name': obra, 'children': dados[ano][obra]})
+        arvore.append({'name': ano, 'children': obras})
+
+    return arvore
+
+
+@bp.route('/api/fotos')
+def api_listar_fotos():
+    """Lista apenas as fotos encontradas em pastas ``AS BUILT/FOTOS``."""
+    return jsonify(_build_asbuilt_tree(FOTOS_DIR))
+
+
+@bp.route('/api/fotos/raw/<path:filepath>')
+def api_foto_raw(filepath: str):
+    filepath = urllib.parse.unquote(filepath)
+    try:
+        file_path = _safe_join(FOTOS_DIR, *filepath.split('/'))
+    except ValueError:
+        return jsonify({'error': 'Caminho inválido'}), 400
+    if not os.path.isfile(file_path):
+        return jsonify({'error': 'Arquivo não encontrado'}), 404
+    return send_file(file_path)
+
+
+@bp.route('/api/fotos/upload', methods=['POST'])
+def api_enviar_foto():
+    ano = request.form.get('ano', '').strip()
+    obra = request.form.get('obra', '').strip()
+    arquivo = request.files.get('foto')
+    if not ano or not obra or not arquivo:
+        return jsonify({'error': 'Dados incompletos'}), 400
+    filename = secure_filename(arquivo.filename)
+    try:
+        destino = _safe_join(FOTOS_DIR, ano, *obra.split('/'), 'AS BUILT', 'FOTOS')
+        os.makedirs(destino, exist_ok=True)
+    except ValueError:
+        return jsonify({'error': 'Caminho inválido'}), 400
+    caminho = os.path.join(destino, filename)
+    arquivo.save(caminho)
     return jsonify({'ok': True})
