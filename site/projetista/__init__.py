@@ -12,6 +12,7 @@ from flask import jsonify
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
+import urllib.parse
 
 bp = Blueprint('projetista', __name__)
 
@@ -707,6 +708,7 @@ def api_listar_fotos():
 
 @bp.route('/api/fotos/raw/<path:filepath>')
 def api_foto_raw(filepath: str):
+    filepath = urllib.parse.unquote(filepath)
     try:
         file_path = _safe_join(FOTOS_DIR, *filepath.split('/'))
     except ValueError:

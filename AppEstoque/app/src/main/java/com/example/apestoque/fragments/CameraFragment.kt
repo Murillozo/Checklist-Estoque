@@ -88,9 +88,9 @@ class CameraFragment : Fragment() {
         val context = requireContext()
         val photoDir = context.getExternalFilesDir(null) ?: return
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val photoFile = File(photoDir, "IMG_${'$'}timeStamp.jpg")
+        val photoFile = File(photoDir, "IMG_${timeStamp}.jpg")
         currentPhoto = photoFile
-        val uri = FileProvider.getUriForFile(context, "${'$'}{context.packageName}.fileprovider", photoFile)
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", photoFile)
         takePicture.launch(uri)
     }
 
@@ -149,10 +149,10 @@ class CameraFragment : Fragment() {
         val arquivos = obra.children?.map { it.name } ?: emptyList()
         if (arquivos.isEmpty()) return
         AlertDialog.Builder(requireContext())
-            .setTitle("Fotos - ${'$'}{obra.name}")
+            .setTitle("Fotos - ${obra.name}")
             .setItems(arquivos.toTypedArray()) { _, which ->
                 val nomeArquivo = arquivos[which]
-                openImage("${'$'}ano/${'$'}{obra.name}", nomeArquivo)
+                openImage("${ano}/${obra.name}", nomeArquivo)
             }
             .show()
     }
