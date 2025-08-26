@@ -43,6 +43,7 @@ class EstoqueSolicitacao(db.Model):
     __tablename__ = 'estoque_solicitacao'
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    verificado = db.Column(db.Boolean, default=False)
     itens = db.relationship('EstoqueItem', backref='solicitacao', cascade='all, delete-orphan')
 
 

@@ -20,8 +20,8 @@
 </form>
 
 {% for sol in solicitacoes %}
-  <div class="card mb-4 shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
+  <div class="card mb-4 shadow-sm {% if sol.verificado %}border-success{% endif %}">
+    <div class="card-header d-flex justify-content-between align-items-center {% if sol.verificado %}bg-success text-white{% endif %}">
       <span>Solicitação {{ sol.id }}</span>
       <form method="post" action="{{ url_for('projetista.deletar_estoque_solicitacao', sol_id=sol.id) }}" class="mb-0" onsubmit="return confirm('Apagar esta solicitação?');">
         <button type="submit" class="btn btn-sm btn-danger">
@@ -32,7 +32,7 @@
     <div class="card-body">
       <div class="d-flex flex-wrap gap-2">
         {% for it in sol.itens %}
-        <div class="card card-body p-2" style="min-width: 160px;">
+        <div class="card card-body p-2 {% if it.verificado %}bg-success text-white{% endif %}" style="min-width: 160px;">
           <div class="fw-bold">{{ it.referencia }}</div>
           <small>Qtd: {{ it.quantidade }}</small>
           <small>Verificado: {{ 'Sim' if it.verificado else 'Não' }}</small>
