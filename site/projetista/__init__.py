@@ -240,6 +240,17 @@ def verificar_estoque():
     return render_template('verificar_estoque.html', solicitacoes=solicitacoes)
 
 
+@bp.post('/verificar_estoque/<int:sol_id>/delete')
+@login_required
+def deletar_estoque_solicitacao(sol_id: int):
+    """Remove uma solicitação de verificação de estoque."""
+    sol = EstoqueSolicitacao.query.get_or_404(sol_id)
+    db.session.delete(sol)
+    db.session.commit()
+    flash('Solicitação removida', 'success')
+    return redirect(url_for('projetista.verificar_estoque'))
+
+
 @bp.route('/subpastas', methods=['GET', 'POST'])
 @login_required
 def criar_subpastas():
