@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.EditText
 import androidx.recyclerview.widget.RecyclerView
+import android.text.Editable
+import android.text.TextWatcher
 import com.example.apestoque.R
 import com.example.apestoque.data.InspecaoItem
 
@@ -33,21 +35,35 @@ class InspecaoAdapter : RecyclerView.Adapter<InspecaoAdapter.VH>() {
         holder.cb.text = "${item.referencia} (${item.quantidade})"
         holder.cb.isChecked = item.verificado
         holder.et.visibility = if (item.verificado) View.GONE else View.VISIBLE
-        holder.et.setText(if (item.faltante > 0) item.faltante.toString() else "")
+        holder.et.setText(if (item.qtdEstoque > 0) item.qtdEstoque.toString() else "")
 
         holder.cb.setOnCheckedChangeListener { _, checked ->
             item.verificado = checked
             if (checked) {
-                item.faltante = 0
+                item.qtdEstoque = item.quantidade
+                holder.et.setText("")
                 holder.et.visibility = View.GONE
             } else {
+                item.qtdEstoque = 0
+                holder.et.setText("")
                 holder.et.visibility = View.VISIBLE
             }
         }
+
+        holder.et.removeTextChangedListener(holder.watcher)
+        holder.watcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                item.qtdEstoque = s?.toString()?.toIntOrNull() ?: 0
+            }
+        }
+        holder.et.addTextChangedListener(holder.watcher)
     }
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val cb: CheckBox = view.findViewById(R.id.cbItem)
-        val et: EditText = view.findViewById(R.id.etFaltante)
+        val et: EditText = view.findViewById(R.id.etQtdEstoque)
+        var watcher: TextWatcher? = null
     }
 }

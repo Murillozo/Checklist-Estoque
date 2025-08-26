@@ -8,7 +8,7 @@ data class InspecaoItem(
     val referencia: String,
     val quantidade: Int,
     var verificado: Boolean = false,
-    var faltante: Int = 0
+    var qtdEstoque: Int = 0
 )
 
 @JsonClass(generateAdapter = true)

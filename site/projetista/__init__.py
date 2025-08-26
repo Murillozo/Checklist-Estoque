@@ -240,6 +240,17 @@ def verificar_estoque():
     return render_template('verificar_estoque.html', solicitacoes=solicitacoes)
 
 
+@bp.post('/verificar_estoque/<int:sol_id>/delete')
+@login_required
+def deletar_estoque_solicitacao(sol_id: int):
+    """Remove uma solicitação de verificação de estoque."""
+    sol = EstoqueSolicitacao.query.get_or_404(sol_id)
+    db.session.delete(sol)
+    db.session.commit()
+    flash('Solicitação removida', 'success')
+    return redirect(url_for('projetista.verificar_estoque'))
+
+
 @bp.route('/subpastas', methods=['GET', 'POST'])
 @login_required
 def criar_subpastas():
@@ -622,7 +633,7 @@ def config():
 @bp.route('/api/inspecoes')
 def api_inspecoes():
     dados = []
-    for sol in EstoqueSolicitacao.query.order_by(EstoqueSolicitacao.id.desc()).all():
+    for sol in EstoqueSolicitacao.query.filter_by(verificado=False).order_by(EstoqueSolicitacao.id.desc()).all():
         dados.append({
             'id': sol.id,
             'itens': [
@@ -648,6 +659,7 @@ def api_inspecao_resultado(id):
         if item and item.solicitacao_id == id:
             item.verificado = item_data.get('verificado', False)
             item.faltante = item_data.get('faltante', 0)
+    sol.verificado = True
     db.session.commit()
     return jsonify({'ok': True})
 
