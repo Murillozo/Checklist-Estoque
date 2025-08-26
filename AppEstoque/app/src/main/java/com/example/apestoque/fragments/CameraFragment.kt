@@ -94,6 +94,12 @@ class CameraFragment : Fragment() {
         val anos = fotoTree.map { it.name }
         val anoAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, anos)
         edtAno.setAdapter(anoAdapter)
+        edtAno.threshold = 0
+        edtAno.setOnClickListener { edtAno.showDropDown() }
+
+        edtObra.threshold = 0
+        edtObra.setOnClickListener { edtObra.showDropDown() }
+
         edtAno.setOnItemClickListener { parent, _, position, _ ->
             anoSelecionado = parent.getItemAtPosition(position) as String
             val obras = fotoTree.firstOrNull { it.name == anoSelecionado }?.children?.map { it.name } ?: emptyList()
