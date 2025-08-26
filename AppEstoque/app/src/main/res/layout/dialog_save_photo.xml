@@ -5,13 +5,13 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/edtAno"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Ano" />
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/edtObra"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
