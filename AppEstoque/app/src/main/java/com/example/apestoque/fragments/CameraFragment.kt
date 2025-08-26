@@ -1,33 +1,37 @@
 package com.example.apestoque.fragments
 
-import android.app.AlertDialog
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.AutoCompleteTextView
-import android.widget.ExpandableListView
-import android.widget.ArrayAdapter
-import androidx.core.content.FileProvider
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+importar android.Manifest
+importar android.app.AlertDialog
+importar android.content.pm.PackageManager
+importar android.os.Bundle
+importar android.view.LayoutInflater
+importar android.view.View
+importar android.view.ViewGroup
+importar android.widget.ArrayAdapter
+importar android.widget.AutoCompleteTextView
+importar android.widget.ExpandableListView
+importar android.widget.FrameLayout
+importar android.widget.SimpleExpandableListAdapter
+importar androidx.activity.result.contract.ActivityResultContracts
+importar androidx.core.content.ContextCompat
+importar androidx.core.content.FileProvider
+importar androidx.fragment.app.Fragment
+importar androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
 import com.example.apestoque.data.FotoNode
 import com.example.apestoque.data.NetworkModule
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import android.widget.FrameLayout
-import java.util.ArrayList
-import kotlinx.coroutines.launch
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import android.widget.SimpleExpandableListAdapter
+importar com.google.android.material.bottomsheet.BottomSheetBehavior
+importar com.google.android.material.floatingactionbutton.FloatingActionButton
+importar java.io.File
+importar java.text.SimpleDateFormat
+importar java.util.ArrayList
+importar java.util.Date
+importar java.util.Locale
+importar kotlinx.coroutines.launch
+importar okhttp3.MediaType.Companion.toMediaType
+importar okhttp3.MultipartBody
+importar okhttp3.RequestBody.Companion.asRequestBody
+importar okhttp3.RequestBody.Companion.toRequestBody
 
 class CameraFragment : Fragment() {
 
@@ -43,12 +47,23 @@ class CameraFragment : Fragment() {
 
     private val capturedPhotos = mutableListOf<File>()
 
-    private val takePicture = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.TakePicture()) { success ->
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && currentPhoto != null) {
             capturedPhotos.add(currentPhoto!!)
             promptAnotherPhoto()
         } else if (capturedPhotos.isNotEmpty()) {
             uploadAllPhotos()
+        }
+    }
+
+    private val requestCameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            launchCamera()
+        } else {
+            AlertDialog.Builder(requireContext())
+                .setMessage("Permissão da câmera negada")
+                .setPositiveButton("OK", null)
+                .show()
         }
     }
 
@@ -100,6 +115,14 @@ class CameraFragment : Fragment() {
     }
 
     private fun openCamera() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            launchCamera()
+        } else {
+            requestCameraPermission.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun launchCamera() {
         val context = requireContext()
         val photoDir = context.getExternalFilesDir(null) ?: return
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
