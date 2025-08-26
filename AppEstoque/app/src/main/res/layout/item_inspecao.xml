@@ -12,10 +12,10 @@
         android:text="Item" />
 
     <EditText
-        android:id="@+id/etFaltante"
+        android:id="@+id/etQtdEstoque"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:hint="Falta"
+        android:hint="Qtd no Estoque"
         android:inputType="number"
         android:visibility="gone" />
 </LinearLayout>
