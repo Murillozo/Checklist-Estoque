@@ -9,6 +9,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+package com.example.apestoque.fragments
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.apestoque.R
 import com.example.apestoque.adapter.InspecaoAdapter
 import com.example.apestoque.adapter.InspecaoSolicitacaoAdapter
@@ -16,6 +27,8 @@ import com.example.apestoque.data.InspecaoResultadoItem
 import com.example.apestoque.data.InspecaoResultadoRequest
 import com.example.apestoque.data.NetworkModule
 import com.example.apestoque.data.SolicitacaoRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
@@ -24,6 +37,7 @@ class InspecionarFragment : Fragment() {
     private lateinit var listaAdapter: InspecaoSolicitacaoAdapter
     private lateinit var itensAdapter: InspecaoAdapter
     private val repo by lazy { SolicitacaoRepository(NetworkModule.api(requireContext())) }
+    private var refreshJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,9 +70,16 @@ class InspecionarFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repo.fetchInspecoes()
-                .onSuccess { lista ->
-                    listaAdapter.submitList(lista)
+                .onSuccess { lista -> listaAdapter.submitList(lista) }
+        }
+        refreshJob = viewLifecycleOwner.lifecycleScope.launch {
+            while (true) {
+                delay(5000)
+                if (solicitacaoId == null) {
+                    repo.fetchInspecoes()
+                        .onSuccess { lista -> listaAdapter.submitList(lista) }
                 }
+            }
         }
 
         btn.setOnClickListener {
@@ -84,5 +105,9 @@ class InspecionarFragment : Fragment() {
             }
         }
     }
-}
 
+    override fun onDestroyView() {
+        refreshJob?.cancel()
+        super.onDestroyView()
+    }
+}
