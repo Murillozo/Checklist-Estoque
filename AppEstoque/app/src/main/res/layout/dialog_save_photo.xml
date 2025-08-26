@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="wrap_content">
 
-    <AutoCompleteTextView
-        android:id="@+id/edtAno"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Ano" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <AutoCompleteTextView
-        android:id="@+id/edtObra"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Obra" />
-</LinearLayout>
+        <AutoCompleteTextView
+            android:id="@+id/edtAno"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ano" />
+
+        <AutoCompleteTextView
+            android:id="@+id/edtObra"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Obra" />
+    </LinearLayout>
+</ScrollView>

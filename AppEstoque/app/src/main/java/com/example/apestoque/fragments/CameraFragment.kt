@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.ExpandableListView
@@ -107,7 +108,7 @@ class CameraFragment : Fragment() {
             edtObra.setAdapter(obraAdapter)
         }
 
-        AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext())
             .setTitle("Salvar foto")
             .setView(dialogView)
             .setPositiveButton("OK") { _, _ ->
@@ -117,7 +118,16 @@ class CameraFragment : Fragment() {
                 openCamera()
             }
             .setNegativeButton("Cancelar", null)
-            .show()
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+            dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        }
+        dialog.show()
     }
 
     private fun openCamera() {
