@@ -13,10 +13,11 @@
         app:layout_behavior="@string/bottom_sheet_behavior"
         app:behavior_peekHeight="120dp">
 
-        <ExpandableListView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/fotoList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
     </FrameLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
