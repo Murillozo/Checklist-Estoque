@@ -30,7 +30,7 @@ class InspecaoAdapter : RecyclerView.Adapter<InspecaoAdapter.VH>() {
 
     override fun getItemCount(): Int = itens.size
 
-    override fun onBindViewHolder(holder: VH, position: Int) {
+        override fun onBindViewHolder(holder: VH, position: Int) {
         val item = itens[position]
         holder.cb.text = "${item.referencia} (${item.quantidade})"
         holder.cb.isChecked = item.verificado
