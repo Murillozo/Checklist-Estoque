@@ -10,15 +10,16 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
-import android.widget.ExpandableListView
 import android.widget.FrameLayout
-import android.widget.SimpleExpandableListAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.apestoque.R
+import com.example.apestoque.adapter.CameraTreeAdapter
 import com.example.apestoque.data.FotoNode
 import com.example.apestoque.data.NetworkModule
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -36,9 +37,12 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class CameraFragment : Fragment() {
 
-    private lateinit var listView: ExpandableListView
+    private lateinit var recyclerView: RecyclerView
     private lateinit var btnCamera: FloatingActionButton
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>
+    private val treeAdapter = CameraTreeAdapter { ano, obra ->
+        showPhotoChooser(ano, obra)
+    }
 
     private var currentPhoto: File? = null
     private var anoSelecionado: String = ""
@@ -74,7 +78,9 @@ class CameraFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         val view = inflater.inflate(R.layout.fragment_camera, container, false)
-        listView = view.findViewById(R.id.fotoList)
+        recyclerView = view.findViewById(R.id.fotoList)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.adapter = treeAdapter
         btnCamera = view.findViewById(R.id.btnCamera)
         val bottomSheet: FrameLayout = view.findViewById(R.id.bottomSheet)
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
@@ -182,30 +188,7 @@ class CameraFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 fotoTree = api.listarFotos()
-                val groupData = fotoTree.map { mapOf("NAME" to it.name) }
-                val childData = fotoTree.map { ano ->
-                    ano.children?.map { mapOf("NAME" to it.name) } ?: emptyList()
-                }
-                val adapter = SimpleExpandableListAdapter(
-                    requireContext(),
-                    groupData,
-                    R.layout.list_group,
-                    arrayOf("NAME"),
-                    intArrayOf(android.R.id.text1),
-                    childData,
-                    R.layout.list_child,
-                    arrayOf("NAME"),
-                    intArrayOf(android.R.id.text1)
-                )
-                listView.setAdapter(adapter)
-                listView.setOnChildClickListener { _, _, groupPosition, childPosition, _ ->
-                    val ano = fotoTree[groupPosition]
-                    val obra = ano.children?.getOrNull(childPosition)
-                    if (obra != null) {
-                        showPhotoChooser(ano.name, obra)
-                    }
-                    true
-                }
+                treeAdapter.setData(fotoTree)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
