@@ -41,9 +41,14 @@ class CameraFragment : Fragment() {
 
     private var fotoTree: List<FotoNode> = emptyList()
 
+    private val capturedPhotos = mutableListOf<File>()
+
     private val takePicture = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.TakePicture()) { success ->
         if (success && currentPhoto != null) {
-            uploadPhoto(currentPhoto!!, anoSelecionado, obraSelecionada)
+            capturedPhotos.add(currentPhoto!!)
+            promptAnotherPhoto()
+        } else if (capturedPhotos.isNotEmpty()) {
+            uploadAllPhotos()
         }
     }
 
@@ -87,6 +92,7 @@ class CameraFragment : Fragment() {
             .setPositiveButton("OK") { _, _ ->
                 anoSelecionado = edtAno.text.toString()
                 obraSelecionada = edtObra.text.toString()
+                capturedPhotos.clear()
                 openCamera()
             }
             .setNegativeButton("Cancelar", null)
@@ -103,19 +109,32 @@ class CameraFragment : Fragment() {
         takePicture.launch(uri)
     }
 
-    private fun uploadPhoto(file: File, ano: String, obra: String) {
+    private fun promptAnotherPhoto() {
+        AlertDialog.Builder(requireContext())
+            .setMessage("Tirar outra foto?")
+            .setPositiveButton("Sim") { _, _ -> openCamera() }
+            .setNegativeButton("Não") { _, _ -> uploadAllPhotos() }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun uploadAllPhotos() {
         val api = NetworkModule.api(requireContext())
+        val photos = capturedPhotos.toList()
+        capturedPhotos.clear()
         viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val anoBody = ano.toRequestBody("text/plain".toMediaType())
-                val obraBody = obra.toRequestBody("text/plain".toMediaType())
-                val reqFile = file.asRequestBody("image/jpeg".toMediaType())
-                val part = MultipartBody.Part.createFormData("foto", file.name, reqFile)
-                api.enviarFoto(anoBody, obraBody, part)
-                loadPhotos()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            for (file in photos) {
+                try {
+                    val anoBody = anoSelecionado.toRequestBody("text/plain".toMediaType())
+                    val obraBody = obraSelecionada.toRequestBody("text/plain".toMediaType())
+                    val reqFile = file.asRequestBody("image/jpeg".toMediaType())
+                    val part = MultipartBody.Part.createFormData("foto", file.name, reqFile)
+                    api.enviarFoto(anoBody, obraBody, part)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
+            loadPhotos()
         }
     }
 
