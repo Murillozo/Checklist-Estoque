@@ -30,19 +30,22 @@ class InspecaoAdapter : RecyclerView.Adapter<InspecaoAdapter.VH>() {
 
     override fun getItemCount(): Int = itens.size
 
-    override fun onBindViewHolder(holder: VH, position: Int) {
+        override fun onBindViewHolder(holder: VH, position: Int) {
         val item = itens[position]
         holder.cb.text = "${item.referencia} (${item.quantidade})"
         holder.cb.isChecked = item.verificado
         holder.et.visibility = if (item.verificado) View.GONE else View.VISIBLE
-        holder.et.setText(if (item.faltante > 0) item.faltante.toString() else "")
+        holder.et.setText(if (item.qtdEstoque > 0) item.qtdEstoque.toString() else "")
 
         holder.cb.setOnCheckedChangeListener { _, checked ->
             item.verificado = checked
             if (checked) {
-                item.faltante = 0
+                item.qtdEstoque = item.quantidade
+                holder.et.setText("")
                 holder.et.visibility = View.GONE
             } else {
+                item.qtdEstoque = 0
+                holder.et.setText("")
                 holder.et.visibility = View.VISIBLE
             }
         }
@@ -52,7 +55,7 @@ class InspecaoAdapter : RecyclerView.Adapter<InspecaoAdapter.VH>() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                item.faltante = s?.toString()?.toIntOrNull() ?: 0
+                item.qtdEstoque = s?.toString()?.toIntOrNull() ?: 0
             }
         }
         holder.et.addTextChangedListener(holder.watcher)
@@ -60,7 +63,7 @@ class InspecaoAdapter : RecyclerView.Adapter<InspecaoAdapter.VH>() {
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val cb: CheckBox = view.findViewById(R.id.cbItem)
-        val et: EditText = view.findViewById(R.id.etFaltante)
+        val et: EditText = view.findViewById(R.id.etQtdEstoque)
         var watcher: TextWatcher? = null
     }
 }

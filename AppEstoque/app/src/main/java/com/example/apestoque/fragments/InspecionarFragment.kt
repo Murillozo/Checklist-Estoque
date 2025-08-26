@@ -17,6 +17,7 @@ import com.example.apestoque.data.InspecaoResultadoRequest
 import com.example.apestoque.data.NetworkModule
 import com.example.apestoque.data.SolicitacaoRepository
 import kotlinx.coroutines.launch
+import kotlin.math.max
 
 class InspecionarFragment : Fragment() {
     private var solicitacaoId: Int? = null
@@ -63,10 +64,11 @@ class InspecionarFragment : Fragment() {
         btn.setOnClickListener {
             val id = solicitacaoId ?: return@setOnClickListener
             val itens = itensAdapter.getItens().map {
+                val faltante = if (it.verificado) 0 else max(0, it.quantidade - it.qtdEstoque)
                 InspecaoResultadoItem(
                     id = it.id,
                     verificado = it.verificado,
-                    faltante = if (it.verificado) 0 else it.faltante
+                    faltante = faltante
                 )
             }
             viewLifecycleOwner.lifecycleScope.launch {
