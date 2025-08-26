@@ -9,6 +9,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+package com.example.apestoque.fragments
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.apestoque.R
 import com.example.apestoque.adapter.InspecaoAdapter
 import com.example.apestoque.adapter.InspecaoSolicitacaoAdapter
@@ -100,4 +111,3 @@ class InspecionarFragment : Fragment() {
         super.onDestroyView()
     }
 }
-
