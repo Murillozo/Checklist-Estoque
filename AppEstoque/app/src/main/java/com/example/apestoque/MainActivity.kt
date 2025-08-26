@@ -73,9 +73,19 @@ class MainActivity : AppCompatActivity() {
 
         // Pull to refresh
         swipe.setOnRefreshListener {
-            pager.adapter?.notifyItemChanged(pager.currentItem)
+            if (pager.currentItem != 6) {
+                pager.adapter?.notifyItemChanged(pager.currentItem)
+            }
             swipe.isRefreshing = false
         }
+
+        pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                swipe.isEnabled = position != 6
+            }
+        })
+
+        swipe.isEnabled = pager.currentItem != 6
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
