@@ -661,35 +661,28 @@ def _safe_join(root: str, *paths: str) -> str:
 
 
 def _build_asbuilt_tree(base: str) -> list:
-    """Percorre todo ``base`` e lista fotos em pastas ``AS BUILT/FOTOS``."""
+    """Percorre ``base`` e lista pastas ``AS BUILT/FOTOS`` e suas subpastas."""
     extensoes = (".jpg", ".jpeg", ".png")
     dados = {}
+    alvo = os.path.join("AS BUILT", "FOTOS").upper()
 
-    # Procura por qualquer pasta que termine com "AS BUILT/FOTOS"
     for root, _dirs, files in os.walk(base):
-        if not root.upper().endswith(os.path.join("AS BUILT", "FOTOS").upper()):
+        if alvo not in root.upper():
             continue
 
         rel = os.path.relpath(root, base)
         partes = rel.split(os.sep)
         if len(partes) < 3:
-            # precisa ter pelo menos ano/obra/AS BUILT/FOTOS
             continue
 
         ano = partes[0]
-        # Caminho relativo da obra até antes de "AS BUILT"
-        obra_path = "/".join(partes[1:-2])
+        obra_path = "/".join(partes[1:])
 
-        arquivos = [
-            f for f in sorted(files) if f.lower().endswith(extensoes)
-        ]
-        if not arquivos:
-            continue
+        arquivos = [f for f in sorted(files) if f.lower().endswith(extensoes)]
 
         ano_dict = dados.setdefault(ano, {})
         ano_dict[obra_path] = [{'name': f} for f in arquivos]
 
-    # Converte dicionário em lista no formato esperado pela API
     arvore = []
     for ano in sorted(dados.keys()):
         obras = []
@@ -702,7 +695,7 @@ def _build_asbuilt_tree(base: str) -> list:
 
 @bp.route('/api/fotos')
 def api_listar_fotos():
-    """Lista apenas as fotos encontradas em pastas ``AS BUILT/FOTOS``."""
+    """Lista pastas de fotos, incluindo subpastas vazias."""
     return jsonify(_build_asbuilt_tree(FOTOS_DIR))
 
 
@@ -727,7 +720,7 @@ def api_enviar_foto():
         return jsonify({'error': 'Dados incompletos'}), 400
     filename = secure_filename(arquivo.filename)
     try:
-        destino = _safe_join(FOTOS_DIR, ano, *obra.split('/'), 'AS BUILT', 'FOTOS')
+        destino = _safe_join(FOTOS_DIR, ano, *obra.split('/'))
         os.makedirs(destino, exist_ok=True)
     except ValueError:
         return jsonify({'error': 'Caminho inválido'}), 400

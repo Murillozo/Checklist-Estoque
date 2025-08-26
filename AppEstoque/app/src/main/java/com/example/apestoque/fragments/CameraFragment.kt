@@ -1,35 +1,43 @@
 package com.example.apestoque.fragments
 
+import android.Manifest
 import android.app.AlertDialog
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.ExpandableListView
+import android.widget.FrameLayout
+import android.widget.SimpleExpandableListAdapter
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
 import com.example.apestoque.data.FotoNode
 import com.example.apestoque.data.NetworkModule
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.util.ArrayList
-import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.ArrayList
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import android.widget.SimpleExpandableListAdapter
 
 class CameraFragment : Fragment() {
 
     private lateinit var listView: ExpandableListView
     private lateinit var btnCamera: FloatingActionButton
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>
 
     private var currentPhoto: File? = null
     private var anoSelecionado: String = ""
@@ -37,9 +45,25 @@ class CameraFragment : Fragment() {
 
     private var fotoTree: List<FotoNode> = emptyList()
 
-    private val takePicture = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.TakePicture()) { success ->
+    private val capturedPhotos = mutableListOf<File>()
+
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success && currentPhoto != null) {
-            uploadPhoto(currentPhoto!!, anoSelecionado, obraSelecionada)
+            capturedPhotos.add(currentPhoto!!)
+            promptAnotherPhoto()
+        } else if (capturedPhotos.isNotEmpty()) {
+            uploadAllPhotos()
+        }
+    }
+
+    private val requestCameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            launchCamera()
+        } else {
+            AlertDialog.Builder(requireContext())
+                .setMessage("Permissão da câmera negada")
+                .setPositiveButton("OK", null)
+                .show()
         }
     }
 
@@ -51,6 +75,9 @@ class CameraFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_camera, container, false)
         listView = view.findViewById(R.id.fotoList)
         btnCamera = view.findViewById(R.id.btnCamera)
+        val bottomSheet: FrameLayout = view.findViewById(R.id.bottomSheet)
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
         btnCamera.setOnClickListener { showInputDialog() }
 
@@ -61,14 +88,32 @@ class CameraFragment : Fragment() {
 
     private fun showInputDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_save_photo, null)
-        val edtAno = dialogView.findViewById<EditText>(R.id.edtAno)
-        val edtObra = dialogView.findViewById<EditText>(R.id.edtObra)
+        val edtAno = dialogView.findViewById<AutoCompleteTextView>(R.id.edtAno)
+        val edtObra = dialogView.findViewById<AutoCompleteTextView>(R.id.edtObra)
+
+        val anos = fotoTree.map { it.name }
+        val anoAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, anos)
+        edtAno.setAdapter(anoAdapter)
+        edtAno.threshold = 0
+        edtAno.setOnClickListener { edtAno.showDropDown() }
+
+        edtObra.threshold = 0
+        edtObra.setOnClickListener { edtObra.showDropDown() }
+
+        edtAno.setOnItemClickListener { parent, _, position, _ ->
+            anoSelecionado = parent.getItemAtPosition(position) as String
+            val obras = fotoTree.firstOrNull { it.name == anoSelecionado }?.children?.map { it.name } ?: emptyList()
+            val obraAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obras)
+            edtObra.setAdapter(obraAdapter)
+        }
+
         AlertDialog.Builder(requireContext())
             .setTitle("Salvar foto")
             .setView(dialogView)
             .setPositiveButton("OK") { _, _ ->
                 anoSelecionado = edtAno.text.toString()
                 obraSelecionada = edtObra.text.toString()
+                capturedPhotos.clear()
                 openCamera()
             }
             .setNegativeButton("Cancelar", null)
@@ -76,6 +121,14 @@ class CameraFragment : Fragment() {
     }
 
     private fun openCamera() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            launchCamera()
+        } else {
+            requestCameraPermission.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun launchCamera() {
         val context = requireContext()
         val photoDir = context.getExternalFilesDir(null) ?: return
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
@@ -85,19 +138,32 @@ class CameraFragment : Fragment() {
         takePicture.launch(uri)
     }
 
-    private fun uploadPhoto(file: File, ano: String, obra: String) {
+    private fun promptAnotherPhoto() {
+        AlertDialog.Builder(requireContext())
+            .setMessage("Tirar outra foto?")
+            .setPositiveButton("Sim") { _, _ -> openCamera() }
+            .setNegativeButton("Não") { _, _ -> uploadAllPhotos() }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun uploadAllPhotos() {
         val api = NetworkModule.api(requireContext())
+        val photos = capturedPhotos.toList()
+        capturedPhotos.clear()
         viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val anoBody = ano.toRequestBody("text/plain".toMediaType())
-                val obraBody = obra.toRequestBody("text/plain".toMediaType())
-                val reqFile = file.asRequestBody("image/jpeg".toMediaType())
-                val part = MultipartBody.Part.createFormData("foto", file.name, reqFile)
-                api.enviarFoto(anoBody, obraBody, part)
-                loadPhotos()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            for (file in photos) {
+                try {
+                    val anoBody = anoSelecionado.toRequestBody("text/plain".toMediaType())
+                    val obraBody = obraSelecionada.toRequestBody("text/plain".toMediaType())
+                    val reqFile = file.asRequestBody("image/jpeg".toMediaType())
+                    val part = MultipartBody.Part.createFormData("foto", file.name, reqFile)
+                    api.enviarFoto(anoBody, obraBody, part)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
+            loadPhotos()
         }
     }
 

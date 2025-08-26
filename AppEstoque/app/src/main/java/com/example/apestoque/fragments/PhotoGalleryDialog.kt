@@ -54,7 +54,7 @@ class PhotoGalleryDialog : DialogFragment() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val file = files[position]
-            val path = "$baseDir/AS BUILT/FOTOS/$file"
+            val path = "$baseDir/$file"
             val encoded = Uri.encode(path).replace("%2F", "/")
             val url = "$baseUrl/$encoded"
             val size = holder.image.resources.displayMetrics.widthPixels / 3
