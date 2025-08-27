@@ -497,7 +497,6 @@ def checklist_pdf():
     pdf.cell(0, 10, f"Ano: {dados.get('ano', '')}", ln=True)
     pdf.cell(0, 10, f"Suprimento: {dados.get('suprimento', '')}", ln=True)
     pdf.ln(5)
-
     def coletar_itens(node, acumulador):
         """Coleta recursivamente todos os itens em qualquer nível do JSON."""
         if isinstance(node, dict):
