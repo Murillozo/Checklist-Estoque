@@ -9,17 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-package com.example.apestoque.fragments
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.apestoque.R
 import com.example.apestoque.adapter.InspecaoAdapter
 import com.example.apestoque.adapter.InspecaoSolicitacaoAdapter
@@ -43,9 +32,7 @@ class InspecionarFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_inspecionar, container, false)
-    }
+    ): View? = inflater.inflate(R.layout.fragment_inspecionar, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -72,6 +59,7 @@ class InspecionarFragment : Fragment() {
             repo.fetchInspecoes()
                 .onSuccess { lista -> listaAdapter.submitList(lista) }
         }
+
         refreshJob = viewLifecycleOwner.lifecycleScope.launch {
             while (true) {
                 delay(5000)
