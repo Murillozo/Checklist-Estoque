@@ -539,23 +539,21 @@ def checklist_pdf(filename):
     itens = []
     coletar_itens(dados, itens)
 
-    col_widths = [10, 90, 90]
+    col_widths = [95, 95]  # [coluna pergunta, coluna resposta]
     line_height = 8
     pdf.set_draw_color(50, 50, 100)
     pdf.set_fill_color(200, 200, 200)
     pdf.set_font("Arial", 'B', 11)
-    pdf.cell(col_widths[0], line_height, "#", border=1, align='C', fill=True)
-    pdf.cell(col_widths[1], line_height, "Pergunta", border=1, align='C', fill=True)
-    pdf.cell(col_widths[2], line_height, "Resposta", border=1, align='C', fill=True, ln=1)
+    pdf.cell(col_widths[0], line_height, "Pergunta", border=1, align='C', fill=True)
+    pdf.cell(col_widths[1], line_height, "Resposta", border=1, align='C', fill=True, ln=1)
     pdf.set_font("Arial", size=10)
     for idx, item in enumerate(itens, 1):
         if idx % 2 == 0:
             pdf.set_fill_color(245, 245, 245)
         else:
             pdf.set_fill_color(255, 255, 255)
-        pdf.cell(col_widths[0], line_height, str(idx), border=1, align='C', fill=True)
-        pdf.cell(col_widths[1], line_height, item['pergunta'], border=1, fill=True)
-        pdf.cell(col_widths[2], line_height, item['resposta'], border=1, fill=True, ln=1)
+        pdf.cell(col_widths[0], line_height, item['pergunta'], border=1, fill=True)
+        pdf.cell(col_widths[1], line_height, item['resposta'], border=1, fill=True, ln=1)
 
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
     return send_file(
