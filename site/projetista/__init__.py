@@ -512,6 +512,8 @@ def checklist_pdf():
     )
 
 
+
+
 @bp.route('/checklist/<path:filename>')
 @login_required
 def checklist_view(filename):
