@@ -476,11 +476,12 @@ def checklist_list():
 @login_required
 def checklist_pdf():
     """Gera um PDF com base no checklist JSON mais recente."""
-    arquivos = [
-        os.path.join(CHECKLIST_DIR, f)
-        for f in os.listdir(CHECKLIST_DIR)
-        if f.endswith('.json')
-    ]
+    arquivos = []
+    for raiz, _dirs, files in os.walk(CHECKLIST_DIR):
+        for name in files:
+            if name.endswith('.json'):
+                arquivos.append(os.path.join(raiz, name))
+
     if not arquivos:
         flash('Nenhum checklist disponível.', 'warning')
         return redirect(url_for('projetista.checklist_list'))
@@ -509,6 +510,8 @@ def checklist_pdf():
         as_attachment=True,
         download_name='checklist.pdf'
     )
+
+
 
 
 @bp.route('/checklist/<path:filename>')
