@@ -484,7 +484,25 @@ def checklist_pdf(filename):
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
 
-    pdf = FPDF()
+    class ChecklistPDF(FPDF):
+        def header(self):
+            self.set_fill_color(33, 150, 243)
+            self.rect(0, 0, self.w, 20, 'F')
+            self.set_y(5)
+            self.set_text_color(255, 255, 255)
+            self.set_font('Arial', 'B', 16)
+            self.cell(0, 10, 'Checklist', align='C')
+            self.ln(15)
+            self.set_text_color(0, 0, 0)
+
+        def footer(self):
+            self.set_y(-15)
+            self.set_font('Arial', 'I', 8)
+            self.set_text_color(128)
+            self.cell(0, 10, f'Página {self.page_no()}/{{nb}}', align='C')
+
+    pdf = ChecklistPDF()
+    pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     pdf.cell(0, 10, f"Obra: {dados.get('obra', '')}", ln=True)
@@ -520,9 +538,24 @@ def checklist_pdf(filename):
 
     itens = []
     coletar_itens(dados, itens)
+
+    col_widths = [10, 90, 90]
+    line_height = 8
+    pdf.set_draw_color(50, 50, 100)
+    pdf.set_fill_color(200, 200, 200)
+    pdf.set_font("Arial", 'B', 11)
+    pdf.cell(col_widths[0], line_height, "#", border=1, align='C', fill=True)
+    pdf.cell(col_widths[1], line_height, "Pergunta", border=1, align='C', fill=True)
+    pdf.cell(col_widths[2], line_height, "Resposta", border=1, align='C', fill=True, ln=1)
+    pdf.set_font("Arial", size=10)
     for idx, item in enumerate(itens, 1):
-        pdf.multi_cell(0, 8, f"{idx}. {item['pergunta']}: {item['resposta']}")
-        pdf.ln(1)
+        if idx % 2 == 0:
+            pdf.set_fill_color(245, 245, 245)
+        else:
+            pdf.set_fill_color(255, 255, 255)
+        pdf.cell(col_widths[0], line_height, str(idx), border=1, align='C', fill=True)
+        pdf.cell(col_widths[1], line_height, item['pergunta'], border=1, fill=True)
+        pdf.cell(col_widths[2], line_height, item['resposta'], border=1, fill=True, ln=1)
 
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
     return send_file(
