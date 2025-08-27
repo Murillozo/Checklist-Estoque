@@ -16,10 +16,13 @@ import com.example.apestoque.data.InspecaoResultadoItem
 import com.example.apestoque.data.InspecaoResultadoRequest
 import com.example.apestoque.data.NetworkModule
 import com.example.apestoque.data.SolicitacaoRepository
+import com.example.apestoque.data.InspecaoSolicitacao
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.max
+import android.media.AudioManager
+import android.media.ToneGenerator
 
 class InspecionarFragment : Fragment() {
     private var solicitacaoId: Int? = null
@@ -27,6 +30,7 @@ class InspecionarFragment : Fragment() {
     private lateinit var itensAdapter: InspecaoAdapter
     private val repo by lazy { SolicitacaoRepository(NetworkModule.api(requireContext())) }
     private var refreshJob: Job? = null
+    private var knownIds: Set<Int> = emptySet()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,7 +61,7 @@ class InspecionarFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repo.fetchInspecoes()
-                .onSuccess { lista -> listaAdapter.submitList(lista) }
+                .onSuccess { lista -> atualizarLista(lista) }
         }
 
         refreshJob = viewLifecycleOwner.lifecycleScope.launch {
@@ -65,7 +69,7 @@ class InspecionarFragment : Fragment() {
                 delay(5000)
                 if (solicitacaoId == null) {
                     repo.fetchInspecoes()
-                        .onSuccess { lista -> listaAdapter.submitList(lista) }
+                        .onSuccess { lista -> atualizarLista(lista) }
                 }
             }
         }
@@ -88,7 +92,7 @@ class InspecionarFragment : Fragment() {
                         btn.visibility = View.GONE
                         solicitacaoId = null
                         repo.fetchInspecoes()
-                            .onSuccess { lista -> listaAdapter.submitList(lista) }
+                            .onSuccess { lista -> atualizarLista(lista) }
                     }
             }
         }
@@ -97,5 +101,21 @@ class InspecionarFragment : Fragment() {
     override fun onDestroyView() {
         refreshJob?.cancel()
         super.onDestroyView()
+    }
+
+    private fun atualizarLista(lista: List<InspecaoSolicitacao>) {
+        val currentIds = lista.map { it.id }.toSet()
+        if (knownIds.isNotEmpty() && (currentIds - knownIds).isNotEmpty()) {
+            playTone()
+        }
+        knownIds = currentIds
+        listaAdapter.submitList(lista)
+    }
+
+    private fun playTone() {
+        ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100).startTone(
+            ToneGenerator.TONE_PROP_BEEP,
+            150
+        )
     }
 }
