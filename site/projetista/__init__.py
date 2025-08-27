@@ -497,10 +497,37 @@ def checklist_pdf():
     pdf.cell(0, 10, f"Ano: {dados.get('ano', '')}", ln=True)
     pdf.cell(0, 10, f"Suprimento: {dados.get('suprimento', '')}", ln=True)
     pdf.ln(5)
-    for idx, item in enumerate(dados.get('itens', []), 1):
-        pergunta = item.get('pergunta', '')
-        resposta = ', '.join(item.get('resposta', []))
-        pdf.multi_cell(0, 8, f"{idx}. {pergunta}: {resposta}")
+    def coletar_itens(node, acumulador):
+        """Coleta recursivamente todos os itens em qualquer nível do JSON."""
+        if isinstance(node, dict):
+            lista = node.get('itens')
+            if isinstance(lista, list):
+                for it in lista:
+                    pergunta = it.get('pergunta', '')
+                    respostas = it.get('respostas') or it.get('resposta', [])
+                    if isinstance(respostas, dict):
+                        resp_vals = []
+                        for val in respostas.values():
+                            if isinstance(val, list):
+                                resp_vals.extend([str(v) for v in val])
+                            elif val:
+                                resp_vals.append(str(val))
+                        resposta = ', '.join(resp_vals)
+                    elif isinstance(respostas, list):
+                        resposta = ', '.join(str(v) for v in respostas)
+                    else:
+                        resposta = str(respostas) if respostas else ''
+                    acumulador.append({'pergunta': pergunta, 'resposta': resposta})
+            for v in node.values():
+                coletar_itens(v, acumulador)
+        elif isinstance(node, list):
+            for elem in node:
+                coletar_itens(elem, acumulador)
+
+    itens = []
+    coletar_itens(dados, itens)
+    for idx, item in enumerate(itens, 1):
+        pdf.multi_cell(0, 8, f"{idx}. {item['pergunta']}: {item['resposta']}")
         pdf.ln(1)
 
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
@@ -510,8 +537,6 @@ def checklist_pdf():
         as_attachment=True,
         download_name='checklist.pdf'
     )
-
-
 
 
 @bp.route('/checklist/<path:filename>')
