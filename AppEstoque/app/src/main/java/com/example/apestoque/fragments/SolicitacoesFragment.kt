@@ -26,6 +26,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.media.AudioManager
+import android.media.ToneGenerator
 
 class SolicitacoesFragment : Fragment() {
 
@@ -37,6 +39,7 @@ class SolicitacoesFragment : Fragment() {
     private lateinit var tvMensagem: TextView
     private lateinit var searchView: SearchView
     private var todasSolicitacoes: List<Solicitacao> = emptyList()
+    private var knownIds: Set<Int> = emptySet()
     private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         carregarDados(showSnackbar = false)
     }
@@ -111,12 +114,19 @@ class SolicitacoesFragment : Fragment() {
                     tvMensagem.visibility = View.VISIBLE
                     rvSolicitacoes.visibility = View.GONE
                     todasSolicitacoes = emptyList()
+                    knownIds = emptySet()
                 } else {
                     // Agrupa por obra e pega a última solicitação de cada obra
                     val ultimasPorObra = pendentes
                         .groupBy { it.obra }
                         .mapNotNull { (_, group) -> group.maxByOrNull { it.id } }
                         .sortedByDescending { it.id }
+
+                    val currentIds = ultimasPorObra.map { it.id }.toSet()
+                    if (knownIds.isNotEmpty() && (currentIds - knownIds).isNotEmpty()) {
+                        playTone()
+                    }
+                    knownIds = currentIds
 
                     todasSolicitacoes = ultimasPorObra
                     filtrar(searchView.query.toString())
@@ -165,5 +175,12 @@ class SolicitacoesFragment : Fragment() {
         val intent = Intent(requireContext(), ChecklistActivity::class.java)
         intent.putExtra("solicitacao", json)
         launcher.launch(intent)
+    }
+
+    private fun playTone() {
+        ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100).startTone(
+            ToneGenerator.TONE_PROP_BEEP,
+            150
+        )
     }
 }
