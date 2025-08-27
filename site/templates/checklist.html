@@ -33,6 +33,10 @@ pre{background:#111;padding:10px;overflow:auto;}
 </style>
 </head>
 <body>
+<div style="padding:10px;">
+<button onclick="window.location.href='{{ url_for('projetista.index') }}'">Início</button>
+<button onclick="window.location.href='{{ url_for('projetista.checklist_pdf') }}'">Gerar PDF</button>
+</div>
 <div id="container">
 <div class="column" id="foldersCol">
 <input type="text" id="folderFilter" class="search" placeholder="Buscar pasta...">
