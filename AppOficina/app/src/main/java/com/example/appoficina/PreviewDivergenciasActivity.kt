@@ -1,5 +1,6 @@
 package com.example.appoficina
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -8,6 +9,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
 
 class PreviewDivergenciasActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +67,9 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                 else -> "Nome do montador"
             }
             promptName(this, titulo) { nome ->
+                if (tipo == "posto08_iqm") {
+                    Thread { marcarDivergenciasTratadas(obra) }.start()
+                }
                 val (clazz, extraName) = when (tipo) {
                     "posto02" -> ChecklistPosto02Activity::class.java to "producao"
                     "posto03_pre" -> ChecklistPosto03PreActivity::class.java to "montador"
@@ -86,6 +93,25 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                 startActivity(intent)
                 finish()
             }
+        }
+    }
+
+    private fun marcarDivergenciasTratadas(obra: String) {
+        val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
+            .getString("api_ip", "192.168.0.135")
+        val address = "http://$ip:5000/json_api/posto08_iqm/resolve"
+        try {
+            val url = URL(address)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.setRequestProperty("Content-Type", "application/json")
+            val payload = JSONObject()
+            payload.put("obra", obra)
+            OutputStreamWriter(conn.outputStream).use { it.write(payload.toString()) }
+            conn.responseCode
+            conn.disconnect()
+        } catch (_: Exception) {
         }
     }
 }

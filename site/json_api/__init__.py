@@ -84,6 +84,23 @@ def _ensure_nc_preview(file_path: str) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def _set_respostas_c(obj, numero, respostas):
+    """Set specified respostas to 'C' for item ``numero`` within ``obj``."""
+    if isinstance(obj, dict):
+        itens = obj.get("itens")
+        if isinstance(itens, list):
+            for item in itens:
+                if item.get("numero") == numero:
+                    resp_obj = item.setdefault("respostas", {})
+                    for papel in respostas.keys():
+                        resp_obj[papel] = ["C"]
+        for v in obj.values():
+            _set_respostas_c(v, numero, respostas)
+    elif isinstance(obj, list):
+        for v in obj:
+            _set_respostas_c(v, numero, respostas)
+
+
 def _collect_nc_items(data):
     """Return list of items with at least one "NC" answer."""
     nc_itens = []
@@ -1711,6 +1728,36 @@ def reenviar_checklist():
         pass
 
     return jsonify({'caminho': out_path})
+
+
+@bp.route('/posto08_iqm/resolve', methods=['POST'])
+def resolver_posto08_iqm():
+    """Mark preview NC answers as 'C' for the given obra."""
+    data = request.get_json() or {}
+    obra = data.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(BASE_DIR, 'posto08_IQM', f'checklist_{obra}.json')
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            base = json.load(f)
+    except Exception:
+        return jsonify({'erro': 'falha ao ler arquivo'}), 500
+
+    for item in base.get('pre_visualizacao', []):
+        numero = item.get('numero')
+        respostas = item.get('respostas', {})
+        _set_respostas_c(base, numero, respostas)
+
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(base, f, ensure_ascii=False, indent=2)
+
+    _ensure_nc_preview(file_path)
+    return jsonify({'status': 'ok'})
 
 # utilidades de mesclagem
 from .merge_checklists import merge_checklists, merge_directory, find_mismatches
