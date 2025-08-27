@@ -13,6 +13,7 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.parse
+from fpdf import FPDF
 
 bp = Blueprint('projetista', __name__)
 
@@ -469,6 +470,74 @@ def api_compras(id):
 def checklist_list():
     """Renderiza a interface de visualização dos checklists."""
     return render_template('checklist.html')
+
+
+@bp.route('/checklist/pdf')
+@login_required
+def checklist_pdf():
+    """Gera um PDF com base no checklist JSON mais recente."""
+    arquivos = []
+    for raiz, _dirs, files in os.walk(CHECKLIST_DIR):
+        for name in files:
+            if name.endswith('.json'):
+                arquivos.append(os.path.join(raiz, name))
+
+    if not arquivos:
+        flash('Nenhum checklist disponível.', 'warning')
+        return redirect(url_for('projetista.checklist_list'))
+
+    arquivo_recente = max(arquivos, key=os.path.getmtime)
+    with open(arquivo_recente, encoding='utf-8') as f:
+        dados = json.load(f)
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(0, 10, f"Obra: {dados.get('obra', '')}", ln=True)
+    pdf.cell(0, 10, f"Ano: {dados.get('ano', '')}", ln=True)
+    pdf.cell(0, 10, f"Suprimento: {dados.get('suprimento', '')}", ln=True)
+    pdf.ln(5)
+
+    def coletar_itens(node, acumulador):
+        """Coleta recursivamente todos os itens em qualquer nível do JSON."""
+        if isinstance(node, dict):
+            lista = node.get('itens')
+            if isinstance(lista, list):
+                for it in lista:
+                    pergunta = it.get('pergunta', '')
+                    respostas = it.get('respostas') or it.get('resposta', [])
+                    if isinstance(respostas, dict):
+                        resp_vals = []
+                        for val in respostas.values():
+                            if isinstance(val, list):
+                                resp_vals.extend([str(v) for v in val])
+                            elif val:
+                                resp_vals.append(str(val))
+                        resposta = ', '.join(resp_vals)
+                    elif isinstance(respostas, list):
+                        resposta = ', '.join(str(v) for v in respostas)
+                    else:
+                        resposta = str(respostas) if respostas else ''
+                    acumulador.append({'pergunta': pergunta, 'resposta': resposta})
+            for v in node.values():
+                coletar_itens(v, acumulador)
+        elif isinstance(node, list):
+            for elem in node:
+                coletar_itens(elem, acumulador)
+
+    itens = []
+    coletar_itens(dados, itens)
+    for idx, item in enumerate(itens, 1):
+        pdf.multi_cell(0, 8, f"{idx}. {item['pergunta']}: {item['resposta']}")
+        pdf.ln(1)
+
+    pdf_bytes = pdf.output(dest='S').encode('latin-1')
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name='checklist.pdf'
+    )
 
 
 @bp.route('/checklist/<path:filename>')
