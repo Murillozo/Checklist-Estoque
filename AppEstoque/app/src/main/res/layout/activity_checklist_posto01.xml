@@ -18,7 +18,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.2 - INV\u00d3LUCRO - CAIXA"
+            android:text="1.1 - INV\u00d3LUCRO - CAIXA"
             android:textSize="18sp"
             android:layout_marginBottom="16dp" />
 
@@ -136,7 +136,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.3 - INV\u00d3LUCRO - AUTOPORTANTE"
+            android:text="1.2 - INV\u00d3LUCRO - AUTOPORTANTE"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -255,7 +255,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.4 - INV\u00d3LUCRO - PLACAS DE MONTAGEM"
+            android:text="1.3 - INV\u00d3LUCRO - PLACAS DE MONTAGEM"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -374,7 +374,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.5 - INV\u00d3LUCRO - FLANGES"
+            android:text="1.4 - INV\u00d3LUCRO - FLANGES"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -493,7 +493,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.6 - INV\u00d3LUCRO - PORTAS COM RECORTE"
+            android:text="1.5 - INV\u00d3LUCRO - PORTAS COM RECORTE"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -612,7 +612,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.8 - INVÓLUCRO - CONTRAPORTAS COM RECORTE"
+            android:text="1.6 - INVÓLUCRO - CONTRAPORTAS COM RECORTE"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -731,7 +731,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.11 - CABOS"
+            android:text="1.7 - CABOS"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -850,7 +850,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.12 - BARRAMENTO"
+            android:text="1.8 - BARRAMENTO"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -969,7 +969,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.13 - TRILHOS"
+            android:text="1.9 - TRILHOS"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -1088,7 +1088,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.14 - CANALETAS"
+            android:text="1.10 - CANALETAS"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -1207,7 +1207,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.16 - ETIQUETAS"
+            android:text="1.11 - ETIQUETAS"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -1326,7 +1326,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.17 - PARAFUSOS/PORCAS/ARRUELAS"
+            android:text="1.12 - PARAFUSOS/PORCAS/ARRUELAS"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -1445,7 +1445,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.18 - ISOLADORES"
+            android:text="1.13 - ISOLADORES"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -1564,7 +1564,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.19 - PALETIZAÇÃO"
+            android:text="1.14 - PALETIZAÇÃO"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
