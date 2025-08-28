@@ -523,7 +523,9 @@ def checklist_pdf(filename):
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.ln(5)
+    pdf.set_y(40)
+
+
     def coletar_itens(node, acumulador):
         """Coleta recursivamente todos os itens em qualquer nível do JSON."""
         if isinstance(node, dict):
@@ -553,6 +555,10 @@ def checklist_pdf(filename):
 
     itens = []
     coletar_itens(dados, itens)
+    for idx, item in enumerate(itens):
+        if item['pergunta'].strip() == "1.15 - POLICARBONATO: Material em bom estado":
+            itens.insert(idx + 1, {'pergunta': 'Posto - 02 MATERIAIS', 'resposta': ''})
+            break
 
     col_widths = [95, 95]  # [coluna pergunta, coluna resposta]
     line_height = 8
@@ -577,6 +583,7 @@ def checklist_pdf(filename):
         as_attachment=True,
         download_name='checklist.pdf'
     )
+
 
 
 @bp.route('/checklist/<path:filename>')
