@@ -14,6 +14,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.parse
 from fpdf import FPDF
+import re
 
 bp = Blueprint('projetista', __name__)
 
@@ -555,30 +556,12 @@ def checklist_pdf(filename):
 
     itens = []
     coletar_itens(dados, itens)
-    for idx, item in enumerate(itens):
-        if item['pergunta'].strip() == "1.15 - POLICARBONATO: Material em bom estado":
-            itens.insert(idx + 1, {'pergunta': 'Posto - 02 MATERIAIS', 'resposta': ''})
-            break
-
-    col_widths = [95, 95]  # [coluna pergunta, coluna resposta]
     line_height = 8
-    pdf.set_draw_color(50, 50, 100)
-    pdf.set_fill_color(200, 200, 200)
-    pdf.set_font("Arial", 'B', 11)
-    pdf.cell(col_widths[0], line_height, "Pergunta", border=1, align='C', fill=True)
-    pdf.cell(col_widths[1], line_height, "Resposta", border=1, align='C', fill=True, ln=1)
     pdf.set_font("Arial", size=10)
-    for idx, item in enumerate(itens, 1):
-        if idx % 2 == 0:
-            pdf.set_fill_color(245, 245, 245)
-        else:
-            pdf.set_fill_color(255, 255, 255)
-        if item['pergunta'] == 'Posto - 02 OFICINA':
-            # linha destacada ocupando toda a largura da tabela
-            pdf.cell(sum(col_widths), line_height, item['pergunta'], border=1, fill=True, ln=1)
-        else:
-            pdf.cell(col_widths[0], line_height, item['pergunta'], border=1, fill=True)
-            pdf.cell(col_widths[1], line_height, item['resposta'], border=1, fill=True, ln=1)
+    for item in itens:
+        pergunta = item['pergunta'].strip()
+        if re.match(r"^\d+\.\d+", pergunta):
+            pdf.cell(0, line_height, pergunta, ln=1)
 
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
     return send_file(
