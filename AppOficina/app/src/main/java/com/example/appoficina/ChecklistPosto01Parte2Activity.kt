@@ -70,14 +70,17 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             "1.15 - COMPONENTES: Separação - POSTO - 01",
             "1.15 - COMPONENTES: Referências x Projeto",
             "1.15 - COMPONENTES: Material em bom estado",
+
             "1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Identificação do projeto",
             "1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Separação - POSTO - 07",
             "1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Referências x Projeto",
             "1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Material em bom estado",
+
             "1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Identificação do projeto",
             "1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Separação - POSTO - 07",
             "1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Referências x Projeto",
             "1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Material em bom estado",
+<
             "1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Identificação do projeto",
             "1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Separação - POSTO - 07",
             "1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Referências x Projeto",
@@ -86,7 +89,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             "1.19 - POLICARBONATO: Separação - POSTO - 03",
             "1.19 - POLICARBONATO: Referências x Projeto",
             "1.19 - POLICARBONATO: Material em bom estado",
-        )
+
 
         concluirButton.setOnClickListener {
             val itens = JSONArray()
