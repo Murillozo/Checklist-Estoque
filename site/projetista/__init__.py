@@ -507,6 +507,8 @@ def checklist_pdf(filename):
                 align='C',
             )
             self.ln(6)
+            # posiciona o cursor abaixo da barra azul para todas as páginas
+            self.set_y(40)
             self.set_text_color(0, 0, 0)
 
         def footer(self):
@@ -523,8 +525,6 @@ def checklist_pdf(filename):
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.set_y(40)
-
 
     def coletar_itens(node, acumulador):
         """Coleta recursivamente todos os itens em qualquer nível do JSON."""
@@ -573,8 +573,12 @@ def checklist_pdf(filename):
             pdf.set_fill_color(245, 245, 245)
         else:
             pdf.set_fill_color(255, 255, 255)
-        pdf.cell(col_widths[0], line_height, item['pergunta'], border=1, fill=True)
-        pdf.cell(col_widths[1], line_height, item['resposta'], border=1, fill=True, ln=1)
+        if item['pergunta'] == 'Posto - 02 MATERIAIS':
+            # linha destacada ocupando toda a largura da tabela
+            pdf.cell(sum(col_widths), line_height, item['pergunta'], border=1, fill=True, ln=1)
+        else:
+            pdf.cell(col_widths[0], line_height, item['pergunta'], border=1, fill=True)
+            pdf.cell(col_widths[1], line_height, item['resposta'], border=1, fill=True, ln=1)
 
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
     return send_file(
