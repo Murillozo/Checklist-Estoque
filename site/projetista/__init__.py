@@ -525,7 +525,7 @@ def checklist_pdf(filename):
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-
+    
     def coletar_itens(node, acumulador):
         """Coleta recursivamente todos os itens em qualquer nível do JSON."""
         if isinstance(node, dict):
@@ -555,9 +555,19 @@ def checklist_pdf(filename):
 
     itens = []
     coletar_itens(dados, itens)
-    for idx, item in enumerate(itens):
-        if item['pergunta'].strip() == "1.15 - POLICARBONATO: Material em bom estado":
-            itens.insert(idx + 1, {'pergunta': 'Posto - 02 MATERIAIS', 'resposta': ''})
+
+    # extrai apenas o cabeçalho antes dos dois pontos e evita duplicados
+    cabecalhos = []
+    vistos = set()
+    for item in itens:
+        cab = item['pergunta'].split(':', 1)[0].strip()
+        if cab not in vistos:
+            vistos.add(cab)
+            cabecalhos.append({'pergunta': cab, 'resposta': ''})
+
+    for idx, item in enumerate(cabecalhos):
+        if item['pergunta'] == '1.15 - POLICARBONATO':
+            cabecalhos.insert(idx + 1, {'pergunta': 'Posto - 02 MATERIAIS', 'resposta': ''})
             break
 
     col_widths = [95, 95]  # [coluna pergunta, coluna resposta]
@@ -568,8 +578,7 @@ def checklist_pdf(filename):
     pdf.cell(col_widths[0], line_height, "Pergunta", border=1, align='C', fill=True)
     pdf.cell(col_widths[1], line_height, "Resposta", border=1, align='C', fill=True, ln=1)
     pdf.set_font("Arial", size=10)
-    qnum = 1
-    for idx, item in enumerate(itens, 1):
+    for idx, item in enumerate(cabecalhos, 1):
         if idx % 2 == 0:
             pdf.set_fill_color(245, 245, 245)
         else:
@@ -578,10 +587,8 @@ def checklist_pdf(filename):
             # linha destacada ocupando toda a largura da tabela
             pdf.cell(sum(col_widths), line_height, item['pergunta'], border=1, fill=True, ln=1)
         else:
-            pergunta = f"{qnum}. {item['pergunta']}"
-            pdf.cell(col_widths[0], line_height, pergunta, border=1, fill=True)
+            pdf.cell(col_widths[0], line_height, item['pergunta'], border=1, fill=True)
             pdf.cell(col_widths[1], line_height, item['resposta'], border=1, fill=True, ln=1)
-            qnum += 1
 
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
     return send_file(
