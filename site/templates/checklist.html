@@ -35,7 +35,7 @@ pre{background:#111;padding:10px;overflow:auto;}
 <body>
 <div style="padding:10px;">
 <button onclick="window.location.href='{{ url_for('projetista.index') }}'">Início</button>
-<button onclick="window.location.href='{{ url_for('projetista.checklist_pdf') }}'">Gerar PDF</button>
+<button onclick="generatePDF()">Gerar PDF</button>
 </div>
 <div id="container">
 <div class="column" id="foldersCol">
@@ -77,6 +77,16 @@ pre{background:#111;padding:10px;overflow:auto;}
 let folders=[], files=[], currentFolder='', currentFolderLabel='', currentFileName='', currentFileData=null;
 let filters={text:'',status:'',papel:''};
 let paginationState={};
+
+function generatePDF(){
+    if(!currentFileName){
+        alert('Selecione um arquivo primeiro');
+        return;
+    }
+    const path = encodeURIComponent(currentFolder) + '/' + encodeURIComponent(currentFileName);
+    const url = "{{ url_for('projetista.checklist_pdf', filename='') }}" + path;
+    window.location.href = url;
+}
 
 function updatePath(){
     const base=currentFolderLabel||currentFolder;
