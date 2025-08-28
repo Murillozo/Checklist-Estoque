@@ -472,31 +472,59 @@ def checklist_list():
     return render_template('checklist.html')
 
 
-@bp.route('/checklist/pdf')
+@bp.route('/checklist/pdf/<path:filename>')
 @login_required
-def checklist_pdf():
-    """Gera um PDF com base no checklist JSON mais recente."""
-    arquivos = []
-    for raiz, _dirs, files in os.walk(CHECKLIST_DIR):
-        for name in files:
-            if name.endswith('.json'):
-                arquivos.append(os.path.join(raiz, name))
-
-    if not arquivos:
-        flash('Nenhum checklist disponível.', 'warning')
+def checklist_pdf(filename):
+    """Gera um PDF com base no checklist JSON informado."""
+    caminho = os.path.join(CHECKLIST_DIR, filename)
+    if not os.path.isfile(caminho):
+        flash('Arquivo não encontrado.', 'danger')
         return redirect(url_for('projetista.checklist_list'))
 
-    arquivo_recente = max(arquivos, key=os.path.getmtime)
-    with open(arquivo_recente, encoding='utf-8') as f:
+    with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
 
-    pdf = FPDF()
+    class ChecklistPDF(FPDF):
+        def __init__(self, obra='', ano='', suprimento='', *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.obra = obra
+            self.ano = ano
+            self.suprimento = suprimento
+
+        def header(self):
+            self.set_fill_color(33, 150, 243)
+            self.rect(0, 0, self.w, 25, 'F')
+            self.set_y(5)
+            self.set_text_color(255, 255, 255)
+            self.set_font('Arial', 'B', 16)
+            self.cell(0, 8, 'Checklist', align='C')
+            self.set_font('Arial', '', 10)
+            self.ln(6)
+            self.cell(
+                0,
+                5,
+                f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}",
+                align='C',
+            )
+            self.ln(6)
+            # posiciona o cursor abaixo da barra azul para todas as páginas
+            self.set_y(40)
+            self.set_text_color(0, 0, 0)
+
+        def footer(self):
+            self.set_y(-15)
+            self.set_font('Arial', 'I', 8)
+            self.set_text_color(128)
+            self.cell(0, 10, f'Página {self.page_no()}/{{nb}}', align='C')
+
+    pdf = ChecklistPDF(
+        obra=dados.get('obra', ''),
+        ano=dados.get('ano', ''),
+        suprimento=dados.get('suprimento', ''),
+    )
+    pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10, f"Obra: {dados.get('obra', '')}", ln=True)
-    pdf.cell(0, 10, f"Ano: {dados.get('ano', '')}", ln=True)
-    pdf.cell(0, 10, f"Suprimento: {dados.get('suprimento', '')}", ln=True)
-    pdf.ln(5)
     def coletar_itens(node, acumulador):
         """Coleta recursivamente todos os itens em qualquer nível do JSON."""
         if isinstance(node, dict):
@@ -526,9 +554,33 @@ def checklist_pdf():
 
     itens = []
     coletar_itens(dados, itens)
+    for idx, item in enumerate(itens):
+        if item['pergunta'].strip() == "1.15 - POLICARBONATO: Material em bom estado":
+            itens.insert(idx + 1, {'pergunta': 'Posto - 02 MATERIAIS', 'resposta': ''})
+            break
+
+    col_widths = [95, 95]  # [coluna pergunta, coluna resposta]
+    line_height = 8
+    pdf.set_draw_color(50, 50, 100)
+    pdf.set_fill_color(200, 200, 200)
+    pdf.set_font("Arial", 'B', 11)
+    pdf.cell(col_widths[0], line_height, "Pergunta", border=1, align='C', fill=True)
+    pdf.cell(col_widths[1], line_height, "Resposta", border=1, align='C', fill=True, ln=1)
+    pdf.set_font("Arial", size=10)
+    qnum = 1
     for idx, item in enumerate(itens, 1):
-        pdf.multi_cell(0, 8, f"{idx}. {item['pergunta']}: {item['resposta']}")
-        pdf.ln(1)
+        if idx % 2 == 0:
+            pdf.set_fill_color(245, 245, 245)
+        else:
+            pdf.set_fill_color(255, 255, 255)
+        if item['pergunta'] == 'Posto - 02 MATERIAIS':
+            # linha destacada ocupando toda a largura da tabela
+            pdf.cell(sum(col_widths), line_height, item['pergunta'], border=1, fill=True, ln=1)
+        else:
+            pergunta = f"{qnum}. {item['pergunta']}"
+            pdf.cell(col_widths[0], line_height, pergunta, border=1, fill=True)
+            pdf.cell(col_widths[1], line_height, item['resposta'], border=1, fill=True, ln=1)
+            qnum += 1
 
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
     return send_file(
