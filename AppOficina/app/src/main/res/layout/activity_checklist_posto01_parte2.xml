@@ -9,11 +9,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- 1.1 - COMPONENTES -->
+        <!-- 1.15 - COMPONENTES -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.1 - COMPONENTES"
+            android:text="1.15 - COMPONENTES"
             android:textSize="18sp"
             android:layout_marginBottom="16dp" />
 
@@ -128,11 +128,11 @@
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
-        <!-- 1.7 - INVÓLUCRO - PORTAS SEM RECORTE -->
+        <!-- 1.16 - INVÓLUCRO - PORTAS SEM RECORTE -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.7 - INVÓLUCRO - PORTAS SEM RECORTE"
+            android:text="1.16 - INVÓLUCRO - PORTAS SEM RECORTE"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -248,11 +248,11 @@
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
-        <!-- 1.9 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE -->
+        <!-- 1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.9 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE"
+            android:text="1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -368,11 +368,11 @@
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
-        <!-- 1.10 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO -->
+        <!-- 1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.10 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO"
+            android:text="1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
@@ -488,11 +488,11 @@
                 android:layout_marginStart="24dp" />
         </LinearLayout>
 
-        <!-- 1.15 - POLICARBONATO -->
+        <!-- 1.19 - POLICARBONATO -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.15 - POLICARBONATO"
+            android:text="1.19 - POLICARBONATO"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
