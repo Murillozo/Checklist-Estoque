@@ -539,14 +539,14 @@ def checklist_pdf(filename):
     itens = []
     coletar_itens(dados, itens)
 
-    col_widths = [95, 95]  # [coluna pergunta, coluna resposta]
-    line_height = 8
+    col_widths = [110, 80]  # [coluna pergunta, coluna resposta]
+    line_height = 5
     pdf.set_draw_color(50, 50, 100)
     pdf.set_fill_color(200, 200, 200)
-    pdf.set_font("Arial", 'B', 11)
+    pdf.set_font("Arial", 'B', 8)
     pdf.cell(col_widths[0], line_height, "Pergunta", border=1, align='C', fill=True)
     pdf.cell(col_widths[1], line_height, "Resposta", border=1, align='C', fill=True, ln=1)
-    pdf.set_font("Arial", size=10)
+    pdf.set_font("Arial", size=7)
     for idx, item in enumerate(itens, 1):
         if idx % 2 == 0:
             pdf.set_fill_color(245, 245, 245)
