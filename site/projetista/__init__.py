@@ -485,14 +485,28 @@ def checklist_pdf(filename):
         dados = json.load(f)
 
     class ChecklistPDF(FPDF):
+        def __init__(self, obra='', ano='', suprimento='', *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.obra = obra
+            self.ano = ano
+            self.suprimento = suprimento
+
         def header(self):
             self.set_fill_color(33, 150, 243)
-            self.rect(0, 0, self.w, 20, 'F')
+            self.rect(0, 0, self.w, 25, 'F')
             self.set_y(5)
             self.set_text_color(255, 255, 255)
             self.set_font('Arial', 'B', 16)
-            self.cell(0, 10, 'Checklist', align='C')
-            self.ln(15)
+            self.cell(0, 8, 'Checklist', align='C')
+            self.set_font('Arial', '', 10)
+            self.ln(6)
+            self.cell(
+                0,
+                5,
+                f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}",
+                align='C',
+            )
+            self.ln(6)
             self.set_text_color(0, 0, 0)
 
         def footer(self):
@@ -501,13 +515,14 @@ def checklist_pdf(filename):
             self.set_text_color(128)
             self.cell(0, 10, f'Página {self.page_no()}/{{nb}}', align='C')
 
-    pdf = ChecklistPDF()
+    pdf = ChecklistPDF(
+        obra=dados.get('obra', ''),
+        ano=dados.get('ano', ''),
+        suprimento=dados.get('suprimento', ''),
+    )
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10, f"Obra: {dados.get('obra', '')}", ln=True)
-    pdf.cell(0, 10, f"Ano: {dados.get('ano', '')}", ln=True)
-    pdf.cell(0, 10, f"Suprimento: {dados.get('suprimento', '')}", ln=True)
     pdf.ln(5)
     def coletar_itens(node, acumulador):
         """Coleta recursivamente todos os itens em qualquer nível do JSON."""
@@ -539,14 +554,14 @@ def checklist_pdf(filename):
     itens = []
     coletar_itens(dados, itens)
 
-    col_widths = [110, 80]  # [coluna pergunta, coluna resposta]
-    line_height = 5
+    col_widths = [95, 95]  # [coluna pergunta, coluna resposta]
+    line_height = 8
     pdf.set_draw_color(50, 50, 100)
     pdf.set_fill_color(200, 200, 200)
-    pdf.set_font("Arial", 'B', 8)
+    pdf.set_font("Arial", 'B', 11)
     pdf.cell(col_widths[0], line_height, "Pergunta", border=1, align='C', fill=True)
     pdf.cell(col_widths[1], line_height, "Resposta", border=1, align='C', fill=True, ln=1)
-    pdf.set_font("Arial", size=7)
+    pdf.set_font("Arial", size=10)
     for idx, item in enumerate(itens, 1):
         if idx % 2 == 0:
             pdf.set_fill_color(245, 245, 245)
