@@ -525,6 +525,7 @@ def checklist_pdf(filename):
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
+
     def coletar_itens(node, acumulador):
         """Coleta recursivamente todos os itens em qualquer nível do JSON."""
         if isinstance(node, dict):
@@ -589,6 +590,7 @@ def checklist_pdf(filename):
         as_attachment=True,
         download_name='checklist.pdf'
     )
+
 
 
 @bp.route('/checklist/<path:filename>')
