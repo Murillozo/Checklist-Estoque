@@ -580,9 +580,6 @@ def checklist_pdf(filename):
     if not responsaveis:
         responsaveis = ["Suprimento", "Produção"]
 
-
-
-
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', *args, **kwargs):
