@@ -547,27 +547,26 @@ def checklist_pdf(filename):
                 _coletar_itens(elem, acumulador)
 
     def _agrupar_por_codigo_item(items):
-        """Agrupa por (código, item), deduplica subitens, concatena respostas brutas para futura pré-marcação."""
-        grupos = {}
+        """Retorna cada item/subitem separadamente mantendo suas respostas."""
+        linhas = []
         for it in sorted(items, key=lambda d: _natural_key_codigo(d.get('pergunta', ''))):
             codigo, item, sub = _split_pergunta(it.get('pergunta', ''))
-            key = (codigo, item)
-            g = grupos.setdefault(key, {"codigo": codigo, "item": item, "subitens": [], "respostas": []})
-            if sub and sub not in g["subitens"]:
-                g["subitens"].append(sub)
-            g["respostas"].append(it.get("respostas", {}))
-        # ordena pelos códigos naturalmente
-        def _ord_key(g):
-            try:
-                return [int(p) for p in (g["codigo"] or "").split(".")]
-            except ValueError:
-                return [float('inf')]
-        return sorted(grupos.values(), key=_ord_key)
+            linhas.append({
+                "codigo": codigo,
+                "item": item,
+                "subitem": sub,
+                "respostas": it.get("respostas", {})
+            })
+        return linhas
 
     # ---------- Montagem dos dados ----------
     planos = []
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
+
+    responsaveis = sorted({k for g in grupos for k in g["respostas"]})
+    if not responsaveis:
+        responsaveis = ["Suprimento", "Produção"]
 
 
 
@@ -638,7 +637,7 @@ def checklist_pdf(filename):
     right_margin = pdf.r_margin
     usable_w = pdf.w - left_margin - right_margin
 
-    # largura combinada para código + item + subitens
+    # largura combinada para código + item + subitem
     col_w_item = 135.0
     # cada responsável ~22–28 mm
     col_w_resp = max(22.0, min(28.0, (usable_w - col_w_item) / max(1, len(responsaveis))))
@@ -716,21 +715,15 @@ def checklist_pdf(filename):
         codigo = g["codigo"] or ""
         item = g["item"] or dash_char
         item_text = f"{codigo} - {item}" if codigo else item
-        if g["subitens"]:
-            item_text += "\n" + "\n".join(bullet_char + " " + s for s in g["subitens"])
+        if g["subitem"]:
+            item_text += "\n" + bullet_char + " " + g["subitem"]
         else:
             item_text = item_text or dash_char
 
-        # valores por responsável, se existirem (C/NC/N/A); senão, caixa vazia
+        # valores por responsável, se existirem; senão, caixa vazia
         roles_vals = []
         for role in responsaveis:
-            vals = []
-            for resp in g["respostas"]:
-                if role in resp and resp[role]:
-                    for v in resp[role]:
-                        s = str(v).strip()
-                        if s and s not in vals:
-                            vals.append(s)
+            vals = [str(v).strip() for v in g["respostas"].get(role, []) if str(v).strip()]
             roles_vals.append(", ".join(vals) if vals else box_char)
 
         h = _row_height(item_text)
