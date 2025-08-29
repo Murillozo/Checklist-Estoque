@@ -540,36 +540,45 @@ def checklist_pdf(filename):
                     elif brutas is not None:
                         resp_dict['resposta'] = [str(brutas)]
                     acumulador.append({'pergunta': pergunta, 'respostas': resp_dict})
-            for v in node.values():
-                _coletar_itens(v, acumulador)
+                    _coletar_itens(it, acumulador)
+
+            for k, v in node.items():
+                if k != 'itens':
+                    _coletar_itens(v, acumulador)
         elif isinstance(node, list):
             for elem in node:
                 _coletar_itens(elem, acumulador)
 
     def _agrupar_por_codigo_item(items):
-        """Agrupa por (código, item), deduplica subitens, concatena respostas brutas para futura pré-marcação."""
+        """Agrupa subitens pelo par código + item para evitar repetições."""
         grupos = {}
         for it in sorted(items, key=lambda d: _natural_key_codigo(d.get('pergunta', ''))):
             codigo, item, sub = _split_pergunta(it.get('pergunta', ''))
             key = (codigo, item)
-            g = grupos.setdefault(key, {"codigo": codigo, "item": item, "subitens": [], "respostas": []})
-            if sub and sub not in g["subitens"]:
-                g["subitens"].append(sub)
-            g["respostas"].append(it.get("respostas", {}))
-        # ordena pelos códigos naturalmente
-        def _ord_key(g):
-            try:
-                return [int(p) for p in (g["codigo"] or "").split(".")]
-            except ValueError:
-                return [float('inf')]
-        return sorted(grupos.values(), key=_ord_key)
+            grupos.setdefault(key, []).append({
+                "subitem": sub,
+                "respostas": it.get("respostas", {})
+            })
+        linhas = []
+        for (codigo, item), subitens in grupos.items():
+            linhas.append({
+                "codigo": codigo,
+                "item": item,
+                "subitens": subitens,
+                "respostas": [s["respostas"] for s in subitens]
+            })
+        return linhas
 
     # ---------- Montagem dos dados ----------
     planos = []
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
-
+    responsaveis = sorted({k for g in grupos
+                           for resp in g["respostas"]
+                           for k in resp})
+    if not responsaveis:
+        responsaveis = ["Suprimento", "Produção"]
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
@@ -638,7 +647,7 @@ def checklist_pdf(filename):
     right_margin = pdf.r_margin
     usable_w = pdf.w - left_margin - right_margin
 
-    # largura combinada para código + item + subitens
+    # largura combinada para código + item + subitem
     col_w_item = 135.0
     # cada responsável ~22–28 mm
     col_w_resp = max(22.0, min(28.0, (usable_w - col_w_item) / max(1, len(responsaveis))))
@@ -715,54 +724,48 @@ def checklist_pdf(filename):
     for g in grupos:
         codigo = g["codigo"] or ""
         item = g["item"] or dash_char
-        item_text = f"{codigo} - {item}" if codigo else item
-        if g["subitens"]:
-            item_text += "\n" + "\n".join(bullet_char + " " + s for s in g["subitens"])
-        else:
-            item_text = item_text or dash_char
+        base_item = f"{codigo} - {item}" if codigo else item
+        subitens = g["subitens"] or [{"subitem": "", "respostas": {}}]
 
-        # valores por responsável, se existirem (C/NC/N/A); senão, caixa vazia
-        roles_vals = []
-        for role in responsaveis:
-            vals = []
-            for resp in g["respostas"]:
-                if role in resp and resp[role]:
-                    for v in resp[role]:
-                        s = str(v).strip()
-                        if s and s not in vals:
-                            vals.append(s)
-            roles_vals.append(", ".join(vals) if vals else box_char)
+        for idx, sub in enumerate(subitens):
+            item_text = base_item if idx == 0 else ""
+            if sub["subitem"]:
+                prefix = ("\n" if item_text else "")
+                item_text += f"{prefix}{bullet_char} {sub['subitem']}"
+            elif not item_text:
+                item_text = dash_char
 
-        h = _row_height(item_text)
-        _maybe_page_break(h)
+            roles_vals = []
+            for role in responsaveis:
+                vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
+                roles_vals.append(", ".join(vals) if vals else box_char)
 
-        # fundo zebra
-        if zebra:
-            pdf.set_fill_color(*zebra_rgb)
-            pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
-        zebra = not zebra
+            h = _row_height(item_text)
+            _maybe_page_break(h)
 
-        # bordas das células
-        x0 = left_margin
-        y0 = pdf.get_y()
-        pdf.rect(x0, y0, col_w_item, h)
-        cur_x = x0 + col_w_item
-        for _ in responsaveis:
-            pdf.rect(cur_x, y0, col_w_resp, h)
-            cur_x += col_w_resp
+            if zebra:
+                pdf.set_fill_color(*zebra_rgb)
+                pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
+            zebra = not zebra
 
-        # escrever textos com MultiCell
-        pdf.set_xy(x0 + cell_pad, y0 + 1)
-        pdf.multi_cell(col_w_item - 2 * cell_pad, line_h, item_text, border=0)
+            x0 = left_margin
+            y0 = pdf.get_y()
+            pdf.rect(x0, y0, col_w_item, h)
+            cur_x = x0 + col_w_item
+            for _ in responsaveis:
+                pdf.rect(cur_x, y0, col_w_resp, h)
+                cur_x += col_w_resp
 
-        cur_x = x0 + col_w_item
-        for val in roles_vals:
-            pdf.set_xy(cur_x + cell_pad, y0 + 1)
-            pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
-            cur_x += col_w_resp
+            pdf.set_xy(x0 + cell_pad, y0 + 1)
+            pdf.multi_cell(col_w_item - 2 * cell_pad, line_h, item_text, border=0)
 
-        # avança para próxima linha
-        pdf.set_xy(left_margin, y0 + h)
+            cur_x = x0 + col_w_item
+            for val in roles_vals:
+                pdf.set_xy(cur_x + cell_pad, y0 + 1)
+                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
+                cur_x += col_w_resp
+
+            pdf.set_xy(left_margin, y0 + h)
 
     # Saída segura (fPDF2 em Py3 retorna bytes; se vier str, encode latin-1)
     out = pdf.output(dest='S')
