@@ -564,7 +564,8 @@ def checklist_pdf(filename):
             linhas.append({
                 "codigo": codigo,
                 "item": item,
-                "subitens": subitens
+                "subitens": subitens,
+                "respostas": [s["respostas"] for s in subitens]
             })
         return linhas
 
@@ -573,9 +574,12 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
-    responsaveis = sorted({k for g in grupos for s in g["subitens"] for k in s["respostas"]})
+    responsaveis = sorted({k for g in grupos
+                           for resp in g["respostas"]
+                           for k in resp})
     if not responsaveis:
         responsaveis = ["Suprimento", "Produção"]
+
 
 
 
