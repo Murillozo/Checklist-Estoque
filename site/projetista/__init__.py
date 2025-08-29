@@ -495,11 +495,11 @@ def checklist_pdf(filename):
             self.suprimento = suprimento
 
         def header(self):
-            self.set_fill_color(33, 150, 243)
+            self.set_fill_color(25, 25, 112)
             self.rect(0, 0, self.w, 25, 'F')
             self.set_y(5)
             if os.path.exists(LOGO_PATH):
-                self.image(LOGO_PATH, x=self.w - 50, y=5, w=40)
+                self.image(LOGO_PATH, x=10, y=5, w=40)
             self.set_text_color(255, 255, 255)
             self.set_font('Arial', 'B', 16)
             self.cell(0, 8, 'Checklist', align='C')
@@ -538,20 +538,21 @@ def checklist_pdf(filename):
             if isinstance(lista, list):
                 for it in lista:
                     pergunta = it.get('pergunta', '')
-                    respostas = it.get('respostas') or it.get('resposta', [])
+                    respostas = it.get('respostas') or it.get('resposta', {})
+                    respostas_dict = {}
                     if isinstance(respostas, dict):
-                        resp_vals = []
-                        for val in respostas.values():
+                        for k, val in respostas.items():
                             if isinstance(val, list):
-                                resp_vals.extend([str(v) for v in val])
+                                respostas_dict[k] = [str(v) for v in val]
                             elif val:
-                                resp_vals.append(str(val))
-                        resposta = ', '.join(resp_vals)
+                                respostas_dict[k] = [str(val)]
+                            else:
+                                respostas_dict[k] = []
                     elif isinstance(respostas, list):
-                        resposta = ', '.join(str(v) for v in respostas)
-                    else:
-                        resposta = str(respostas) if respostas else ''
-                    acumulador.append({'pergunta': pergunta, 'resposta': resposta})
+                        respostas_dict['resposta'] = [str(v) for v in respostas]
+                    elif respostas:
+                        respostas_dict['resposta'] = [str(respostas)]
+                    acumulador.append({'pergunta': pergunta, 'respostas': respostas_dict})
             for v in node.values():
                 coletar_itens(v, acumulador)
         elif isinstance(node, list):
@@ -560,12 +561,28 @@ def checklist_pdf(filename):
 
     itens = []
     coletar_itens(dados, itens)
+    responsaveis = sorted({r for item in itens for r in item['respostas'].keys()})
     line_height = 8
     pdf.set_font("Arial", size=10)
+    usable_width = pdf.w - pdf.l_margin - pdf.r_margin
+    pergunta_w = usable_width * 0.5
+    resp_w = (usable_width - pergunta_w) / max(1, len(responsaveis))
+
+    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(pergunta_w, line_height, 'Pergunta', border=1)
+    for resp in responsaveis:
+        pdf.cell(resp_w, line_height, resp.title(), border=1, align='C')
+    pdf.ln(line_height)
+    pdf.set_font("Arial", size=10)
+
     for item in itens:
         pergunta = item['pergunta'].strip()
-        if re.match(r"^\d+\.\d+", pergunta):
-            pdf.cell(0, line_height, pergunta, ln=1)
+        pdf.cell(pergunta_w, line_height, pergunta, border=1)
+        for resp in responsaveis:
+            respostas = item['respostas'].get(resp, [])
+            texto = ', '.join(respostas)
+            pdf.cell(resp_w, line_height, texto, border=1, align='C')
+        pdf.ln(line_height)
 
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
     return send_file(
@@ -574,7 +591,6 @@ def checklist_pdf(filename):
         as_attachment=True,
         download_name='checklist.pdf'
     )
-
 
 
 @bp.route('/checklist/<path:filename>')
