@@ -569,6 +569,12 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
+    responsaveis = sorted({k for g in grupos
+                           for resp in g["respostas"]
+                           for k in resp})
+    if not responsaveis:
+        responsaveis = ["Suprimento", "Produção"]
+
 
 
     # ---------- PDF ----------
