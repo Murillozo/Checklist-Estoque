@@ -710,7 +710,7 @@ def checklist_pdf(filename):
         pdf.ln(line_h)
         pdf.set_font(base_font, '', 10)
 
-    def _maybe_page_break(row_h):
+def _maybe_page_break(row_h):
         bottom_y = pdf.h - pdf.b_margin
         if pdf.get_y() + row_h > bottom_y:
             pdf.add_page()
@@ -778,6 +778,7 @@ def checklist_pdf(filename):
         as_attachment=True,
         download_name=f'checklist_{dados.get("obra","")}_{dados.get("ano","")}_compacto.pdf'
     )
+
 
 
 @bp.route('/checklist/<path:filename>')
