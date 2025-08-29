@@ -638,7 +638,7 @@ def checklist_pdf(filename):
     pdf.add_page()
     pdf.set_font(base_font, size=10)
 
-    # símbolos que dependem de suporte Unicode
+
     bullet_char = "•" if base_font == "DejaVu" else "-"
     box_char = "□" if base_font == "DejaVu" else "[]"
     dash_char = "—" if base_font == "DejaVu" else "-"
