@@ -15,6 +15,8 @@ from werkzeug.utils import secure_filename
 import urllib.parse
 from fpdf import FPDF
 import re
+LOGO_PATH = os.path.join(os.path.dirname(__file__), 'static', 'evomax_logo.png')
+
 
 bp = Blueprint('projetista', __name__)
 
@@ -496,6 +498,8 @@ def checklist_pdf(filename):
             self.set_fill_color(33, 150, 243)
             self.rect(0, 0, self.w, 25, 'F')
             self.set_y(5)
+            if os.path.exists(LOGO_PATH):
+                self.image(LOGO_PATH, x=self.w - 50, y=5, w=40)
             self.set_text_color(255, 255, 255)
             self.set_font('Arial', 'B', 16)
             self.cell(0, 8, 'Checklist', align='C')
