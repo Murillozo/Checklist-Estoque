@@ -13,6 +13,8 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.parse
+# PDF generation uses the fpdf2 package (pip install fpdf2) for Unicode support.
+# Ensure that the TrueType font "DejaVuSans.ttf" is placed alongside this file.
 from fpdf import FPDF
 import re
 LOGO_PATH = os.path.join(os.path.dirname(__file__), 'static', 'evomax_logo.png')
@@ -636,6 +638,12 @@ def checklist_pdf(filename):
     pdf.add_page()
     pdf.set_font(base_font, size=10)
 
+    # símbolos que dependem de suporte Unicode
+    # (substitui por versões ASCII se a fonte não suportar)
+    bullet_char = "•" if base_font == "DejaVu" else "-"
+    box_char = "□" if base_font == "DejaVu" else "[]"
+    dash_char = "—" if base_font == "DejaVu" else "-"
+
     # ---------- Layout / medidas ----------
     left_margin = pdf.l_margin  # padrão 10 mm
     right_margin = pdf.r_margin
@@ -656,7 +664,6 @@ def checklist_pdf(filename):
     cell_pad = 2.0
     header_fill_rgb = (235, 235, 235)
     zebra_rgb = (247, 247, 247)
-    box_char = "□"
 
     def _wrap_lines(txt: str, width_mm: float):
         """Quebra em linhas para caber no width_mm atual (estimativa via get_string_width)."""
@@ -726,9 +733,11 @@ def checklist_pdf(filename):
     # ---------- Tabela ----------
     zebra = False
     for g in grupos:
-        codigo = g["codigo"] or "—"
-        item = g["item"] or "—"
-        bullets = "• " + "\n• ".join(g["subitens"]) if g["subitens"] else "—"
+        codigo = g["codigo"] or dash_char
+        item = g["item"] or dash_char
+        bullets = (
+            bullet_char + " " + ("\n" + bullet_char + " ").join(g["subitens"]) if g["subitens"] else dash_char
+        )
 
         # valores por responsável, se existirem (C/NC/N/A); senão, caixa vazia
         roles_vals = []

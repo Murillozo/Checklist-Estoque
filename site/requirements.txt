@@ -3,4 +3,4 @@ Flask-SQLAlchemy>=3.0.0
 openpyxl
 pytz
 Flask-Login
-fpdf
+fpdf2
