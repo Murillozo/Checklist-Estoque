@@ -540,22 +540,31 @@ def checklist_pdf(filename):
                     elif brutas is not None:
                         resp_dict['resposta'] = [str(brutas)]
                     acumulador.append({'pergunta': pergunta, 'respostas': resp_dict})
-            for v in node.values():
-                _coletar_itens(v, acumulador)
+                    _coletar_itens(it, acumulador)
+
+            for k, v in node.items():
+                if k != 'itens':
+                    _coletar_itens(v, acumulador)
         elif isinstance(node, list):
             for elem in node:
                 _coletar_itens(elem, acumulador)
 
     def _agrupar_por_codigo_item(items):
-        """Retorna cada item/subitem separadamente mantendo suas respostas."""
-        linhas = []
+        """Agrupa subitens pelo par código + item para evitar repetições."""
+        grupos = {}
         for it in sorted(items, key=lambda d: _natural_key_codigo(d.get('pergunta', ''))):
             codigo, item, sub = _split_pergunta(it.get('pergunta', ''))
+            key = (codigo, item)
+            grupos.setdefault(key, []).append({
+                "subitem": sub,
+                "respostas": it.get("respostas", {})
+            })
+        linhas = []
+        for (codigo, item), subitens in grupos.items():
             linhas.append({
                 "codigo": codigo,
                 "item": item,
-                "subitem": sub,
-                "respostas": it.get("respostas", {})
+                "subitens": subitens
             })
         return linhas
 
@@ -564,7 +573,7 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
-    responsaveis = sorted({k for g in grupos for k in g["respostas"]})
+    responsaveis = sorted({k for g in grupos for s in g["subitens"] for k in s["respostas"]})
     if not responsaveis:
         responsaveis = ["Suprimento", "Produção"]
 
@@ -700,7 +709,7 @@ def checklist_pdf(filename):
         pdf.ln(line_h)
         pdf.set_font(base_font, '', 10)
 
-    def _maybe_page_break(row_h):
+def _maybe_page_break(row_h):
         bottom_y = pdf.h - pdf.b_margin
         if pdf.get_y() + row_h > bottom_y:
             pdf.add_page()
@@ -714,48 +723,48 @@ def checklist_pdf(filename):
     for g in grupos:
         codigo = g["codigo"] or ""
         item = g["item"] or dash_char
-        item_text = f"{codigo} - {item}" if codigo else item
-        if g["subitem"]:
-            item_text += "\n" + bullet_char + " " + g["subitem"]
-        else:
-            item_text = item_text or dash_char
+        base_item = f"{codigo} - {item}" if codigo else item
+        subitens = g["subitens"] or [{"subitem": "", "respostas": {}}]
 
-        # valores por responsável, se existirem; senão, caixa vazia
-        roles_vals = []
-        for role in responsaveis:
-            vals = [str(v).strip() for v in g["respostas"].get(role, []) if str(v).strip()]
-            roles_vals.append(", ".join(vals) if vals else box_char)
+        for idx, sub in enumerate(subitens):
+            item_text = base_item if idx == 0 else ""
+            if sub["subitem"]:
+                prefix = ("\n" if item_text else "")
+                item_text += f"{prefix}{bullet_char} {sub['subitem']}"
+            elif not item_text:
+                item_text = dash_char
 
-        h = _row_height(item_text)
-        _maybe_page_break(h)
+            roles_vals = []
+            for role in responsaveis:
+                vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
+                roles_vals.append(", ".join(vals) if vals else box_char)
 
-        # fundo zebra
-        if zebra:
-            pdf.set_fill_color(*zebra_rgb)
-            pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
-        zebra = not zebra
+            h = _row_height(item_text)
+            _maybe_page_break(h)
 
-        # bordas das células
-        x0 = left_margin
-        y0 = pdf.get_y()
-        pdf.rect(x0, y0, col_w_item, h)
-        cur_x = x0 + col_w_item
-        for _ in responsaveis:
-            pdf.rect(cur_x, y0, col_w_resp, h)
-            cur_x += col_w_resp
+            if zebra:
+                pdf.set_fill_color(*zebra_rgb)
+                pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
+            zebra = not zebra
 
-        # escrever textos com MultiCell
-        pdf.set_xy(x0 + cell_pad, y0 + 1)
-        pdf.multi_cell(col_w_item - 2 * cell_pad, line_h, item_text, border=0)
+            x0 = left_margin
+            y0 = pdf.get_y()
+            pdf.rect(x0, y0, col_w_item, h)
+            cur_x = x0 + col_w_item
+            for _ in responsaveis:
+                pdf.rect(cur_x, y0, col_w_resp, h)
+                cur_x += col_w_resp
 
-        cur_x = x0 + col_w_item
-        for val in roles_vals:
-            pdf.set_xy(cur_x + cell_pad, y0 + 1)
-            pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
-            cur_x += col_w_resp
+            pdf.set_xy(x0 + cell_pad, y0 + 1)
+            pdf.multi_cell(col_w_item - 2 * cell_pad, line_h, item_text, border=0)
 
-        # avança para próxima linha
-        pdf.set_xy(left_margin, y0 + h)
+            cur_x = x0 + col_w_item
+            for val in roles_vals:
+                pdf.set_xy(cur_x + cell_pad, y0 + 1)
+                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
+                cur_x += col_w_resp
+
+            pdf.set_xy(left_margin, y0 + h)
 
     # Saída segura (fPDF2 em Py3 retorna bytes; se vier str, encode latin-1)
     out = pdf.output(dest='S')
@@ -768,6 +777,7 @@ def checklist_pdf(filename):
         as_attachment=True,
         download_name=f'checklist_{dados.get("obra","")}_{dados.get("ano","")}_compacto.pdf'
     )
+
 
 
 @bp.route('/checklist/<path:filename>')
