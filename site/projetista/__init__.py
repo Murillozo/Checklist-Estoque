@@ -569,17 +569,20 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
-    # coletar papéis/colunas a partir das chaves de respostas existentes
-    responsaveis = []
-    vistos = set()
-    for g in grupos:
-        for resp in g["respostas"]:
-            for k in resp.keys():
-                if k not in vistos:
-                    vistos.add(k)
-                    responsaveis.append(k)
-    if not responsaveis:
-        responsaveis = ["Inspetor", "Logística", "Montador Produção", "Suprimento"]  # fallback
+    # mantém somente os itens de 1.1 até 1.19
+    def _codigo_tuple(c):
+        try:
+            return tuple(int(p) for p in c.split('.'))
+        except Exception:
+            return ()
+
+    grupos = [
+        g for g in grupos
+        if (1, 1) <= _codigo_tuple(g.get("codigo", "")) <= (1, 19)
+    ]
+
+    # Limitamos as colunas aos responsáveis solicitados
+    responsaveis = ["Suprimento", "Produção"]
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
