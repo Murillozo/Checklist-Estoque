@@ -370,6 +370,7 @@ def comparador():
         obras=obras,
         solicitacoes=solicitacoes
     )
+
 @bp.route('/template-solicitacao.xlsx')
 def export_template():
     # Cria a planilha
@@ -475,10 +476,13 @@ def checklist_list():
     return render_template('checklist.html')
 
 
+# =========================
+# PDF COMPACTO (AGRUPADO)
+# =========================
 @bp.route('/checklist/pdf/<path:filename>')
 @login_required
 def checklist_pdf(filename):
-    """Gera um PDF com base no checklist JSON informado."""
+    """Gera um PDF compacto (agrupado por Código + Item) a partir do checklist JSON."""
     caminho = os.path.join(CHECKLIST_DIR, filename)
     if not os.path.isfile(caminho):
         flash('Arquivo não encontrado.', 'danger')
@@ -487,12 +491,102 @@ def checklist_pdf(filename):
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
 
+    # ---------- Helpers de parsing/agrupamento ----------
+    def _natural_key_codigo(pergunta: str):
+        # pega "1.10" de "1.10 - CANALETAS: ..." e transforma em [1,10]
+        m = re.match(r"\s*([0-9]+(?:\.[0-9]+)*)\s*-\s*", pergunta or "")
+        if not m:
+            return [float('inf')]
+        return [int(p) for p in m.group(1).split('.')]
+
+    def _split_pergunta(pergunta: str):
+        # "1.1 - INVÓLUCRO - CAIXA: Identificação do projeto"
+        # -> ("1.1", "INVÓLUCRO - CAIXA", "Identificação do projeto")
+        pergunta = (pergunta or "").strip()
+        codigo, item, sub = "", "", ""
+        left, sub = (pergunta.split(":", 1) + [""])[:2]
+        left = left.strip()
+        sub = sub.strip()
+        m = re.match(r"\s*([0-9]+(?:\.[0-9]+)*)\s*-\s*(.*)", left)
+        if m:
+            codigo = m.group(1).strip()
+            item = m.group(2).strip()
+        else:
+            item = left
+        return codigo, item, sub
+
+    def _coletar_itens(node, acumulador):
+        """Coleta recursivamente todos os itens 'pergunta' + 'respostas' em qualquer nível."""
+        if isinstance(node, dict):
+            lista = node.get('itens')
+            if isinstance(lista, list):
+                for it in lista:
+                    pergunta = (it.get('pergunta') or "").strip()
+                    # compat: respostas podem vir como dict/list/valor
+                    brutas = it.get('respostas') or it.get('resposta', {})
+                    resp_dict = {}
+                    if isinstance(brutas, dict):
+                        for k, v in brutas.items():
+                            if isinstance(v, list):
+                                resp_dict[k] = [str(x) for x in v if x is not None]
+                            elif v is None:
+                                resp_dict[k] = []
+                            else:
+                                resp_dict[k] = [str(v)]
+                    elif isinstance(brutas, list):
+                        resp_dict['resposta'] = [str(x) for x in brutas if x is not None]
+                    elif brutas is not None:
+                        resp_dict['resposta'] = [str(brutas)]
+                    acumulador.append({'pergunta': pergunta, 'respostas': resp_dict})
+            for v in node.values():
+                _coletar_itens(v, acumulador)
+        elif isinstance(node, list):
+            for elem in node:
+                _coletar_itens(elem, acumulador)
+
+    def _agrupar_por_codigo_item(items):
+        """Agrupa por (código, item), deduplica subitens, concatena respostas brutas para futura pré-marcação."""
+        grupos = {}
+        for it in sorted(items, key=lambda d: _natural_key_codigo(d.get('pergunta', ''))):
+            codigo, item, sub = _split_pergunta(it.get('pergunta', ''))
+            key = (codigo, item)
+            g = grupos.setdefault(key, {"codigo": codigo, "item": item, "subitens": [], "respostas": []})
+            if sub and sub not in g["subitens"]:
+                g["subitens"].append(sub)
+            g["respostas"].append(it.get("respostas", {}))
+        # ordena pelos códigos naturalmente
+        def _ord_key(g):
+            try:
+                return [int(p) for p in (g["codigo"] or "").split(".")]
+            except ValueError:
+                return [float('inf')]
+        return sorted(grupos.values(), key=_ord_key)
+
+    # ---------- Montagem dos dados ----------
+    planos = []
+    _coletar_itens(dados, planos)
+    grupos = _agrupar_por_codigo_item(planos)
+
+    # coletar papéis/colunas a partir das chaves de respostas existentes
+    responsaveis = []
+    vistos = set()
+    for g in grupos:
+        for resp in g["respostas"]:
+            for k in resp.keys():
+                if k not in vistos:
+                    vistos.add(k)
+                    responsaveis.append(k)
+    if not responsaveis:
+        responsaveis = ["Inspetor", "Logística", "Montador Produção", "Suprimento"]  # fallback
+
+    # ---------- PDF ----------
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
             self.suprimento = suprimento
+            self.set_auto_page_break(auto=False)  # controle manual para repetir cabeçalho
 
         def header(self):
             self.set_fill_color(25, 25, 112)
@@ -501,24 +595,18 @@ def checklist_pdf(filename):
             if os.path.exists(LOGO_PATH):
                 self.image(LOGO_PATH, x=10, y=5, w=40)
             self.set_text_color(255, 255, 255)
-            self.set_font('Arial', 'B', 16)
+            self.set_font(base_font, 'B', 16)
             self.cell(0, 8, 'Checklist', align='C')
-            self.set_font('Arial', '', 10)
+            self.set_font(base_font, '', 10)
             self.ln(6)
-            self.cell(
-                0,
-                5,
-                f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}",
-                align='C',
-            )
+            self.cell(0, 5, f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}", align='C')
             self.ln(6)
-            # posiciona o cursor abaixo da barra azul para todas as páginas
             self.set_y(40)
             self.set_text_color(0, 0, 0)
 
         def footer(self):
             self.set_y(-15)
-            self.set_font('Arial', 'I', 8)
+            self.set_font(base_font, 'I', 8)
             self.set_text_color(128)
             self.cell(0, 10, f'Página {self.page_no()}/{{nb}}', align='C')
 
@@ -526,70 +614,183 @@ def checklist_pdf(filename):
         obra=dados.get('obra', ''),
         ano=dados.get('ano', ''),
         suprimento=dados.get('suprimento', ''),
+        format='A4',
+        orientation='P',
+        unit='mm'
     )
+
+    # Fontes (Unicode)
+    # Coloque "DejaVuSans.ttf" ao lado deste arquivo (projetista/__init__.py)
+    base_font = 'Arial'
+    try:
+        ttf_path = os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf')
+        pdf.add_font('DejaVu', '', ttf_path, uni=True)
+        pdf.add_font('DejaVu', 'B', ttf_path, uni=True)
+        pdf.add_font('DejaVu', 'I', ttf_path, uni=True)
+        base_font = 'DejaVu'
+    except Exception:
+        # fallback (pode perder acentos/símbolos)
+        base_font = 'Arial'
+
     pdf.alias_nb_pages()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
+    pdf.set_font(base_font, size=10)
 
-    def coletar_itens(node, acumulador):
-        """Coleta recursivamente todos os itens em qualquer nível do JSON."""
-        if isinstance(node, dict):
-            lista = node.get('itens')
-            if isinstance(lista, list):
-                for it in lista:
-                    pergunta = it.get('pergunta', '')
-                    respostas = it.get('respostas') or it.get('resposta', {})
-                    respostas_dict = {}
-                    if isinstance(respostas, dict):
-                        for k, val in respostas.items():
-                            if isinstance(val, list):
-                                respostas_dict[k] = [str(v) for v in val]
-                            elif val:
-                                respostas_dict[k] = [str(val)]
-                            else:
-                                respostas_dict[k] = []
-                    elif isinstance(respostas, list):
-                        respostas_dict['resposta'] = [str(v) for v in respostas]
-                    elif respostas:
-                        respostas_dict['resposta'] = [str(respostas)]
-                    acumulador.append({'pergunta': pergunta, 'respostas': respostas_dict})
-            for v in node.values():
-                coletar_itens(v, acumulador)
-        elif isinstance(node, list):
-            for elem in node:
-                coletar_itens(elem, acumulador)
+    # ---------- Layout / medidas ----------
+    left_margin = pdf.l_margin  # padrão 10 mm
+    right_margin = pdf.r_margin
+    usable_w = pdf.w - left_margin - right_margin
 
-    itens = []
-    coletar_itens(dados, itens)
-    responsaveis = sorted({r for item in itens for r in item['respostas'].keys()})
-    line_height = 8
-    pdf.set_font("Arial", size=10)
-    usable_width = pdf.w - pdf.l_margin - pdf.r_margin
-    pergunta_w = usable_width * 0.5
-    resp_w = (usable_width - pergunta_w) / max(1, len(responsaveis))
+    col_w_codigo = 20.0
+    col_w_item = 65.0
+    col_w_subitens = 70.0
+    # cada responsável ~22–28 mm
+    col_w_resp = max(22.0, min(28.0, (usable_w - (col_w_codigo + col_w_item + col_w_subitens)) / max(1, len(responsaveis))))
+    total_w = col_w_codigo + col_w_item + col_w_subitens + col_w_resp * len(responsaveis)
+    if total_w > usable_w:
+        # comprime subitens proporcionalmente
+        excesso = total_w - usable_w
+        col_w_subitens = max(50.0, col_w_subitens - excesso)
 
-    pdf.set_font("Arial", 'B', 10)
-    pdf.cell(pergunta_w, line_height, 'Pergunta', border=1)
-    for resp in responsaveis:
-        pdf.cell(resp_w, line_height, resp.title(), border=1, align='C')
-    pdf.ln(line_height)
-    pdf.set_font("Arial", size=10)
+    line_h = 6.0
+    cell_pad = 2.0
+    header_fill_rgb = (235, 235, 235)
+    zebra_rgb = (247, 247, 247)
+    box_char = "□"
 
-    for item in itens:
-        pergunta = item['pergunta'].strip()
-        pdf.cell(pergunta_w, line_height, pergunta, border=1)
-        for resp in responsaveis:
-            respostas = item['respostas'].get(resp, [])
-            texto = ', '.join(respostas)
-            pdf.cell(resp_w, line_height, texto, border=1, align='C')
-        pdf.ln(line_height)
+    def _wrap_lines(txt: str, width_mm: float):
+        """Quebra em linhas para caber no width_mm atual (estimativa via get_string_width)."""
+        txt = txt or ""
+        if not txt:
+            return [""]
+        words = txt.split()
+        lines, cur = [], ""
+        for w in words:
+            test = (cur + " " + w).strip()
+            if pdf.get_string_width(test) <= width_mm - 2 * cell_pad:
+                cur = test
+            else:
+                if cur:
+                    lines.append(cur)
+                cur = w
+        if cur:
+            lines.append(cur)
+        return lines or [""]
 
-    pdf_bytes = pdf.output(dest='S').encode('latin-1')
+    def _row_height(codigo, item, subitens_text):
+        lines_codigo = _wrap_lines(codigo, col_w_codigo)
+        lines_item = _wrap_lines(item, col_w_item)
+        lines_sub = []
+        for line in (subitens_text or "").split("\n"):
+            lines_sub.extend(_wrap_lines(line, col_w_subitens))
+        max_lines = max(len(lines_codigo), len(lines_item), len(lines_sub), 1)
+        return max(line_h * max_lines, line_h)
+
+    def _header_row():
+        x = left_margin
+        y = pdf.get_y()
+        pdf.set_fill_color(*header_fill_rgb)
+        pdf.set_font(base_font, 'B', 10)
+        # fundo do cabeçalho
+        pdf.rect(x, y, col_w_codigo, line_h, 'F')
+        pdf.rect(x + col_w_codigo, y, col_w_item, line_h, 'F')
+        pdf.rect(x + col_w_codigo + col_w_item, y, col_w_subitens, line_h, 'F')
+        cur_x = x + col_w_codigo + col_w_item + col_w_subitens
+        for _ in responsaveis:
+            pdf.rect(cur_x, y, col_w_resp, line_h, 'F')
+            cur_x += col_w_resp
+        # textos
+        pdf.set_xy(x + cell_pad, y + 1)
+        pdf.cell(col_w_codigo - 2 * cell_pad, line_h - 2, 'Código', border=0)
+        pdf.set_xy(x + col_w_codigo + cell_pad, y + 1)
+        pdf.cell(col_w_item - 2 * cell_pad, line_h - 2, 'Item', border=0)
+        pdf.set_xy(x + col_w_codigo + col_w_item + cell_pad, y + 1)
+        pdf.cell(col_w_subitens - 2 * cell_pad, line_h - 2, 'Subitens', border=0)
+        cur_x = x + col_w_codigo + col_w_item + col_w_subitens
+        for r in responsaveis:
+            pdf.set_xy(cur_x + cell_pad, y + 1)
+            pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, r.title(), border=0, align='C')
+            cur_x += col_w_resp
+        pdf.ln(line_h)
+        pdf.set_font(base_font, '', 10)
+
+    def _maybe_page_break(row_h):
+        bottom_y = pdf.h - pdf.b_margin
+        if pdf.get_y() + row_h > bottom_y:
+            pdf.add_page()
+            _header_row()
+
+    # desenha cabeçalho inicial
+    _header_row()
+
+    # ---------- Tabela ----------
+    zebra = False
+    for g in grupos:
+        codigo = g["codigo"] or "—"
+        item = g["item"] or "—"
+        bullets = "• " + "\n• ".join(g["subitens"]) if g["subitens"] else "—"
+
+        # valores por responsável, se existirem (C/NC/N/A); senão, caixa vazia
+        roles_vals = []
+        for role in responsaveis:
+            vals = []
+            for resp in g["respostas"]:
+                if role in resp and resp[role]:
+                    for v in resp[role]:
+                        s = str(v).strip()
+                        if s and s not in vals:
+                            vals.append(s)
+            roles_vals.append(", ".join(vals) if vals else box_char)
+
+        h = _row_height(codigo, item, bullets)
+        _maybe_page_break(h)
+
+        # fundo zebra
+        if zebra:
+            pdf.set_fill_color(*zebra_rgb)
+            pdf.rect(left_margin, pdf.get_y(), col_w_codigo + col_w_item + col_w_subitens + col_w_resp * len(responsaveis), h, 'F')
+        zebra = not zebra
+
+        # bordas das células
+        x0 = left_margin
+        y0 = pdf.get_y()
+        pdf.rect(x0, y0, col_w_codigo, h)
+        pdf.rect(x0 + col_w_codigo, y0, col_w_item, h)
+        pdf.rect(x0 + col_w_codigo + col_w_item, y0, col_w_subitens, h)
+        cur_x = x0 + col_w_codigo + col_w_item + col_w_subitens
+        for _ in responsaveis:
+            pdf.rect(cur_x, y0, col_w_resp, h)
+            cur_x += col_w_resp
+
+        # escrever textos com MultiCell
+        pdf.set_xy(x0 + cell_pad, y0 + 1)
+        pdf.multi_cell(col_w_codigo - 2 * cell_pad, line_h, codigo, border=0)
+
+        pdf.set_xy(x0 + col_w_codigo + cell_pad, y0 + 1)
+        pdf.multi_cell(col_w_item - 2 * cell_pad, line_h, item, border=0)
+
+        pdf.set_xy(x0 + col_w_codigo + col_w_item + cell_pad, y0 + 1)
+        pdf.multi_cell(col_w_subitens - 2 * cell_pad, line_h, bullets, border=0)
+
+        cur_x = x0 + col_w_codigo + col_w_item + col_w_subitens
+        for val in roles_vals:
+            pdf.set_xy(cur_x + cell_pad, y0 + 1)
+            pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
+            cur_x += col_w_resp
+
+        # avança para próxima linha
+        pdf.set_xy(left_margin, y0 + h)
+
+    # Saída segura (fPDF2 em Py3 retorna bytes; se vier str, encode latin-1)
+    out = pdf.output(dest='S')
+    if isinstance(out, str):
+        out = out.encode('latin-1', 'ignore')
+
     return send_file(
-        io.BytesIO(pdf_bytes),
+        io.BytesIO(out),
         mimetype='application/pdf',
         as_attachment=True,
-        download_name='checklist.pdf'
+        download_name=f'checklist_{dados.get("obra","")}_{dados.get("ano","")}_compacto.pdf'
     )
 
 
