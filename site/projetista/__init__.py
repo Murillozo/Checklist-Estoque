@@ -13,6 +13,8 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.parse
+# PDF generation uses the fpdf2 package (pip install fpdf2) for Unicode support.
+# Ensure that the TrueType font "DejaVuSans.ttf" is placed alongside this file.
 from fpdf import FPDF
 import re
 LOGO_PATH = os.path.join(os.path.dirname(__file__), 'static', 'evomax_logo.png')
