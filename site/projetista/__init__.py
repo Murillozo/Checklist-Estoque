@@ -569,8 +569,7 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
-    # Limitamos as colunas aos responsáveis solicitados
-    responsaveis = ["Suprimento", "Produção"]
+
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
@@ -629,8 +628,7 @@ def checklist_pdf(filename):
     pdf.add_page()
     pdf.set_font(base_font, size=10)
 
-    # símbolos que dependem de suporte Unicode
-    # (substitui por versões ASCII se a fonte não suportar)
+
     bullet_char = "•" if base_font == "DejaVu" else "-"
     box_char = "□" if base_font == "DejaVu" else "[]"
     dash_char = "—" if base_font == "DejaVu" else "-"
