@@ -13,6 +13,8 @@ import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import urllib.parse
+# PDF generation uses the fpdf2 package (pip install fpdf2) for Unicode support.
+# Ensure that the TrueType font "DejaVuSans.ttf" is placed alongside this file.
 from fpdf import FPDF
 import re
 LOGO_PATH = os.path.join(os.path.dirname(__file__), 'static', 'evomax_logo.png')
@@ -567,17 +569,20 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
-    # coletar papéis/colunas a partir das chaves de respostas existentes
-    responsaveis = []
-    vistos = set()
-    for g in grupos:
-        for resp in g["respostas"]:
-            for k in resp.keys():
-                if k not in vistos:
-                    vistos.add(k)
-                    responsaveis.append(k)
-    if not responsaveis:
-        responsaveis = ["Inspetor", "Logística", "Montador Produção", "Suprimento"]  # fallback
+    # mantém somente os itens de 1.1 até 1.19
+    def _codigo_tuple(c):
+        try:
+            return tuple(int(p) for p in c.split('.'))
+        except Exception:
+            return ()
+
+    grupos = [
+        g for g in grupos
+        if (1, 1) <= _codigo_tuple(g.get("codigo", "")) <= (1, 19)
+    ]
+
+    # Limitamos as colunas aos responsáveis solicitados
+    responsaveis = ["Suprimento", "Produção"]
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
@@ -636,27 +641,31 @@ def checklist_pdf(filename):
     pdf.add_page()
     pdf.set_font(base_font, size=10)
 
+    # símbolos que dependem de suporte Unicode
+    # (substitui por versões ASCII se a fonte não suportar)
+    bullet_char = "•" if base_font == "DejaVu" else "-"
+    box_char = "□" if base_font == "DejaVu" else "[]"
+    dash_char = "—" if base_font == "DejaVu" else "-"
+
     # ---------- Layout / medidas ----------
     left_margin = pdf.l_margin  # padrão 10 mm
     right_margin = pdf.r_margin
     usable_w = pdf.w - left_margin - right_margin
 
-    col_w_codigo = 20.0
-    col_w_item = 65.0
-    col_w_subitens = 70.0
+    # largura combinada para código + item + subitens
+    col_w_item = 135.0
     # cada responsável ~22–28 mm
-    col_w_resp = max(22.0, min(28.0, (usable_w - (col_w_codigo + col_w_item + col_w_subitens)) / max(1, len(responsaveis))))
-    total_w = col_w_codigo + col_w_item + col_w_subitens + col_w_resp * len(responsaveis)
+    col_w_resp = max(22.0, min(28.0, (usable_w - col_w_item) / max(1, len(responsaveis))))
+    total_w = col_w_item + col_w_resp * len(responsaveis)
     if total_w > usable_w:
-        # comprime subitens proporcionalmente
+        # comprime a coluna de item proporcionalmente
         excesso = total_w - usable_w
-        col_w_subitens = max(50.0, col_w_subitens - excesso)
+        col_w_item = max(80.0, col_w_item - excesso)
 
     line_h = 6.0
     cell_pad = 2.0
     header_fill_rgb = (235, 235, 235)
     zebra_rgb = (247, 247, 247)
-    box_char = "□"
 
     def _wrap_lines(txt: str, width_mm: float):
         """Quebra em linhas para caber no width_mm atual (estimativa via get_string_width)."""
@@ -677,13 +686,11 @@ def checklist_pdf(filename):
             lines.append(cur)
         return lines or [""]
 
-    def _row_height(codigo, item, subitens_text):
-        lines_codigo = _wrap_lines(codigo, col_w_codigo)
-        lines_item = _wrap_lines(item, col_w_item)
-        lines_sub = []
-        for line in (subitens_text or "").split("\n"):
-            lines_sub.extend(_wrap_lines(line, col_w_subitens))
-        max_lines = max(len(lines_codigo), len(lines_item), len(lines_sub), 1)
+    def _row_height(item_text):
+        lines = []
+        for line in (item_text or "").split("\n"):
+            lines.extend(_wrap_lines(line, col_w_item))
+        max_lines = max(len(lines), 1)
         return max(line_h * max_lines, line_h)
 
     def _header_row():
@@ -692,21 +699,15 @@ def checklist_pdf(filename):
         pdf.set_fill_color(*header_fill_rgb)
         pdf.set_font(base_font, 'B', 10)
         # fundo do cabeçalho
-        pdf.rect(x, y, col_w_codigo, line_h, 'F')
-        pdf.rect(x + col_w_codigo, y, col_w_item, line_h, 'F')
-        pdf.rect(x + col_w_codigo + col_w_item, y, col_w_subitens, line_h, 'F')
-        cur_x = x + col_w_codigo + col_w_item + col_w_subitens
+        pdf.rect(x, y, col_w_item, line_h, 'F')
+        cur_x = x + col_w_item
         for _ in responsaveis:
             pdf.rect(cur_x, y, col_w_resp, line_h, 'F')
             cur_x += col_w_resp
         # textos
         pdf.set_xy(x + cell_pad, y + 1)
-        pdf.cell(col_w_codigo - 2 * cell_pad, line_h - 2, 'Código', border=0)
-        pdf.set_xy(x + col_w_codigo + cell_pad, y + 1)
         pdf.cell(col_w_item - 2 * cell_pad, line_h - 2, 'Item', border=0)
-        pdf.set_xy(x + col_w_codigo + col_w_item + cell_pad, y + 1)
-        pdf.cell(col_w_subitens - 2 * cell_pad, line_h - 2, 'Subitens', border=0)
-        cur_x = x + col_w_codigo + col_w_item + col_w_subitens
+        cur_x = x + col_w_item
         for r in responsaveis:
             pdf.set_xy(cur_x + cell_pad, y + 1)
             pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, r.title(), border=0, align='C')
@@ -726,9 +727,13 @@ def checklist_pdf(filename):
     # ---------- Tabela ----------
     zebra = False
     for g in grupos:
-        codigo = g["codigo"] or "—"
-        item = g["item"] or "—"
-        bullets = "• " + "\n• ".join(g["subitens"]) if g["subitens"] else "—"
+        codigo = g["codigo"] or ""
+        item = g["item"] or dash_char
+        item_text = f"{codigo} - {item}" if codigo else item
+        if g["subitens"]:
+            item_text += "\n" + "\n".join(bullet_char + " " + s for s in g["subitens"])
+        else:
+            item_text = item_text or dash_char
 
         # valores por responsável, se existirem (C/NC/N/A); senão, caixa vazia
         roles_vals = []
@@ -742,37 +747,29 @@ def checklist_pdf(filename):
                             vals.append(s)
             roles_vals.append(", ".join(vals) if vals else box_char)
 
-        h = _row_height(codigo, item, bullets)
+        h = _row_height(item_text)
         _maybe_page_break(h)
 
         # fundo zebra
         if zebra:
             pdf.set_fill_color(*zebra_rgb)
-            pdf.rect(left_margin, pdf.get_y(), col_w_codigo + col_w_item + col_w_subitens + col_w_resp * len(responsaveis), h, 'F')
+            pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
         zebra = not zebra
 
         # bordas das células
         x0 = left_margin
         y0 = pdf.get_y()
-        pdf.rect(x0, y0, col_w_codigo, h)
-        pdf.rect(x0 + col_w_codigo, y0, col_w_item, h)
-        pdf.rect(x0 + col_w_codigo + col_w_item, y0, col_w_subitens, h)
-        cur_x = x0 + col_w_codigo + col_w_item + col_w_subitens
+        pdf.rect(x0, y0, col_w_item, h)
+        cur_x = x0 + col_w_item
         for _ in responsaveis:
             pdf.rect(cur_x, y0, col_w_resp, h)
             cur_x += col_w_resp
 
         # escrever textos com MultiCell
         pdf.set_xy(x0 + cell_pad, y0 + 1)
-        pdf.multi_cell(col_w_codigo - 2 * cell_pad, line_h, codigo, border=0)
+        pdf.multi_cell(col_w_item - 2 * cell_pad, line_h, item_text, border=0)
 
-        pdf.set_xy(x0 + col_w_codigo + cell_pad, y0 + 1)
-        pdf.multi_cell(col_w_item - 2 * cell_pad, line_h, item, border=0)
-
-        pdf.set_xy(x0 + col_w_codigo + col_w_item + cell_pad, y0 + 1)
-        pdf.multi_cell(col_w_subitens - 2 * cell_pad, line_h, bullets, border=0)
-
-        cur_x = x0 + col_w_codigo + col_w_item + col_w_subitens
+        cur_x = x0 + col_w_item
         for val in roles_vals:
             pdf.set_xy(cur_x + cell_pad, y0 + 1)
             pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
