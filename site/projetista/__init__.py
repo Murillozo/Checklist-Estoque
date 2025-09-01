@@ -664,7 +664,7 @@ def checklist_pdf(filename):
 
     pdf.alias_nb_pages()
     pdf.add_page()
-    pdf.set_font(base_font, size=10)
+    pdf.set_font(base_font, size=7)
 
 
     bullet_char = "•" if base_font == "DejaVu" else "-"
@@ -737,7 +737,7 @@ def checklist_pdf(filename):
             pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, r.title(), border=0, align='C')
             cur_x += col_w_resp
         pdf.ln(line_h)
-        pdf.set_font(base_font, '', 10)
+        pdf.set_font(base_font, '', 9)
 
     def _maybe_page_break(row_h, need_header=True):
         bottom_y = pdf.h - pdf.b_margin
@@ -770,7 +770,10 @@ def checklist_pdf(filename):
         ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
         ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO - Identificação"),
         ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
-        ("5.1", "CABLAGEM QD SOBREPOR EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
+
+
+        ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
+
         ("6.1", "COMPONENTES FIXACAO DIRETA",    "POSTO - 06: PRÉ-MONTAGEM - 02"),
         ("6.3", "CABLAGEM AUTOPORTANTE",         "POSTO - 06: CABLAGEM - 02"),
         ("",    "MULTIMEDIDOR",                  "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
