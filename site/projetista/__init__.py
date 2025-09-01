@@ -722,16 +722,18 @@ def checklist_pdf(filename):
         pdf.ln(line_h)
         pdf.set_font(base_font, '', 10)
 
-    def _maybe_page_break(row_h):
+def _maybe_page_break(row_h, need_header=True):
         bottom_y = pdf.h - pdf.b_margin
         if pdf.get_y() + row_h > bottom_y:
             pdf.add_page()
-            _header_row()
+            if need_header:
+                _header_row()
 
     def _section_row(title: str):
+        nonlocal zebra
         h = _row_height(title)
         top_gap = line_h
-        _maybe_page_break(top_gap + h)
+        _maybe_page_break(top_gap + h + line_h, need_header=False)
         pdf.ln(top_gap)
         pdf.set_fill_color(*header_fill_rgb)
         total_w = col_w_item + col_w_resp * len(responsaveis)
@@ -741,17 +743,8 @@ def checklist_pdf(filename):
         pdf.cell(total_w - 2 * cell_pad, line_h - 2, title, border=0)
         pdf.ln(h)
         pdf.set_font(base_font, '', 10)
-
-    # desenha cabeçalho inicial
-    _header_row()
-
-    import unicodedata
-
-    def _norm(s: str) -> str:
-        s = (s or "").strip()
-        s = ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
-        s = s.upper().replace('—', ' ').replace('–', ' ').replace('-', ' ')
-        return ' '.join(s.split())
+        _header_row()
+        zebra = False
 
     # ---------- Tabela ----------
     sections_to_insert = [
@@ -759,18 +752,17 @@ def checklist_pdf(filename):
         ("2.1", "PORTA",                         "POSTO - 02: OFICINA"),
         ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
         ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO"),
-        ("4.2", "COMANDO X TERRA",               "POSTO - 08: TESTE - TENSÃO APLICADA"),
-        ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
+        ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
+        ("5.1", "CABLAGEM QD SOBREPOR EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
         ("6.1", "COMPONENTES FIXACAO DIRETA",    "POSTO - 06: PRÉ-MONTAGEM - 02"),
         ("6.3", "CABLAGEM AUTOPORTANTE",         "POSTO - 06: CABLAGEM - 02"),
-        ("",    "MULTIMEDIDOR",                  "POSTO - 08: TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
-        ("",    "SINALIZADOR",                   "POSTO - 08: TESTE - FUNCIONAIS"),
-        ("",    "TORQUE PARAFUSOS DOS COMPONENTE","POSTO - 08: IQM -  INSPEÇÃO DE QUALIDADE - MECÂNICA"),
-        ("",    "CONTINUIDADE PONTO A PONTO FORCA","POSTO - 08: IQE -  INSPEÇÃO DE QUALIDADE - ELÉTRICA"),
-        ("",    "RESPONSAVEL",                    "POSTO - 08: TESTES - DADOS"),
-        ("",    "COMUNICADO A TRANSPORTADORA",    "POSTO - 09: EXPEDIÇÃO 01"),
-        ("",    "LIMPEZA",                         "POSTO - 09: EXPEDIÇÃO 02"),
-    
+        ("",    "MULTIMEDIDOR",                  "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
+        ("",    "SINALIZADOR",                   "TESTE - FUNCIONAIS"),
+        ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
+        ("",    "CONTINUIDADE PONTO A PONTO FORCA","IQE - Inspeção de Qualidade Elétrica"),
+        ("",    "RESPONSAVEL",                    "TESTES - DADOS"),
+        ("",    "COMUNICADO A TRANSPORTADORA",    "EXPEDIÇÃO 01"),
+        ("",    "LIMPEZA",                         "EXPEDIÇÃO 02"),
     ]
     inserted = set()
     zebra = False
@@ -794,7 +786,7 @@ def checklist_pdf(filename):
         for idx, sub in enumerate(subitens):
             item_text = base_item if idx == 0 else ""
             if sub["subitem"]:
-                prefix = ("\n" if item_text else "")
+                prefix = ("\n\n" if item_text else "")
                 item_text += f"{prefix}{bullet_char} {sub['subitem']}"
             elif not item_text:
                 item_text = dash_char
