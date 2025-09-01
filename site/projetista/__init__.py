@@ -723,11 +723,11 @@ def checklist_pdf(filename):
         pdf.set_font(base_font, '', 10)
 
     def _maybe_page_break(row_h, need_header=True):
-            bottom_y = pdf.h - pdf.b_margin
-            if pdf.get_y() + row_h > bottom_y:
-                pdf.add_page()
-                if need_header:
-                    _header_row()
+        bottom_y = pdf.h - pdf.b_margin
+        if pdf.get_y() + row_h > bottom_y:
+            pdf.add_page()
+            if need_header:
+                _header_row()
 
     def _section_row(title: str):
         nonlocal zebra
@@ -778,6 +778,9 @@ def checklist_pdf(filename):
                 continue
             if (cod_alvo and codigo.strip() == cod_alvo and substr_item in item_norm) or \
                (not cod_alvo and substr_item in item_norm):
+                if titulo == "POSTO - 03: PRÉ-MONTAGEM - 01":
+                    while pdf.page_no() < 5:
+                        pdf.add_page()
                 _section_row(titulo)
                 inserted.add(key)
 
