@@ -748,7 +748,7 @@ def checklist_pdf(filename):
         ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
         ("5.1", "CABLAGEM QD SOBREPOR EMBUTIR",  "CABLAGEM - 01"),
         ("6.1", "COMPONENTES FIXACAO DIRETA",    "PRÉ-MONTAGEM - 02"),
-        ("6.3", "CABLAGEM AUTOPORTANTE",         "CABLAGEM - 02"),
+        ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "CABLAGEM - 01"),
         ("",    "MULTIMEDIDOR",                  "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
         ("",    "SINALIZADOR",                   "TESTE - FUNCIONAIS"),
         ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
