@@ -592,14 +592,21 @@ def checklist_pdf(filename):
     if not responsaveis:
         responsaveis = ["Suprimento", "Produção"]
 
+    montadores = sorted({n.strip() for g in grupos
+                          for resp in g["respostas"]
+                          for n in resp.get("Montador", [])
+                          if n and n.strip()})
+
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
-        def __init__(self, obra='', ano='', suprimento='', *args, **kwargs):
+        def __init__(self, obra='', ano='', suprimento='', montadores=None, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
             self.suprimento = suprimento
-            self.set_auto_page_break(auto=False)  # controle manual para repetir cabeçalho
+            self.montadores = montadores or []
+            # aumenta margem inferior para que a tabela não sobreponha o rodapé
+            self.set_auto_page_break(auto=False, margin=20)
 
         def header(self):
             self.set_fill_color(25, 25, 112)
@@ -613,7 +620,11 @@ def checklist_pdf(filename):
             self.set_font(base_font, '', 10)
             self.ln(6)
             self.cell(0, 5, f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}", align='C')
-            self.ln(6)
+            self.ln(5)
+            if self.montadores:
+                nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
+                self.cell(0, 5, f"Montadores: {nomes}", align='C')
+                self.ln(5)
             self.set_y(40)
             self.set_text_color(0, 0, 0)
 
@@ -627,6 +638,7 @@ def checklist_pdf(filename):
         obra=dados.get('obra', ''),
         ano=dados.get('ano', ''),
         suprimento=dados.get('suprimento', ''),
+        montadores=montadores,
         format='A4',
         orientation='P',
         unit='mm'
@@ -753,7 +765,9 @@ def checklist_pdf(filename):
         ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
         ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO - Identificação"),
         ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
+
         ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
+
         ("6.1", "COMPONENTES FIXACAO DIRETA",    "POSTO - 06: PRÉ-MONTAGEM - 02"),
         ("6.3", "CABLAGEM AUTOPORTANTE",         "POSTO - 06: CABLAGEM - 02"),
         ("",    "MULTIMEDIDOR",                  "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
