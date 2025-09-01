@@ -750,6 +750,8 @@ def checklist_pdf(filename):
         ("6.3", "CABLAGEM AUTOPORTANTE",         "CABLAGEM - 02"),
         ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
         ("",    "CONTINUIDADE PONTO A PONTO FORCA","IQE - Inspeção de Qualidade Elétrica"),
+        ("",    "RESPONSAVEL",                    "TESTES - DADOS"),
+        ("",    "COMUNICADO A TRANSPORTADORA",    "EXPEDIÇÃO"),
     ]
     inserted = set()
     zebra = False
