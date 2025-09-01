@@ -647,7 +647,7 @@ def checklist_pdf(filename):
 
     pdf.alias_nb_pages()
     pdf.add_page()
-    pdf.set_font(base_font, size=5)
+    pdf.set_font(base_font, size=7)
 
 
     bullet_char = "•" if base_font == "DejaVu" else "-"
@@ -704,7 +704,7 @@ def checklist_pdf(filename):
         x = left_margin
         y = pdf.get_y()
         pdf.set_fill_color(*header_fill_rgb)
-        pdf.set_font(base_font, 'B', 5)
+        pdf.set_font(base_font, 'B', 10)
         # fundo do cabeçalho
         pdf.rect(x, y, col_w_item, line_h, 'F')
         cur_x = x + col_w_item
@@ -720,7 +720,7 @@ def checklist_pdf(filename):
             pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, r.title(), border=0, align='C')
             cur_x += col_w_resp
         pdf.ln(line_h)
-        pdf.set_font(base_font, '', 5)
+        pdf.set_font(base_font, '', 9)
 
     def _maybe_page_break(row_h, need_header=True):
         bottom_y = pdf.h - pdf.b_margin
@@ -739,10 +739,10 @@ def checklist_pdf(filename):
         total_w = col_w_item + col_w_resp * len(responsaveis)
         pdf.rect(left_margin, pdf.get_y(), total_w, h, 'F')
         pdf.set_xy(left_margin + cell_pad, pdf.get_y() + 1)
-        pdf.set_font(base_font, 'B', 5)
+        pdf.set_font(base_font, 'B', 10)
         pdf.cell(total_w - 2 * cell_pad, line_h - 2, title, border=0)
         pdf.ln(h)
-        pdf.set_font(base_font, '', 5)
+        pdf.set_font(base_font, '', 10)
         _header_row()
         zebra = False
 
