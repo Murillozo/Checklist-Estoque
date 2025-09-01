@@ -751,7 +751,8 @@ def checklist_pdf(filename):
         ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
         ("",    "CONTINUIDADE PONTO A PONTO FORCA","IQE - Inspeção de Qualidade Elétrica"),
         ("",    "RESPONSAVEL",                    "TESTES - DADOS"),
-        ("",    "COMUNICADO A TRANSPORTADORA",    "EXPEDIÇÃO"),
+        ("",    "COMUNICADO A TRANSPORTADORA",    "EXPEDIÇÃO 01"),
+        ("",    "LIMPEZA",                         "EXPEDIÇÃO 02"),
     ]
     inserted = set()
     zebra = False
