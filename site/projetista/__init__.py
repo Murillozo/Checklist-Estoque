@@ -613,10 +613,6 @@ def checklist_pdf(filename):
     suprimento = respondentes.get("suprimento", "").strip()
     producao = respondentes.get("produção", "").strip()
 
-    respondentes = dados.get("respondentes", {})
-    suprimento = respondentes.get("suprimento", "").strip()
-    producao = respondentes.get("produção", "").strip()
-
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None, *args, **kwargs):
@@ -859,8 +855,8 @@ def checklist_pdf(filename):
 
             cur_x = x0 + col_w_item
             for val in roles_vals:
-                pdf.set_xy(cur_x + cell_pad, y0 + 1)
-                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
+                pdf.set_xy(cur_x, y0)
+                pdf.cell(col_w_resp, h, val, border=0, align='C')
                 cur_x += col_w_resp
 
             pdf.set_xy(left_margin, y0 + h)
