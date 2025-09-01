@@ -751,9 +751,9 @@ def checklist_pdf(filename):
         ("1.1", "INVOLUCRO CAIXA",               "POSTO - 01: MATERIAIS"),
         ("2.1", "PORTA",                         "POSTO - 02: OFICINA"),
         ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
-        ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO"),
+        ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO - Identificação"),
         ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
-        ("5.1", "CABLAGEM QD SOBREPOR EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
+        ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
         ("6.1", "COMPONENTES FIXACAO DIRETA",    "POSTO - 06: PRÉ-MONTAGEM - 02"),
         ("6.3", "CABLAGEM AUTOPORTANTE",         "POSTO - 06: CABLAGEM - 02"),
         ("",    "MULTIMEDIDOR",                  "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
@@ -780,6 +780,9 @@ def checklist_pdf(filename):
                (not cod_alvo and substr_item in item_norm):
                 if titulo == "POSTO - 03: PRÉ-MONTAGEM - 01":
                     while pdf.page_no() < 5:
+                        pdf.add_page()
+                elif titulo == "POSTO - 04: BARRAMENTO - Identificação":
+                    while pdf.page_no() < 6:
                         pdf.add_page()
                 _section_row(titulo)
                 inserted.add(key)
