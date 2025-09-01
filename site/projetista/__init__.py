@@ -592,10 +592,15 @@ def checklist_pdf(filename):
     if not responsaveis:
         responsaveis = ["Suprimento", "Produção"]
 
-    montadores = sorted({n.strip() for g in grupos
-                          for resp in g["respostas"]
-                          for n in resp.get("Montador", [])
-                          if n and n.strip()})
+    montadores = sorted({
+        n.strip()
+        for g in grupos
+        for resp in g["respostas"]
+        for key, vals in resp.items()
+        if "MONTADOR" in _norm(key)
+        for n in vals
+        if n and n.strip()
+    })
 
     respondentes = dados.get("respondentes", {})
     suprimento = respondentes.get("suprimento", "").strip()
@@ -771,6 +776,7 @@ def checklist_pdf(filename):
         ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
         ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO - Identificação"),
         ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
+
 
         ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
 
