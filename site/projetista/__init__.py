@@ -493,9 +493,21 @@ def checklist_pdf(filename):
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
 
+    import unicodedata
+
+    def _norm(s: str) -> str:
+        s = (s or "").strip()
+        s = ''.join(c for c in unicodedata.normalize('NFD', s)
+                    if unicodedata.category(c) != 'Mn')
+        s = s.upper().replace('—', ' ').replace('–', ' ').replace('-', ' ')
+        return ' '.join(s.split())
+
     # ---------- Helpers de parsing/agrupamento ----------
     def _natural_key_codigo(pergunta: str):
         # pega "1.10" de "1.10 - CANALETAS: ..." e transforma em [1,10]
+        norm = _norm(pergunta)
+        if norm == "TENSAO CIRCUITO DE FORCA":
+            return [4, 1, 5]
         m = re.match(r"\s*([0-9]+(?:\.[0-9]+)*)\s*-\s*", pergunta or "")
         if not m:
             return [float('inf')]
@@ -580,14 +592,26 @@ def checklist_pdf(filename):
     if not responsaveis:
         responsaveis = ["Suprimento", "Produção"]
 
+    montadores = sorted({
+        n.strip()
+        for g in grupos
+        for resp in g["respostas"]
+        for key, vals in resp.items()
+        if "MONTADOR" in _norm(key)
+        for n in vals
+        if n and n.strip()
+    })
+
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
-        def __init__(self, obra='', ano='', suprimento='', *args, **kwargs):
+        def __init__(self, obra='', ano='', suprimento='', montadores=None, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
             self.suprimento = suprimento
-            self.set_auto_page_break(auto=False)  # controle manual para repetir cabeçalho
+            self.montadores = montadores or []
+            # aumenta margem inferior para que a tabela não sobreponha o rodapé
+            self.set_auto_page_break(auto=False, margin=20)
 
         def header(self):
             self.set_fill_color(25, 25, 112)
@@ -601,7 +625,11 @@ def checklist_pdf(filename):
             self.set_font(base_font, '', 10)
             self.ln(6)
             self.cell(0, 5, f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}", align='C')
-            self.ln(6)
+            self.ln(5)
+            if self.montadores:
+                nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
+                self.cell(0, 5, f"Montadores: {nomes}", align='C')
+                self.ln(5)
             self.set_y(40)
             self.set_text_color(0, 0, 0)
 
@@ -615,6 +643,7 @@ def checklist_pdf(filename):
         obra=dados.get('obra', ''),
         ano=dados.get('ano', ''),
         suprimento=dados.get('suprimento', ''),
+        montadores=montadores,
         format='A4',
         orientation='P',
         unit='mm'
@@ -710,27 +739,77 @@ def checklist_pdf(filename):
         pdf.ln(line_h)
         pdf.set_font(base_font, '', 10)
 
-    def _maybe_page_break(row_h):
+    def _maybe_page_break(row_h, need_header=True):
         bottom_y = pdf.h - pdf.b_margin
         if pdf.get_y() + row_h > bottom_y:
             pdf.add_page()
-            _header_row()
+            if need_header:
+                _header_row()
 
-    # desenha cabeçalho inicial
-    _header_row()
+    def _section_row(title: str):
+        nonlocal zebra
+        h = _row_height(title)
+        top_gap = line_h
+        _maybe_page_break(top_gap + h + line_h, need_header=False)
+        pdf.ln(top_gap)
+        pdf.set_fill_color(*header_fill_rgb)
+        total_w = col_w_item + col_w_resp * len(responsaveis)
+        pdf.rect(left_margin, pdf.get_y(), total_w, h, 'F')
+        pdf.set_xy(left_margin + cell_pad, pdf.get_y() + 1)
+        pdf.set_font(base_font, 'B', 10)
+        pdf.cell(total_w - 2 * cell_pad, line_h - 2, title, border=0)
+        pdf.ln(h)
+        pdf.set_font(base_font, '', 10)
+        _header_row()
+        zebra = False
 
     # ---------- Tabela ----------
+    sections_to_insert = [
+        ("1.1", "INVOLUCRO CAIXA",               "POSTO - 01: MATERIAIS"),
+        ("2.1", "PORTA",                         "POSTO - 02: OFICINA"),
+        ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
+        ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO - Identificação"),
+        ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
+        ("5.1", "CABLAGEM QD SOBREPOR EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
+        ("6.1", "COMPONENTES FIXACAO DIRETA",    "POSTO - 06: PRÉ-MONTAGEM - 02"),
+        ("6.3", "CABLAGEM AUTOPORTANTE",         "POSTO - 06: CABLAGEM - 02"),
+        ("",    "MULTIMEDIDOR",                  "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
+        ("",    "SINALIZADOR",                   "TESTE - FUNCIONAIS"),
+        ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
+        ("",    "CONTINUIDADE PONTO A PONTO FORCA","IQE - Inspeção de Qualidade Elétrica"),
+        ("",    "RESPONSAVEL",                    "TESTES - DADOS"),
+        ("",    "COMUNICADO A TRANSPORTADORA",    "EXPEDIÇÃO 01"),
+        ("",    "LIMPEZA",                         "EXPEDIÇÃO 02"),
+    ]
+    inserted = set()
     zebra = False
     for g in grupos:
         codigo = g["codigo"] or ""
         item = g["item"] or dash_char
         base_item = f"{codigo} - {item}" if codigo else item
+        item_norm = _norm(item)
+
+        for cod_alvo, substr_item, titulo in sections_to_insert:
+            key = (cod_alvo, substr_item, titulo)
+            if key in inserted:
+                continue
+            if (cod_alvo and codigo.strip() == cod_alvo and substr_item in item_norm) or \
+               (not cod_alvo and substr_item in item_norm):
+                if titulo == "POSTO - 03: PRÉ-MONTAGEM - 01":
+                    while pdf.page_no() < 5:
+                        pdf.add_page()
+                elif titulo == "POSTO - 04: BARRAMENTO - Identificação":
+                    while pdf.page_no() < 6:
+                        pdf.add_page()
+                _section_row(titulo)
+                inserted.add(key)
+
         subitens = g["subitens"] or [{"subitem": "", "respostas": {}}]
 
         for idx, sub in enumerate(subitens):
             item_text = base_item if idx == 0 else ""
             if sub["subitem"]:
-                prefix = ("\n" if item_text else "")
+                prefix = ("\n\n" if item_text else "")
                 item_text += f"{prefix}{bullet_char} {sub['subitem']}"
             elif not item_text:
                 item_text = dash_char
@@ -782,88 +861,88 @@ def checklist_pdf(filename):
 
 
 
-    @bp.route('/checklist/<path:filename>')
-    @login_required
-    def checklist_view(filename):
-        caminho = os.path.join(CHECKLIST_DIR, filename)
-        if not os.path.isfile(caminho):
-            flash('Arquivo não encontrado.', 'danger')
-            return redirect(url_for('projetista.checklist_list'))
-        with open(caminho, encoding='utf-8') as f:
-            dados = json.load(f)
-        # verifica se existe revisão anterior para comparação
-        obra = dados.get('obra', 'Desconhecida') or 'Desconhecida'
-        safe_obra = "".join(c for c in obra if c.isalnum() or c in ('-','_')) or 'obra'
-        todos = [n for n in os.listdir(CHECKLIST_DIR)
-                if n.endswith('.json') and n.startswith(f"checklist_{safe_obra}_")]
-        todos.sort()
-        try:
-            idx = todos.index(filename)
-            prev_filename = todos[idx - 1] if idx > 0 else None
-        except ValueError:
-            prev_filename = None
-        return render_template(
-            'checklist_view.html', filename=filename, dados=dados, prev_filename=prev_filename
-        )
+@bp.route('/checklist/<path:filename>')
+@login_required
+def checklist_view(filename):
+    caminho = os.path.join(CHECKLIST_DIR, filename)
+    if not os.path.isfile(caminho):
+        flash('Arquivo não encontrado.', 'danger')
+        return redirect(url_for('projetista.checklist_list'))
+    with open(caminho, encoding='utf-8') as f:
+        dados = json.load(f)
+    # verifica se existe revisão anterior para comparação
+    obra = dados.get('obra', 'Desconhecida') or 'Desconhecida'
+    safe_obra = "".join(c for c in obra if c.isalnum() or c in ('-','_')) or 'obra'
+    todos = [n for n in os.listdir(CHECKLIST_DIR)
+            if n.endswith('.json') and n.startswith(f"checklist_{safe_obra}_")]
+    todos.sort()
+    try:
+        idx = todos.index(filename)
+        prev_filename = todos[idx - 1] if idx > 0 else None
+    except ValueError:
+        prev_filename = None
+    return render_template(
+        'checklist_view.html', filename=filename, dados=dados, prev_filename=prev_filename
+    )
 
 
-    @bp.route('/checklist/diff/<path:filename>')
-    @login_required
-    def checklist_diff(filename):
-        """Exibe as diferenças entre o checklist selecionado e o anterior."""
-        caminho = os.path.join(CHECKLIST_DIR, filename)
-        if not os.path.isfile(caminho):
-            flash('Arquivo não encontrado.', 'danger')
-            return redirect(url_for('projetista.checklist_list'))
+@bp.route('/checklist/diff/<path:filename>')
+@login_required
+def checklist_diff(filename):
+    """Exibe as diferenças entre o checklist selecionado e o anterior."""
+    caminho = os.path.join(CHECKLIST_DIR, filename)
+    if not os.path.isfile(caminho):
+        flash('Arquivo não encontrado.', 'danger')
+        return redirect(url_for('projetista.checklist_list'))
 
-        with open(caminho, encoding='utf-8') as f:
-            atual = json.load(f)
+    with open(caminho, encoding='utf-8') as f:
+        atual = json.load(f)
 
-        obra = atual.get('obra', 'Desconhecida') or 'Desconhecida'
-        safe_obra = "".join(c for c in obra if c.isalnum() or c in ('-','_')) or 'obra'
+    obra = atual.get('obra', 'Desconhecida') or 'Desconhecida'
+    safe_obra = "".join(c for c in obra if c.isalnum() or c in ('-','_')) or 'obra'
 
-        # Localiza o checklist anterior para a mesma obra
-        todos = [n for n in os.listdir(CHECKLIST_DIR)
-                if n.endswith('.json') and n.startswith(f"checklist_{safe_obra}_")]
-        todos.sort()
-        try:
-            idx = todos.index(filename)
-        except ValueError:
-            idx = -1
+    # Localiza o checklist anterior para a mesma obra
+    todos = [n for n in os.listdir(CHECKLIST_DIR)
+            if n.endswith('.json') and n.startswith(f"checklist_{safe_obra}_")]
+    todos.sort()
+    try:
+        idx = todos.index(filename)
+    except ValueError:
+        idx = -1
 
-        if idx <= 0:
-            flash('Não há checklist anterior para comparação.', 'warning')
-            return redirect(url_for('projetista.checklist_view', filename=filename))
+    if idx <= 0:
+        flash('Não há checklist anterior para comparação.', 'warning')
+        return redirect(url_for('projetista.checklist_view', filename=filename))
 
-        anterior_nome = todos[idx - 1]
-        caminho_ant = os.path.join(CHECKLIST_DIR, anterior_nome)
-        with open(caminho_ant, encoding='utf-8') as f:
-            anterior = json.load(f)
+    anterior_nome = todos[idx - 1]
+    caminho_ant = os.path.join(CHECKLIST_DIR, anterior_nome)
+    with open(caminho_ant, encoding='utf-8') as f:
+        anterior = json.load(f)
 
-        antigos = {i['pergunta']: i.get('resposta', [])
-                for i in anterior.get('itens', [])}
-        novos = {i['pergunta']: i.get('resposta', [])
-                for i in atual.get('itens', [])}
+    antigos = {i['pergunta']: i.get('resposta', [])
+            for i in anterior.get('itens', [])}
+    novos = {i['pergunta']: i.get('resposta', [])
+            for i in atual.get('itens', [])}
 
-        diff = []
-        perguntas = sorted(set(antigos) | set(novos))
-        for pergunta in perguntas:
-            resp_ant = antigos.get(pergunta, [])
-            resp_novo = novos.get(pergunta, [])
-            if resp_ant != resp_novo:
-                diff.append({
-                    'pergunta': pergunta,
-                    'antigo': ', '.join(map(str, resp_ant)),
-                    'novo': ', '.join(map(str, resp_novo))
-                })
+    diff = []
+    perguntas = sorted(set(antigos) | set(novos))
+    for pergunta in perguntas:
+        resp_ant = antigos.get(pergunta, [])
+        resp_novo = novos.get(pergunta, [])
+        if resp_ant != resp_novo:
+            diff.append({
+                'pergunta': pergunta,
+                'antigo': ', '.join(map(str, resp_ant)),
+                'novo': ', '.join(map(str, resp_novo))
+            })
 
-        return render_template(
-            'checklist_diff.html',
-            filename=filename,
-            anterior=anterior_nome,
-            diff=diff,
-            obra=obra,
-        )
+    return render_template(
+        'checklist_diff.html',
+        filename=filename,
+        anterior=anterior_nome,
+        diff=diff,
+        obra=obra,
+    )
 
 
 @bp.route('/solicitacao/<int:id>/delete', methods=['POST'])
