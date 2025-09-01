@@ -592,10 +592,26 @@ def checklist_pdf(filename):
     if not responsaveis:
         responsaveis = ["Suprimento", "Produção"]
 
-    montadores = sorted({n.strip() for g in grupos
-                          for resp in g["respostas"]
-                          for n in resp.get("Montador", [])
-                          if n and n.strip()})
+    def _coletar_montadores(node):
+        nomes = set()
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k.lower() == "montador" and isinstance(v, str):
+                    nome = v.strip()
+                    if nome:
+                        nomes.add(nome)
+                else:
+                    nomes.update(_coletar_montadores(v))
+        elif isinstance(node, list):
+            for elem in node:
+                nomes.update(_coletar_montadores(elem))
+        return nomes
+
+    montadores = sorted(_coletar_montadores(dados))
+
+    respondentes = dados.get("respondentes", {})
+    suprimento = respondentes.get("suprimento", "").strip()
+    producao = respondentes.get("produção", "").strip()
 
     respondentes = dados.get("respondentes", {})
     suprimento = respondentes.get("suprimento", "").strip()
