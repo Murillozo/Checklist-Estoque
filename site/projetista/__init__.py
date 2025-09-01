@@ -493,9 +493,21 @@ def checklist_pdf(filename):
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
 
+    import unicodedata
+
+    def _norm(s: str) -> str:
+        s = (s or "").strip()
+        s = ''.join(c for c in unicodedata.normalize('NFD', s)
+                    if unicodedata.category(c) != 'Mn')
+        s = s.upper().replace('—', ' ').replace('–', ' ').replace('-', ' ')
+        return ' '.join(s.split())
+
     # ---------- Helpers de parsing/agrupamento ----------
     def _natural_key_codigo(pergunta: str):
         # pega "1.10" de "1.10 - CANALETAS: ..." e transforma em [1,10]
+        norm = _norm(pergunta)
+        if norm == "TENSAO CIRCUITO DE FORCA":
+            return [4, 1, 5]
         m = re.match(r"\s*([0-9]+(?:\.[0-9]+)*)\s*-\s*", pergunta or "")
         if not m:
             return [float('inf')]
@@ -718,7 +730,9 @@ def checklist_pdf(filename):
 
     def _section_row(title: str):
         h = _row_height(title)
-        _maybe_page_break(h)
+        top_gap = line_h
+        _maybe_page_break(top_gap + h)
+        pdf.ln(top_gap)
         pdf.set_fill_color(*header_fill_rgb)
         total_w = col_w_item + col_w_resp * len(responsaveis)
         pdf.rect(left_margin, pdf.get_y(), total_w, h, 'F')
@@ -756,6 +770,7 @@ def checklist_pdf(filename):
         ("",    "RESPONSAVEL",                    "POSTO - 08: TESTES - DADOS"),
         ("",    "COMUNICADO A TRANSPORTADORA",    "POSTO - 09: EXPEDIÇÃO 01"),
         ("",    "LIMPEZA",                         "POSTO - 09: EXPEDIÇÃO 02"),
+    
     ]
     inserted = set()
     zebra = False
