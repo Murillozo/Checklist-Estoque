@@ -746,7 +746,7 @@ def checklist_pdf(filename):
         ("3.1", "COMPONENTE",                    "PRÉ-MONTAGEM - 01"),
         ("4.1", "BARRAMENTO",                    "BARRAMENTO"),
         ("5.1", "CABLAGEM QD SOBREPOR EMBUTIR",  "CABLAGEM - 01"),
-        ("6.1", "COMPONENTE FIXACAO DIRETA",     "PRÉ-MONTAGEM - 02"),
+        ("6.1", "COMPONENTES FIXACAO DIRETA",    "PRÉ-MONTAGEM - 02"),
         ("6.3", "CABLAGEM AUTOPORTANTE",         "CABLAGEM - 02"),
         ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
         ("",    "CONTINUIDADE PONTO A PONTO FORCA","IQE - Inspeção de Qualidade Elétrica"),
