@@ -745,23 +745,32 @@ def checklist_pdf(filename):
     # desenha cabeçalho inicial
     _header_row()
 
+    import unicodedata
+
+    def _norm(s: str) -> str:
+        s = (s or "").strip()
+        s = ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+        s = s.upper().replace('—', ' ').replace('–', ' ').replace('-', ' ')
+        return ' '.join(s.split())
+
     # ---------- Tabela ----------
     sections_to_insert = [
-        ("1.1", "INVOLUCRO CAIXA",               "Materiais"),
-        ("2.1", "PORTA",                         "OFICINA"),
-        ("3.1", "COMPONENTE",                    "PRÉ-MONTAGEM - 01"),
-        ("4.1", "BARRAMENTO",                    "BARRAMENTO"),
-        ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
-        ("5.1", "CABLAGEM QD SOBREPOR EMBUTIR",  "CABLAGEM - 01"),
-        ("6.1", "COMPONENTES FIXACAO DIRETA",    "PRÉ-MONTAGEM - 02"),
-        ("6.3", "CABLAGEM AUTOPORTANTE",         "CABLAGEM - 02"),
-        ("",    "MULTIMEDIDOR",                  "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
-        ("",    "SINALIZADOR",                   "TESTE - FUNCIONAIS"),
-        ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
-        ("",    "CONTINUIDADE PONTO A PONTO FORCA","IQE - Inspeção de Qualidade Elétrica"),
-        ("",    "RESPONSAVEL",                    "TESTES - DADOS"),
-        ("",    "COMUNICADO A TRANSPORTADORA",    "EXPEDIÇÃO 01"),
-        ("",    "LIMPEZA",                         "EXPEDIÇÃO 02"),
+        ("1.1", "INVOLUCRO CAIXA",               "POSTO - 01: MATERIAIS"),
+        ("2.1", "PORTA",                         "POSTO - 02: OFICINA"),
+        ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
+        ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO"),
+        ("4.2", "COMANDO X TERRA",               "POSTO - 08: TESTE - TENSÃO APLICADA"),
+        ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
+        ("6.1", "COMPONENTES FIXACAO DIRETA",    "POSTO - 06: PRÉ-MONTAGEM - 02"),
+        ("6.3", "CABLAGEM AUTOPORTANTE",         "POSTO - 06: CABLAGEM - 02"),
+        ("",    "MULTIMEDIDOR",                  "POSTO - 08: TESTE - CONFIGURAÇÃO DE DISPOSITIVOS"),
+        ("",    "SINALIZADOR",                   "POSTO - 08: TESTE - FUNCIONAIS"),
+        ("",    "TORQUE PARAFUSOS DOS COMPONENTE","POSTO - 08: IQM -  INSPEÇÃO DE QUALIDADE - MECÂNICA"),
+        ("",    "CONTINUIDADE PONTO A PONTO FORCA","POSTO - 08: IQE -  INSPEÇÃO DE QUALIDADE - ELÉTRICA"),
+        ("",    "RESPONSAVEL",                    "POSTO - 08: TESTES - DADOS"),
+        ("",    "COMUNICADO A TRANSPORTADORA",    "POSTO - 09: EXPEDIÇÃO 01"),
+        ("",    "LIMPEZA",                         "POSTO - 09: EXPEDIÇÃO 02"),
+    
     ]
     inserted = set()
     zebra = False
