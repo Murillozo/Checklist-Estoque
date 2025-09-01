@@ -597,13 +597,18 @@ def checklist_pdf(filename):
                           for n in resp.get("Montador", [])
                           if n and n.strip()})
 
+    respondentes = dados.get("respondentes", {})
+    suprimento = respondentes.get("suprimento", "").strip()
+    producao = respondentes.get("produção", "").strip()
+
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
-        def __init__(self, obra='', ano='', suprimento='', montadores=None, *args, **kwargs):
+        def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
             self.suprimento = suprimento
+            self.producao = producao
             self.montadores = montadores or []
             # aumenta margem inferior para que a tabela não sobreponha o rodapé
             self.set_auto_page_break(auto=False, margin=20)
@@ -619,7 +624,7 @@ def checklist_pdf(filename):
             self.cell(0, 8, 'Checklist', align='C')
             self.set_font(base_font, '', 10)
             self.ln(6)
-            self.cell(0, 5, f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}", align='C')
+            self.cell(0, 5, f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}   Produção: {self.producao}", align='C')
             self.ln(5)
             if self.montadores:
                 nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
@@ -637,7 +642,8 @@ def checklist_pdf(filename):
     pdf = ChecklistPDF(
         obra=dados.get('obra', ''),
         ano=dados.get('ano', ''),
-        suprimento=dados.get('suprimento', ''),
+        suprimento=suprimento,
+        producao=producao,
         montadores=montadores,
         format='A4',
         orientation='P',
