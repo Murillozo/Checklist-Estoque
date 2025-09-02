@@ -11,7 +11,17 @@
 <p><a href="{{ url_for('projetista.checklist_diff', filename=filename) }}">Comparar com revisão anterior</a></p>
 {% endif %}
 
-<p><a href="{{ url_for('projetista.checklist_pdf', filename=filename) }}">Gerar PDF</a></p>
+<p><a href="#" onclick="gerarPDF('{{ url_for('projetista.checklist_pdf', filename=filename) }}'); return false;">Gerar PDF</a></p>
+
+<script>
+function gerarPDF(base){
+    const cidade=prompt('Cidade/Estado:');
+    if(cidade===null) return;
+    const projesta=prompt('Projesta:');
+    if(projesta===null) return;
+    window.location.href = base + '?cidade_estado=' + encodeURIComponent(cidade) + '&projesta=' + encodeURIComponent(projesta);
+}
+</script>
 
 <table class="table table-striped">
   <thead>

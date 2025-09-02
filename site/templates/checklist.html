@@ -83,8 +83,13 @@ function generatePDF(){
         alert('Selecione um arquivo primeiro');
         return;
     }
+    const cidade = prompt('Cidade/Estado:');
+    if(cidade===null) return;
+    const projesta = prompt('Projesta:');
+    if(projesta===null) return;
     const path = encodeURIComponent(currentFolder) + '/' + encodeURIComponent(currentFileName);
-    const url = "{{ url_for('projetista.checklist_pdf', filename='') }}" + path;
+    const base = "{{ url_for('projetista.checklist_pdf', filename='') }}" + path;
+    const url = base + `?cidade_estado=${encodeURIComponent(cidade)}&projesta=${encodeURIComponent(projesta)}`;
     window.location.href = url;
 }
 
