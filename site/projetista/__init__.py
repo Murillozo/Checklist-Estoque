@@ -586,6 +586,22 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
+    def _is_early_item(codigo: str) -> bool:
+        parts = (codigo or "").split(".")
+        if parts and parts[0] == "1" and len(parts) > 1:
+            try:
+                return 1 <= int(parts[1]) <= 14
+            except ValueError:
+                return False
+        return False
+
+    for g in grupos:
+        if _is_early_item(g.get("codigo", "")):
+            for resp in g["respostas"]:
+                resp.pop("Inspetor Logistica Montador Produção", None)
+            for sub in g["subitens"]:
+                sub["respostas"].pop("Inspetor Logistica Montador Produção", None)
+
     responsaveis = sorted({k for g in grupos
                            for resp in g["respostas"]
                            for k in resp})
