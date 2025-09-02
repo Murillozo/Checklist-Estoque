@@ -629,16 +629,36 @@ def checklist_pdf(filename):
     respondentes = dados.get("respondentes", {})
     suprimento = respondentes.get("suprimento", "").strip()
     producao = respondentes.get("produção", "").strip()
+    inspetor = respondentes.get("inspetor", "").strip()
+
+    cidade = dados.get("cidade", "").strip()
+    estado = dados.get("estado", "").strip()
+    if cidade and estado:
+        cidade_estado = f"{cidade}/{estado}"
+    else:
+        cidade_estado = cidade or estado
+    projesta = dados.get("projesta", "").strip()
+    data_geracao = datetime.now().strftime("%d/%m/%Y")
+    data_checklist = dados.get("data_checklist", data_geracao)
+
+
 
     # ---------- PDF ----------
-    class ChecklistPDF(FPDF):
-        def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None, *args, **kwargs):
+   class ChecklistPDF(FPDF):
+        def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
+                     cidade_estado='', projesta='', data_checklist='', inspetor='',
+                     data_geracao='', *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
             self.suprimento = suprimento
             self.producao = producao
             self.montadores = montadores or []
+            self.cidade_estado = cidade_estado
+            self.projesta = projesta
+            self.data_checklist = data_checklist
+            self.inspetor = inspetor
+            self.data_geracao = data_geracao
 
         def header(self):
             self.set_fill_color(25, 25, 112)
@@ -649,16 +669,25 @@ def checklist_pdf(filename):
             self.set_text_color(255, 255, 255)
             self.set_font(base_font, 'B', 16)
             self.cell(0, 8, 'Checklist', align='C')
-            self.set_font(base_font, '', 10)
-            self.ln(6)
-            self.cell(0, 5, f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}   Produção: {self.producao}", align='C')
-            self.ln(5)
-            if self.montadores:
-                nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
-                self.cell(0, 5, f"Montadores: {nomes}", align='C')
-                self.ln(5)
-            self.set_y(40)
+            self.set_y(30)
             self.set_text_color(0, 0, 0)
+            self.set_font(base_font, '', 10)
+            if self.page_no() == 1:
+                linhas = [
+                    f"Cidade/Estado: {self.cidade_estado}",
+                    f"Projesta: {self.projesta}",
+                    f"Data do Checklist: {self.data_checklist}",
+                    f"Inspetor: {self.inspetor}",
+                    f"Data de Geração do Checklist: {self.data_geracao}",
+                    f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}   Produção: {self.producao}",
+                ]
+                if self.montadores:
+                    nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
+                    linhas.append(f"Montadores: {nomes}")
+                for linha in linhas:
+                    self.cell(0, 5, linha, align='L')
+                    self.ln(5)
+            self.set_y(max(self.get_y(), 40))
 
         def footer(self):
             self.set_y(-15)
@@ -672,6 +701,11 @@ def checklist_pdf(filename):
         suprimento=suprimento,
         producao=producao,
         montadores=montadores,
+        cidade_estado=cidade_estado,
+        projesta=projesta,
+        data_checklist=data_checklist,
+        inspetor=inspetor,
+        data_geracao=data_geracao,
         format='A4',
         orientation='P',
         unit='mm'
@@ -890,7 +924,7 @@ def checklist_pdf(filename):
 
             if zebra:
                 pdf.set_fill_color(*zebra_rgb)
-                pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
+                pdf.rect(left_margin, pdf.get_y(), total_w, h, 'F')
             zebra = not zebra
 
             x0 = left_margin
