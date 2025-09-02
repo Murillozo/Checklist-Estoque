@@ -594,7 +594,6 @@ def checklist_pdf(filename):
             except ValueError:
                 return False
         return False
-
     for g in grupos:
         if _is_early_item(g.get("codigo", "")):
             for resp in g.get("respostas", []):
