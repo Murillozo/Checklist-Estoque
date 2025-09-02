@@ -692,24 +692,45 @@ def checklist_pdf(filename):
             self.set_text_color(255, 255, 255)
             self.set_font(base_font, 'B', 16)
             self.cell(0, 8, 'Checklist', align='C')
+
+            # Texto do cabeçalho (apenas na primeira página)
             self.set_y(30)
             self.set_text_color(0, 0, 0)
             self.set_font(base_font, '', 10)
             if self.page_no() == 1:
-                linhas = [
+                left_info = [
                     f"Cidade/Estado: {self.cidade_estado}",
                     f"Projesta: {self.projesta}",
                     f"Data do Checklist: {self.data_checklist}",
                     f"Inspetor: {self.inspetor}",
-                    f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}   Produção: {self.producao}",
                 ]
-                if self.montadores:
-                    nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
-                    linhas.append(f"Montadores: {nomes}")
-                for linha in linhas:
-                    self.cell(0, 5, linha, align='L')
-                    self.ln(5)
-            self.set_y(max(self.get_y(), 40))
+                right_info = [
+                    f"Obra: {self.obra}",
+                    f"Ano: {self.ano}",
+                    f"Suprimento: {self.suprimento}",
+                    f"Produção: {self.producao}",
+                ]
+
+                left_margin = self.l_margin
+                right_margin = self.r_margin
+                usable_w = self.w - left_margin - right_margin
+                gutter = 8
+                col_w = (usable_w - gutter) / 2
+                row_h = 5
+                x_left = left_margin
+                x_right = left_margin + col_w + gutter
+                y0 = self.get_y()
+
+                for i in range(4):
+                    # coluna esquerda
+                    self.set_xy(x_left, y0 + i * row_h)
+                    self.cell(col_w, row_h, left_info[i], border=0)
+                    # coluna direita
+                    self.set_xy(x_right, y0 + i * row_h)
+                    self.cell(col_w, row_h, right_info[i], border=0)
+
+                # dá um respiro antes da tabela
+                self.set_y(y0 + 4 * row_h + 3)
 
         def footer(self):
             self.set_y(-15)
