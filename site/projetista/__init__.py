@@ -595,12 +595,22 @@ def checklist_pdf(filename):
                 return False
         return False
 
+    roles_to_remove = {
+        "Inspetor Logistica Montador Produção",
+        "Inspetor",
+        "Logistica",
+        "Montador",
+        "Produção",
+    }
+
     for g in grupos:
         if _is_early_item(g.get("codigo", "")):
             for resp in g["respostas"]:
-                resp.pop("Inspetor Logistica Montador Produção", None)
+                for role in roles_to_remove:
+                    resp.pop(role, None)
             for sub in g["subitens"]:
-                sub["respostas"].pop("Inspetor Logistica Montador Produção", None)
+                for role in roles_to_remove:
+                    sub["respostas"].pop(role, None)
 
     responsaveis = sorted({k for g in grupos
                            for resp in g["respostas"]
