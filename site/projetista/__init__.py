@@ -639,8 +639,6 @@ def checklist_pdf(filename):
             self.suprimento = suprimento
             self.producao = producao
             self.montadores = montadores or []
-            # aumenta margem inferior para que a tabela não sobreponha o rodapé
-            self.set_auto_page_break(auto=False, margin=20)
 
         def header(self):
             self.set_fill_color(25, 25, 112)
@@ -679,6 +677,9 @@ def checklist_pdf(filename):
         unit='mm'
     )
 
+    pdf.set_margins(l=6, t=35, r=6)
+    pdf.set_auto_page_break(auto=False, margin=20)
+
     # Fontes (Unicode)
     # Coloque "DejaVuSans.ttf" ao lado deste arquivo (projetista/__init__.py)
     base_font = 'Arial'
@@ -702,7 +703,7 @@ def checklist_pdf(filename):
     dash_char = "—" if base_font == "DejaVu" else "-"
 
     # ---------- Layout / medidas ----------
-    left_margin = pdf.l_margin  # padrão 10 mm
+    left_margin = pdf.l_margin
     right_margin = pdf.r_margin
     usable_w = pdf.w - left_margin - right_margin
 
@@ -714,14 +715,21 @@ def checklist_pdf(filename):
     zebra_rgb = (247, 247, 247)
 
     def _calc_widths(responsaveis_atual):
-        col_w_item = 135.0
         count = len(responsaveis_atual)
-        col_w_resp = max(22.0, min(28.0, (usable_w - col_w_item) / count)) if count else 0.0
-        total_w = col_w_item + col_w_resp * count
-        if total_w > usable_w:
-            excesso = total_w - usable_w
-            col_w_item = max(80.0, col_w_item - excesso)
-            total_w = col_w_item + col_w_resp * count
+        if not count:
+            return usable_w, 0.0, usable_w
+        col_w_item = 135.0
+        col_w_resp = (usable_w - col_w_item) / count
+        if col_w_resp > 28.0:
+            col_w_resp = 28.0
+            col_w_item = usable_w - col_w_resp * count
+        elif col_w_resp < 22.0:
+            col_w_resp = 22.0
+            col_w_item = usable_w - col_w_resp * count
+            if col_w_item < 80.0:
+                col_w_item = 80.0
+                col_w_resp = (usable_w - col_w_item) / count
+        total_w = usable_w
         return col_w_item, col_w_resp, total_w
 
     def _wrap_lines(txt: str, width_mm: float):
@@ -783,9 +791,7 @@ def checklist_pdf(filename):
     def _section_row(title: str, responsaveis_atual):
         nonlocal zebra
         h = _row_height(title)
-        top_gap = line_h
-        _maybe_page_break(top_gap + h + line_h, need_header=False)
-        pdf.ln(top_gap)
+        _maybe_page_break(h + line_h, need_header=False)
         pdf.set_fill_color(*header_fill_rgb)
         pdf.rect(left_margin, pdf.get_y(), total_w, h, 'F')
         pdf.set_xy(left_margin + cell_pad, pdf.get_y() + 1)
@@ -869,7 +875,7 @@ def checklist_pdf(filename):
         for idx, sub in enumerate(subitens):
             item_text = base_item if idx == 0 else ""
             if sub["subitem"]:
-                prefix = ("\n\n" if item_text else "")
+                prefix = ("\n" if item_text else "")
                 item_text += f"{prefix}{bullet_char} {sub['subitem']}"
             elif not item_text:
                 item_text = dash_char
@@ -884,7 +890,7 @@ def checklist_pdf(filename):
 
             if zebra:
                 pdf.set_fill_color(*zebra_rgb)
-                pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(current_roles), h, 'F')
+                pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
             zebra = not zebra
 
             x0 = left_margin
