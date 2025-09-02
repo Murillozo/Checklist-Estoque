@@ -586,24 +586,57 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
+    def _is_early_item(codigo: str) -> bool:
+        parts = (codigo or "").split(".")
+        if parts and parts[0] == "1" and len(parts) > 1:
+            try:
+                return 1 <= int(parts[1]) <= 14
+            except ValueError:
+                return False
+        return False
+
+    for g in grupos:
+        if _is_early_item(g.get("codigo", "")):
+            for resp in g["respostas"]:
+                resp.pop("Inspetor Logistica Montador Produção", None)
+            for sub in g["subitens"]:
+                sub["respostas"].pop("Inspetor Logistica Montador Produção", None)
+
     responsaveis = sorted({k for g in grupos
                            for resp in g["respostas"]
                            for k in resp})
     if not responsaveis:
         responsaveis = ["Suprimento", "Produção"]
 
-    montadores = sorted({n.strip() for g in grupos
-                          for resp in g["respostas"]
-                          for n in resp.get("Montador", [])
-                          if n and n.strip()})
+    def _coletar_montadores(node):
+        nomes = set()
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k.lower() == "montador" and isinstance(v, str):
+                    nome = v.strip()
+                    if nome:
+                        nomes.add(nome)
+                else:
+                    nomes.update(_coletar_montadores(v))
+        elif isinstance(node, list):
+            for elem in node:
+                nomes.update(_coletar_montadores(elem))
+        return nomes
+
+    montadores = sorted(_coletar_montadores(dados))
+
+    respondentes = dados.get("respondentes", {})
+    suprimento = respondentes.get("suprimento", "").strip()
+    producao = respondentes.get("produção", "").strip()
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
-        def __init__(self, obra='', ano='', suprimento='', montadores=None, *args, **kwargs):
+        def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
             self.suprimento = suprimento
+            self.producao = producao
             self.montadores = montadores or []
             # aumenta margem inferior para que a tabela não sobreponha o rodapé
             self.set_auto_page_break(auto=False, margin=20)
@@ -619,7 +652,7 @@ def checklist_pdf(filename):
             self.cell(0, 8, 'Checklist', align='C')
             self.set_font(base_font, '', 10)
             self.ln(6)
-            self.cell(0, 5, f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}", align='C')
+            self.cell(0, 5, f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}   Produção: {self.producao}", align='C')
             self.ln(5)
             if self.montadores:
                 nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
@@ -637,7 +670,8 @@ def checklist_pdf(filename):
     pdf = ChecklistPDF(
         obra=dados.get('obra', ''),
         ano=dados.get('ano', ''),
-        suprimento=dados.get('suprimento', ''),
+        suprimento=suprimento,
+        producao=producao,
         montadores=montadores,
         format='A4',
         orientation='P',
@@ -837,8 +871,8 @@ def checklist_pdf(filename):
 
             cur_x = x0 + col_w_item
             for val in roles_vals:
-                pdf.set_xy(cur_x + cell_pad, y0 + 1)
-                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
+                pdf.set_xy(cur_x, y0)
+                pdf.cell(col_w_resp, h, val, border=0, align='C')
                 cur_x += col_w_resp
 
             pdf.set_xy(left_margin, y0 + h)
