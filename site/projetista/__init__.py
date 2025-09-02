@@ -493,6 +493,22 @@ def checklist_pdf(filename):
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
 
+    def _encontrar_inspetor(node):
+        if isinstance(node, dict):
+            v = node.get("inspetor")
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+            for _, val in node.items():
+                res = _encontrar_inspetor(val)
+                if res:
+                    return res
+        elif isinstance(node, list):
+            for elem in node:
+                res = _encontrar_inspetor(elem)
+                if res:
+                    return res
+        return ""
+
     import unicodedata
 
     def _norm(s: str) -> str:
@@ -638,7 +654,7 @@ def checklist_pdf(filename):
     respondentes = dados.get("respondentes", {})
     suprimento = respondentes.get("suprimento", "").strip()
     producao = respondentes.get("produção", "").strip()
-    inspetor = respondentes.get("inspetor", "").strip()
+    inspetor = _encontrar_inspetor(dados)
 
     cidade_estado = request.args.get("cidade_estado", "").strip()
     if not cidade_estado:
@@ -649,14 +665,13 @@ def checklist_pdf(filename):
         else:
             cidade_estado = cidade or estado
     projesta = request.args.get("projesta", "").strip() or dados.get("projesta", "").strip()
-    data_geracao = datetime.now().strftime("%d/%m/%Y")
-    data_checklist = dados.get("data_checklist", data_geracao)
+    data_checklist = dados.get("data_checklist", datetime.now().strftime("%d/%m/%Y"))
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
                      cidade_estado='', projesta='', data_checklist='', inspetor='',
-                     data_geracao='', *args, **kwargs):
+                     *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
@@ -667,7 +682,6 @@ def checklist_pdf(filename):
             self.projesta = projesta
             self.data_checklist = data_checklist
             self.inspetor = inspetor
-            self.data_geracao = data_geracao
 
         def header(self):
             self.set_fill_color(25, 25, 112)
@@ -687,7 +701,6 @@ def checklist_pdf(filename):
                     f"Projesta: {self.projesta}",
                     f"Data do Checklist: {self.data_checklist}",
                     f"Inspetor: {self.inspetor}",
-                    f"Data de Geração do Checklist: {self.data_geracao}",
                     f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}   Produção: {self.producao}",
                 ]
                 if self.montadores:
@@ -714,7 +727,6 @@ def checklist_pdf(filename):
         projesta=projesta,
         data_checklist=data_checklist,
         inspetor=inspetor,
-        data_geracao=data_geracao,
         format='A4',
         orientation='P',
         unit='mm'
