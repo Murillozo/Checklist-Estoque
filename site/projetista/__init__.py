@@ -890,7 +890,7 @@ def checklist_pdf(filename):
 
             if zebra:
                 pdf.set_fill_color(*zebra_rgb)
-                pdf.rect(left_margin, pdf.get_y(), total_w, h, 'F')
+                pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
             zebra = not zebra
 
             x0 = left_margin
