@@ -654,7 +654,7 @@ def checklist_pdf(filename):
 
 
     # ---------- PDF ----------
-   class ChecklistPDF(FPDF):
+    class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
                      cidade_estado='', projesta='', data_checklist='', inspetor='',
                      data_geracao='', *args, **kwargs):
