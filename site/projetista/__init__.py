@@ -595,28 +595,19 @@ def checklist_pdf(filename):
                 return False
         return False
 
-    roles_to_remove = {
-        "Inspetor Logistica Montador Produção",
-        "Inspetor",
-        "Logistica",
-        "Montador",
-        "Produção",
-    }
-
     for g in grupos:
         if _is_early_item(g.get("codigo", "")):
-            for resp in g["respostas"]:
-                for role in roles_to_remove:
-                    resp.pop(role, None)
-            for sub in g["subitens"]:
-                for role in roles_to_remove:
-                    sub["respostas"].pop(role, None)
-
-    responsaveis = sorted({k for g in grupos
-                           for resp in g["respostas"]
-                           for k in resp})
-    if not responsaveis:
-        responsaveis = ["Suprimento", "Produção"]
+            for resp in g.get("respostas", []):
+                for k in list(resp.keys()):
+                    v = resp[k]
+                    if v is None or (isinstance(v, list) and not any(str(x).strip() for x in v)):
+                        del resp[k]
+            for sub in g.get("subitens", []):
+                resp = sub.get("respostas", {})
+                for k in list(resp.keys()):
+                    v = resp[k]
+                    if v is None or (isinstance(v, list) and not any(str(x).strip() for x in v)):
+                        del resp[k]
 
     def _coletar_montadores(node):
         nomes = set()
@@ -715,20 +706,23 @@ def checklist_pdf(filename):
     right_margin = pdf.r_margin
     usable_w = pdf.w - left_margin - right_margin
 
-    # largura combinada para código + item + subitem
-    col_w_item = 135.0
-    # cada responsável ~22–28 mm
-    col_w_resp = max(22.0, min(28.0, (usable_w - col_w_item) / max(1, len(responsaveis))))
-    total_w = col_w_item + col_w_resp * len(responsaveis)
-    if total_w > usable_w:
-        # comprime a coluna de item proporcionalmente
-        excesso = total_w - usable_w
-        col_w_item = max(80.0, col_w_item - excesso)
+    col_w_item = col_w_resp = total_w = 0.0
 
     line_h = 6.0
     cell_pad = 2.0
     header_fill_rgb = (235, 235, 235)
     zebra_rgb = (247, 247, 247)
+
+    def _calc_widths(responsaveis_atual):
+        col_w_item = 135.0
+        count = len(responsaveis_atual)
+        col_w_resp = max(22.0, min(28.0, (usable_w - col_w_item) / count)) if count else 0.0
+        total_w = col_w_item + col_w_resp * count
+        if total_w > usable_w:
+            excesso = total_w - usable_w
+            col_w_item = max(80.0, col_w_item - excesso)
+            total_w = col_w_item + col_w_resp * count
+        return col_w_item, col_w_resp, total_w
 
     def _wrap_lines(txt: str, width_mm: float):
         """Quebra em linhas para caber no width_mm atual (estimativa via get_string_width)."""
@@ -756,22 +750,23 @@ def checklist_pdf(filename):
         max_lines = max(len(lines), 1)
         return max(line_h * max_lines, line_h)
 
-    def _header_row():
+    current_roles = []
+
+    def _header_row(responsaveis_atual):
+        _maybe_page_break(line_h, need_header=False)
         x = left_margin
         y = pdf.get_y()
         pdf.set_fill_color(*header_fill_rgb)
         pdf.set_font(base_font, 'B', 10)
-        # fundo do cabeçalho
         pdf.rect(x, y, col_w_item, line_h, 'F')
         cur_x = x + col_w_item
-        for _ in responsaveis:
+        for _ in responsaveis_atual:
             pdf.rect(cur_x, y, col_w_resp, line_h, 'F')
             cur_x += col_w_resp
-        # textos
         pdf.set_xy(x + cell_pad, y + 1)
         pdf.cell(col_w_item - 2 * cell_pad, line_h - 2, 'Item', border=0)
         cur_x = x + col_w_item
-        for r in responsaveis:
+        for r in responsaveis_atual:
             pdf.set_xy(cur_x + cell_pad, y + 1)
             pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, r.title(), border=0, align='C')
             cur_x += col_w_resp
@@ -782,25 +777,35 @@ def checklist_pdf(filename):
         bottom_y = pdf.h - pdf.b_margin
         if pdf.get_y() + row_h > bottom_y:
             pdf.add_page()
-            if need_header:
-                _header_row()
+            if need_header and current_roles:
+                _header_row(current_roles)
 
-    def _section_row(title: str):
+    def _section_row(title: str, responsaveis_atual):
         nonlocal zebra
         h = _row_height(title)
         top_gap = line_h
         _maybe_page_break(top_gap + h + line_h, need_header=False)
         pdf.ln(top_gap)
         pdf.set_fill_color(*header_fill_rgb)
-        total_w = col_w_item + col_w_resp * len(responsaveis)
         pdf.rect(left_margin, pdf.get_y(), total_w, h, 'F')
         pdf.set_xy(left_margin + cell_pad, pdf.get_y() + 1)
         pdf.set_font(base_font, 'B', 10)
         pdf.cell(total_w - 2 * cell_pad, line_h - 2, title, border=0)
         pdf.ln(h)
-        pdf.set_font(base_font, '', 10)
-        _header_row()
+        pdf.set_font(base_font, '', 7)
         zebra = False
+
+    def _roles_present_in_group(g):
+        roles = set()
+        for sub in g.get("subitens", []):
+            for k, v in (sub.get("respostas") or {}).items():
+                if isinstance(v, list):
+                    if any(str(x).strip() for x in v):
+                        roles.add(k)
+                else:
+                    if str(v).strip():
+                        roles.add(k)
+        return sorted(roles)
 
     # ---------- Tabela ----------
     sections_to_insert = [
@@ -830,6 +835,16 @@ def checklist_pdf(filename):
         base_item = f"{codigo} - {item}" if codigo else item
         item_norm = _norm(item)
 
+        roles_this = _roles_present_in_group(g)
+        if _is_early_item(codigo) and not roles_this:
+            roles_this = ["suprimento"]
+        header_needed = False
+        if roles_this != current_roles:
+            col_w_item, col_w_resp, total_w = _calc_widths(roles_this)
+            current_roles = roles_this
+            header_needed = True
+            zebra = False
+
         for cod_alvo, substr_item, titulo in sections_to_insert:
             key = (cod_alvo, substr_item, titulo)
             if key in inserted:
@@ -842,8 +857,12 @@ def checklist_pdf(filename):
                 elif titulo == "POSTO - 04: BARRAMENTO - Identificação":
                     while pdf.page_no() < 6:
                         pdf.add_page()
-                _section_row(titulo)
+                _section_row(titulo, roles_this)
+                header_needed = True
                 inserted.add(key)
+
+        if header_needed:
+            _header_row(current_roles)
 
         subitens = g["subitens"] or [{"subitem": "", "respostas": {}}]
 
@@ -856,7 +875,7 @@ def checklist_pdf(filename):
                 item_text = dash_char
 
             roles_vals = []
-            for role in responsaveis:
+            for role in current_roles:
                 vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
                 roles_vals.append(", ".join(vals) if vals else box_char)
 
@@ -865,14 +884,14 @@ def checklist_pdf(filename):
 
             if zebra:
                 pdf.set_fill_color(*zebra_rgb)
-                pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(responsaveis), h, 'F')
+                pdf.rect(left_margin, pdf.get_y(), col_w_item + col_w_resp * len(current_roles), h, 'F')
             zebra = not zebra
 
             x0 = left_margin
             y0 = pdf.get_y()
             pdf.rect(x0, y0, col_w_item, h)
             cur_x = x0 + col_w_item
-            for _ in responsaveis:
+            for _ in current_roles:
                 pdf.rect(cur_x, y0, col_w_resp, h)
                 cur_x += col_w_resp
 
