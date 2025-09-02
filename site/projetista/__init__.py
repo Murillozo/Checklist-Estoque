@@ -493,6 +493,22 @@ def checklist_pdf(filename):
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
 
+    def _encontrar_inspetor(node):
+        if isinstance(node, dict):
+            v = node.get("inspetor")
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+            for _, val in node.items():
+                res = _encontrar_inspetor(val)
+                if res:
+                    return res
+        elif isinstance(node, list):
+            for elem in node:
+                res = _encontrar_inspetor(elem)
+                if res:
+                    return res
+        return ""
+
     import unicodedata
 
     def _norm(s: str) -> str:
@@ -638,7 +654,7 @@ def checklist_pdf(filename):
     respondentes = dados.get("respondentes", {})
     suprimento = respondentes.get("suprimento", "").strip()
     producao = respondentes.get("produção", "").strip()
-    inspetor = respondentes.get("inspetor", "").strip()
+    inspetor = _encontrar_inspetor(dados)
 
     cidade_estado = request.args.get("cidade_estado", "").strip()
     if not cidade_estado:
@@ -649,14 +665,13 @@ def checklist_pdf(filename):
         else:
             cidade_estado = cidade or estado
     projesta = request.args.get("projesta", "").strip() or dados.get("projesta", "").strip()
-    data_geracao = datetime.now().strftime("%d/%m/%Y")
-    data_checklist = dados.get("data_checklist", data_geracao)
+    data_checklist = dados.get("data_checklist", datetime.now().strftime("%d/%m/%Y"))
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
                      cidade_estado='', projesta='', data_checklist='', inspetor='',
-                     data_geracao='', *args, **kwargs):
+                     *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
@@ -667,7 +682,6 @@ def checklist_pdf(filename):
             self.projesta = projesta
             self.data_checklist = data_checklist
             self.inspetor = inspetor
-            self.data_geracao = data_geracao
 
         def header(self):
             self.set_fill_color(25, 25, 112)
@@ -678,25 +692,45 @@ def checklist_pdf(filename):
             self.set_text_color(255, 255, 255)
             self.set_font(base_font, 'B', 16)
             self.cell(0, 8, 'Checklist', align='C')
+
+            # Texto do cabeçalho (apenas na primeira página)
             self.set_y(30)
             self.set_text_color(0, 0, 0)
             self.set_font(base_font, '', 10)
             if self.page_no() == 1:
-                linhas = [
+                left_info = [
                     f"Cidade/Estado: {self.cidade_estado}",
                     f"Projesta: {self.projesta}",
                     f"Data do Checklist: {self.data_checklist}",
                     f"Inspetor: {self.inspetor}",
-                    f"Data de Geração do Checklist: {self.data_geracao}",
-                    f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}   Produção: {self.producao}",
                 ]
-                if self.montadores:
-                    nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
-                    linhas.append(f"Montadores: {nomes}")
-                for linha in linhas:
-                    self.cell(0, 5, linha, align='L')
-                    self.ln(5)
-            self.set_y(max(self.get_y(), 40))
+                right_info = [
+                    f"Obra: {self.obra}",
+                    f"Ano: {self.ano}",
+                    f"Suprimento: {self.suprimento}",
+                    f"Produção: {self.producao}",
+                ]
+
+                left_margin = self.l_margin
+                right_margin = self.r_margin
+                usable_w = self.w - left_margin - right_margin
+                gutter = 8
+                col_w = (usable_w - gutter) / 2
+                row_h = 5
+                x_left = left_margin
+                x_right = left_margin + col_w + gutter
+                y0 = self.get_y()
+
+                for i in range(4):
+                    # coluna esquerda
+                    self.set_xy(x_left, y0 + i * row_h)
+                    self.cell(col_w, row_h, left_info[i], border=0)
+                    # coluna direita
+                    self.set_xy(x_right, y0 + i * row_h)
+                    self.cell(col_w, row_h, right_info[i], border=0)
+
+                # dá um respiro antes da tabela
+                self.set_y(y0 + 4 * row_h + 3)
 
         def footer(self):
             self.set_y(-15)
@@ -714,7 +748,6 @@ def checklist_pdf(filename):
         projesta=projesta,
         data_checklist=data_checklist,
         inspetor=inspetor,
-        data_geracao=data_geracao,
         format='A4',
         orientation='P',
         unit='mm'
