@@ -600,13 +600,23 @@ def checklist_pdf(filename):
             for resp in g.get("respostas", []):
                 for k in list(resp.keys()):
                     v = resp[k]
-                    if v is None or (isinstance(v, list) and not any(str(x).strip() for x in v)):
+                    norm_k = _norm(k)
+                    if (
+                        norm_k == "INSPETOR LOGISTICA MONTADOR PRODUCAO"
+                        or v is None
+                        or (isinstance(v, list) and not any(str(x).strip() for x in v))
+                    ):
                         del resp[k]
             for sub in g.get("subitens", []):
                 resp = sub.get("respostas", {})
                 for k in list(resp.keys()):
                     v = resp[k]
-                    if v is None or (isinstance(v, list) and not any(str(x).strip() for x in v)):
+                    norm_k = _norm(k)
+                    if (
+                        norm_k == "INSPETOR LOGISTICA MONTADOR PRODUCAO"
+                        or v is None
+                        or (isinstance(v, list) and not any(str(x).strip() for x in v))
+                    ):
                         del resp[k]
 
     def _coletar_montadores(node):
