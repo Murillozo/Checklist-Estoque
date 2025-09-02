@@ -641,8 +641,10 @@ def checklist_pdf(filename):
     data_geracao = datetime.now().strftime("%d/%m/%Y")
     data_checklist = dados.get("data_checklist", data_geracao)
 
+
+
     # ---------- PDF ----------
-    class ChecklistPDF(FPDF):
+   class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
                      cidade_estado='', projesta='', data_checklist='', inspetor='',
                      data_geracao='', *args, **kwargs):
