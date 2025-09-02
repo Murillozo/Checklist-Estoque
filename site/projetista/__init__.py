@@ -586,7 +586,6 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
-
     def _is_early_item(codigo: str) -> bool:
         parts = (codigo or "").split(".")
         if parts and parts[0] == "1" and len(parts) > 1:
@@ -595,7 +594,6 @@ def checklist_pdf(filename):
             except ValueError:
                 return False
         return False
-
     for g in grupos:
         if _is_early_item(g.get("codigo", "")):
             for resp in g.get("respostas", []):
@@ -642,16 +640,17 @@ def checklist_pdf(filename):
     producao = respondentes.get("produção", "").strip()
     inspetor = respondentes.get("inspetor", "").strip()
 
-    cidade = dados.get("cidade", "").strip()
-    estado = dados.get("estado", "").strip()
-    if cidade and estado:
-        cidade_estado = f"{cidade}/{estado}"
-    else:
-        cidade_estado = cidade or estado
-    projesta = dados.get("projesta", "").strip()
+    cidade_estado = request.args.get("cidade_estado", "").strip()
+    if not cidade_estado:
+        cidade = dados.get("cidade", "").strip()
+        estado = dados.get("estado", "").strip()
+        if cidade and estado:
+            cidade_estado = f"{cidade}/{estado}"
+        else:
+            cidade_estado = cidade or estado
+    projesta = request.args.get("projesta", "").strip() or dados.get("projesta", "").strip()
     data_geracao = datetime.now().strftime("%d/%m/%Y")
     data_checklist = dados.get("data_checklist", data_geracao)
-
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
