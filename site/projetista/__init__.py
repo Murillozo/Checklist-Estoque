@@ -493,6 +493,22 @@ def checklist_pdf(filename):
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
 
+    def _encontrar_inspetor(node):
+        if isinstance(node, dict):
+            v = node.get("inspetor")
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+            for _, val in node.items():
+                res = _encontrar_inspetor(val)
+                if res:
+                    return res
+        elif isinstance(node, list):
+            for elem in node:
+                res = _encontrar_inspetor(elem)
+                if res:
+                    return res
+        return ""
+
     import unicodedata
 
     def _norm(s: str) -> str:
@@ -638,7 +654,7 @@ def checklist_pdf(filename):
     respondentes = dados.get("respondentes", {})
     suprimento = respondentes.get("suprimento", "").strip()
     producao = respondentes.get("produção", "").strip()
-    inspetor = respondentes.get("inspetor", "").strip()
+    inspetor = _encontrar_inspetor(dados)
 
     cidade_estado = request.args.get("cidade_estado", "").strip()
     if not cidade_estado:
@@ -649,14 +665,13 @@ def checklist_pdf(filename):
         else:
             cidade_estado = cidade or estado
     projesta = request.args.get("projesta", "").strip() or dados.get("projesta", "").strip()
-    data_geracao = datetime.now().strftime("%d/%m/%Y")
-    data_checklist = dados.get("data_checklist", data_geracao)
+    data_checklist = dados.get("data_checklist", datetime.now().strftime("%d/%m/%Y"))
 
     # ---------- PDF ----------
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
                      cidade_estado='', projesta='', data_checklist='', inspetor='',
-                     data_geracao='', *args, **kwargs):
+                     *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
             self.ano = ano
@@ -667,36 +682,87 @@ def checklist_pdf(filename):
             self.projesta = projesta
             self.data_checklist = data_checklist
             self.inspetor = inspetor
-            self.data_geracao = data_geracao
 
         def header(self):
+            # Faixa superior (azul) + logo + título
             self.set_fill_color(25, 25, 112)
             self.rect(0, 0, self.w, 25, 'F')
-            self.set_y(5)
             if os.path.exists(LOGO_PATH):
                 self.image(LOGO_PATH, x=10, y=5, w=40)
+
             self.set_text_color(255, 255, 255)
             self.set_font(base_font, 'B', 16)
-            self.cell(0, 8, 'Checklist', align='C')
-            self.set_y(30)
+            self.set_y(6)
+            self.cell(0, 9, 'Checklist', align='C')
+
+            # Só exibe o cartão com informações na primeira página
+            if self.page_no() != 1:
+                self.set_y(30)
+                return
+
+            # ---------- Cartão centralizado com os campos ----------
+            info_items = [
+                ("Cidade/Estado", self.cidade_estado or "-"),
+                ("Obra",          self.obra or "-"),
+                ("Ano",           str(self.ano or "-")),
+                ("Data do Checklist", self.data_checklist or "-"),
+                ("Projesta",      self.projesta or "-"),
+                ("Inspetor",      self.inspetor or "-"),
+                ("Suprimento",    self.suprimento or "-"),
+                ("Produção",      self.producao or "-"),
+            ]
+
+            # Medidas do grid
             self.set_text_color(0, 0, 0)
-            self.set_font(base_font, '', 10)
-            if self.page_no() == 1:
-                linhas = [
-                    f"Cidade/Estado: {self.cidade_estado}",
-                    f"Projesta: {self.projesta}",
-                    f"Data do Checklist: {self.data_checklist}",
-                    f"Inspetor: {self.inspetor}",
-                    f"Data de Geração do Checklist: {self.data_geracao}",
-                    f"Obra: {self.obra}   Ano: {self.ano}   Suprimento: {self.suprimento}   Produção: {self.producao}",
-                ]
-                if self.montadores:
-                    nomes = ", ".join(f"{i+1}) {n}" for i, n in enumerate(self.montadores))
-                    linhas.append(f"Montadores: {nomes}")
-                for linha in linhas:
-                    self.cell(0, 5, linha, align='L')
-                    self.ln(5)
-            self.set_y(max(self.get_y(), 40))
+            self.set_y(30)
+
+            left_margin  = self.l_margin
+            right_margin = self.r_margin
+            usable_w     = self.w - left_margin - right_margin
+
+            cols   = 4
+            gap    = 3.0                 # espaçamento entre células
+            grid_w = min(usable_w, 190)  # largura total do cartão
+            cell_w = (grid_w - gap * (cols - 1)) / cols
+            cell_h = 12.0                # altura de cada célula
+
+            # Centraliza o cartão
+            x0 = (self.w - grid_w) / 2.0
+            y0 = self.get_y()
+
+            # Moldura do cartão (leve)
+            total_rows = (len(info_items) + cols - 1) // cols
+            card_h = total_rows * cell_h + (total_rows - 1) * gap
+            self.set_draw_color(210, 210, 210)
+            self.set_fill_color(250, 250, 250)
+            self.rect(x0 - 2, y0 - 2, grid_w + 4, card_h + 4, 'D')
+
+            # Células (label pequeno + valor bold centralizado)
+            for idx, (label, value) in enumerate(info_items):
+                row = idx // cols
+                col = idx % cols
+                x = x0 + col * (cell_w + gap)
+                y = y0 + row * (cell_h + gap)
+
+                # Fundo da célula
+                self.set_draw_color(230, 230, 230)
+                self.set_fill_color(245, 245, 245)
+                self.rect(x, y, cell_w, cell_h, 'DF')
+
+                # Label
+                self.set_font(base_font, '', 7)
+                self.set_text_color(90, 90, 90)
+                self.set_xy(x, y + 1.2)
+                self.cell(cell_w, 3.2, label, border=0, align='C')
+
+                # Valor
+                self.set_font(base_font, 'B', 10)
+                self.set_text_color(0, 0, 0)
+                self.set_xy(x + 1, y + 4.4)
+                self.cell(cell_w - 2, cell_h - 5, str(value), border=0, align='C')
+
+            # Respiro abaixo do cartão antes da tabela
+            self.set_y(y0 + card_h + 7)
 
         def footer(self):
             self.set_y(-15)
@@ -714,13 +780,12 @@ def checklist_pdf(filename):
         projesta=projesta,
         data_checklist=data_checklist,
         inspetor=inspetor,
-        data_geracao=data_geracao,
         format='A4',
         orientation='P',
         unit='mm'
     )
 
-    pdf.set_margins(left=6, top=35, right=6)
+    pdf.set_margins(left=6, top=40, right=6)
     pdf.set_auto_page_break(auto=False, margin=20)
 
     # Fontes (Unicode)
