@@ -785,7 +785,7 @@ def checklist_pdf(filename):
         unit='mm'
     )
 
-    pdf.set_margins(left=6, top=40, right=6)
+    pdf.set_margins(left=6, top=35, right=6)
     pdf.set_auto_page_break(auto=False, margin=20)
 
     # Fontes (Unicode)
