@@ -177,7 +177,9 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                         else -> ""
                     }
                 )
-                obj.put("resposta", resp)
+                val respostas = JSONObject()
+                respostas.put("producao", resp)
+                obj.put("respostas", respostas)
                 itens.put(obj)
             }
             val payload = JSONObject()
