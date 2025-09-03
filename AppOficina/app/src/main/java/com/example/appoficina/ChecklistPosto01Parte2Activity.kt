@@ -20,7 +20,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val ano = intent.getStringExtra("ano") ?: ""
         val producao = intent.getStringExtra("producao") ?: ""
 
-        val triplets = (55..74).map { i ->
+        val triplets = (55..128).map { i ->
             val cId = resources.getIdentifier("cbQ${i}C", "id", packageName)
             val ncId = resources.getIdentifier("cbQ${i}NC", "id", packageName)
             val naId = resources.getIdentifier("cbQ${i}NA", "id", packageName)
