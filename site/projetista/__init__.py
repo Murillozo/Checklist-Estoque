@@ -721,13 +721,18 @@ def checklist_pdf(filename):
                 x_right = left_margin + col_w + gutter
                 y0 = self.get_y()
 
+                self.set_fill_color(235, 235, 235)
+                self.set_line_width(0.1)
                 for i in range(4):
+                    border = 'LRT'
+                    if i == 3:
+                        border += 'B'
                     # coluna esquerda
                     self.set_xy(x_left, y0 + i * row_h)
-                    self.cell(col_w, row_h, left_info[i], border=0)
+                    self.cell(col_w, row_h, left_info[i], border=border, fill=True)
                     # coluna direita
                     self.set_xy(x_right, y0 + i * row_h)
-                    self.cell(col_w, row_h, right_info[i], border=0)
+                    self.cell(col_w, row_h, right_info[i], border=border, fill=True)
 
                 # dá um respiro antes da tabela
                 self.set_y(y0 + 4 * row_h + 3)
