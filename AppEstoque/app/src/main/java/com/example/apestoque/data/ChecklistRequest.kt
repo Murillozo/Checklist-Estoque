@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 data class ChecklistItem(
     val numero: Int,
     val pergunta: String,
-    val resposta: List<String>
+    val respostas: Map<String, List<String>>
 )
 
 @JsonClass(generateAdapter = true)

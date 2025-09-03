@@ -11,7 +11,7 @@ object JsonNetworkModule {
         val ip = context.getSharedPreferences("app", Context.MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
         val moshi = Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
+            .addLast(KotlinJsonAdapterFactory())
             .build()
         val retrofit = Retrofit.Builder()
             .baseUrl("http://$ip:5000/json_api/")
