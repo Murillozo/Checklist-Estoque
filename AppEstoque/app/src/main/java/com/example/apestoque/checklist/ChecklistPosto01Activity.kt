@@ -155,7 +155,7 @@
 
 
             findViewById<Button>(R.id.btnConcluirPosto01).setOnClickListener {
-                val respostas = triplets.mapIndexed { index, (cbC, cbNC, cbNA) ->
+                val respostasSelecionadas = triplets.mapIndexed { index, (cbC, cbNC, cbNA) ->
                     val marcados = mutableListOf<String>()
                     if (cbC.isChecked) marcados.add("C")
                     if (cbNC.isChecked) marcados.add("NC")
@@ -168,10 +168,10 @@
                 }
 
                 val itensChecklist = questions.indices.map { i ->
-                    ChecklistItem(i + 1, questions[i], respostas[i])
+                    ChecklistItem(i + 1, questions[i], mapOf("suprimento" to respostasSelecionadas[i]))
                 }
 
-                if (respostas.any { it.contains("NC") }) {
+                if (respostasSelecionadas.any { it.contains("NC") }) {
                     val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
                     val prefs = getSharedPreferences("app", Context.MODE_PRIVATE)
                     val suprimento = prefs.getString("operador_suprimentos", "") ?: ""

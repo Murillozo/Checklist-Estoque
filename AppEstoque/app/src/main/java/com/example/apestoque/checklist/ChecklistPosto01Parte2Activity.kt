@@ -109,7 +109,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
 
 
         findViewById<Button>(R.id.btnConcluirPosto01Parte2).setOnClickListener {
-            val respostas = triplets.mapIndexed { index, (cbC, cbNC, cbNA) ->
+            val respostasSelecionadas = triplets.mapIndexed { index, (cbC, cbNC, cbNA) ->
                 val marcados = mutableListOf<String>()
                 if (cbC.isChecked) marcados.add("C")
                 if (cbNC.isChecked) marcados.add("NC")
@@ -122,7 +122,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             }
 
             val itensChecklist = prevItems + questions.indices.map { i ->
-                ChecklistItem(i + 55, questions[i], respostas[i])
+                ChecklistItem(i + 55, questions[i], mapOf("producao" to respostasSelecionadas[i]))
             }
 
             val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
