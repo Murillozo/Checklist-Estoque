@@ -700,13 +700,14 @@ def checklist_pdf(filename):
             if self.page_no() == 1:
                 left_info = [
                     f"Cidade/Estado: {self.cidade_estado}",
-                    f"Projesta: {self.projesta}",
                     f"Data do Checklist: {self.data_checklist}",
-                    f"Inspetor: {self.inspetor}",
-                ]
-                right_info = [
                     f"Obra: {self.obra}",
                     f"Ano: {self.ano}",
+                ]
+                right_info = [
+
+                    f"Projesta: {self.projesta}",
+                    f"Inspetor: {self.inspetor}",
                     f"Suprimento: {self.suprimento}",
                     f"Produção: {self.producao}",
                 ]
