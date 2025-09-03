@@ -185,7 +185,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             val payload = JSONObject()
             payload.put("obra", obra)
             payload.put("ano", ano)
-            payload.put("produção", producao)
+            payload.put("producao", producao)
             payload.put("itens", itens)
             Thread { enviarChecklist(payload) }.start()
             finish()
