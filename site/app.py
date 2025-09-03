@@ -106,7 +106,18 @@ def create_app():
 
 if __name__ == '__main__':
     from json_api import list_checklists
+    import threading
+    import sys
+    from pathlib import Path
+
+    # permite importar utilitários na pasta raiz
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+    import clean_watch_posto02
 
     list_checklists.main()
+
+    # inicia o watchdog de limpeza em thread separada
+    threading.Thread(target=clean_watch_posto02.run, daemon=True).start()
+
     app = create_app()
     app.run(debug=True, host='0.0.0.0')
