@@ -684,59 +684,85 @@ def checklist_pdf(filename):
             self.inspetor = inspetor
 
         def header(self):
+            # Faixa superior (azul) + logo + título
             self.set_fill_color(25, 25, 112)
             self.rect(0, 0, self.w, 25, 'F')
-            self.set_y(5)
             if os.path.exists(LOGO_PATH):
                 self.image(LOGO_PATH, x=10, y=5, w=40)
+
             self.set_text_color(255, 255, 255)
             self.set_font(base_font, 'B', 16)
-            self.cell(0, 8, 'Checklist', align='C')
+            self.set_y(6)
+            self.cell(0, 9, 'Checklist', align='C')
 
-            # Texto do cabeçalho (apenas na primeira página)
-            self.set_y(30)
+            # Só exibe o cartão com informações na primeira página
+            if self.page_no() != 1:
+                self.set_y(30)
+                return
+
+            # ---------- Cartão centralizado com os campos ----------
+            info_items = [
+                ("Cidade/Estado", self.cidade_estado or "-"),
+                ("Obra",          self.obra or "-"),
+                ("Ano",           str(self.ano or "-")),
+                ("Data do Checklist", self.data_checklist or "-"),
+                ("Projesta",      self.projesta or "-"),
+                ("Inspetor",      self.inspetor or "-"),
+                ("Suprimento",    self.suprimento or "-"),
+                ("Produção",      self.producao or "-"),
+            ]
+
+            # Medidas do grid
             self.set_text_color(0, 0, 0)
-            self.set_font(base_font, '', 10)
-            if self.page_no() == 1:
-                left_info = [
-                    f"Cidade/Estado: {self.cidade_estado}",
-                    f"Data do Checklist: {self.data_checklist}",
-                    f"Obra: {self.obra}",
-                    f"Ano: {self.ano}",
-                ]
-                right_info = [
+            self.set_y(30)
 
-                    f"Projesta: {self.projesta}",
-                    f"Inspetor: {self.inspetor}",
-                    f"Suprimento: {self.suprimento}",
-                    f"Produção: {self.producao}",
-                ]
+            left_margin  = self.l_margin
+            right_margin = self.r_margin
+            usable_w     = self.w - left_margin - right_margin
 
-                left_margin = self.l_margin
-                right_margin = self.r_margin
-                usable_w = self.w - left_margin - right_margin
-                gutter = 8
-                col_w = (usable_w - gutter) / 2
-                row_h = 5
-                x_left = left_margin
-                x_right = left_margin + col_w + gutter
-                y0 = self.get_y()
+            cols   = 4
+            gap    = 3.0                 # espaçamento entre células
+            grid_w = min(usable_w, 190)  # largura total do cartão
+            cell_w = (grid_w - gap * (cols - 1)) / cols
+            cell_h = 12.0                # altura de cada célula
 
-                self.set_fill_color(235, 235, 235)
-                self.set_line_width(0.1)
-                for i in range(4):
-                    border = 'LRT'
-                    if i == 3:
-                        border += 'B'
-                    # coluna esquerda
-                    self.set_xy(x_left, y0 + i * row_h)
-                    self.cell(col_w, row_h, left_info[i], border=border, fill=True)
-                    # coluna direita
-                    self.set_xy(x_right, y0 + i * row_h)
-                    self.cell(col_w, row_h, right_info[i], border=border, fill=True)
+            # Centraliza o cartão
+            x0 = (self.w - grid_w) / 2.0
+            y0 = self.get_y()
 
-                # dá um respiro antes da tabela
-                self.set_y(y0 + 4 * row_h + 3)
+            # Moldura do cartão (leve)
+            total_rows = (len(info_items) + cols - 1) // cols
+            card_h = total_rows * cell_h + (total_rows - 1) * gap
+            self.set_draw_color(210, 210, 210)
+            self.set_fill_color(250, 250, 250)
+            self.rect(x0 - 2, y0 - 2, grid_w + 4, card_h + 4, 'D')
+
+            # Células (label pequeno + valor bold centralizado)
+            for idx, (label, value) in enumerate(info_items):
+                row = idx // cols
+                col = idx % cols
+                x = x0 + col * (cell_w + gap)
+                y = y0 + row * (cell_h + gap)
+
+                # Fundo da célula
+                self.set_draw_color(230, 230, 230)
+                self.set_fill_color(245, 245, 245)
+                self.rect(x, y, cell_w, cell_h, 'DF')
+
+                # Label
+                self.set_font(base_font, '', 7)
+                self.set_text_color(90, 90, 90)
+                self.set_xy(x, y + 1.2)
+                self.cell(cell_w, 3.2, label, border=0, align='C')
+
+                # Valor
+                self.set_font(base_font, 'B', 10)
+                self.set_text_color(0, 0, 0)
+                self.set_xy(x + 1, y + 4.4)
+                self.cell(cell_w - 2, cell_h - 5, str(value), border=0, align='C')
+
+            # Respiro abaixo do cartão antes da tabela
+            self.set_y(y0 + card_h + 7)
 
         def footer(self):
             self.set_y(-15)
@@ -759,7 +785,7 @@ def checklist_pdf(filename):
         unit='mm'
     )
 
-    pdf.set_margins(left=6, top=35, right=6)
+    pdf.set_margins(left=6, top=40, right=6)
     pdf.set_auto_page_break(auto=False, margin=20)
 
     # Fontes (Unicode)
