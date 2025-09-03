@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Monitor and clean checklist JSON files for Posto02_Oficina.
 
-The script watches ``site/json_api/Posto02_Oficina`` for JSON files and
-produces consolidated ``*_clean.json`` and ``*_resumo.csv`` versions inside the
-``_clean`` sub-directory.  Run with ``python clean_watch_posto02.py`` to watch
-continuously or ``python clean_watch_posto02.py --once`` to process the current
-backlog and exit.
+The script watches ``site/json_api/Posto02_Oficina`` for JSON files and writes
+``*_clean.json`` and ``*_resumo.csv`` files back into the same directory.
+Run with ``python clean_watch_posto02.py`` to watch continuously or
+``python clean_watch_posto02.py --once`` to process the current backlog and
+exit.
 """
 
 from __future__ import annotations
@@ -34,8 +34,8 @@ except Exception:  # pragma: no cover - watchdog may be absent
 
 BASE_DIR = Path(__file__).resolve().parent
 WATCH_DIR = BASE_DIR / "site" / "json_api" / "Posto02_Oficina"
-CLEAN_DIR = WATCH_DIR / "_clean"
-LOG_FILE = CLEAN_DIR / "clean_watch.log"
+OUT_DIR = WATCH_DIR
+LOG_FILE = OUT_DIR / "clean_watch.log"
 FUNCS = ("suprimento", "produção")
 
 logger = logging.getLogger("clean_watch")
@@ -47,7 +47,7 @@ logger = logging.getLogger("clean_watch")
 def setup_logging() -> None:
     """Configure logging to console and rotating file."""
 
-    CLEAN_DIR.mkdir(parents=True, exist_ok=True)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
     logger.setLevel(logging.INFO)
     fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 
@@ -179,11 +179,10 @@ def merge_duplicates(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Build the final JSON structure with recency information.
+    """Build the final JSON structure.
 
-    Each item's responses are converted to a structure containing ``historico``
-    (oldest to newest) and ``atual`` pointing to the most recent value or
-    ``null`` if absent.
+    Each item consolidates duplicate questions and contains lists of respostas
+    for ``suprimento`` while ``produção`` holds only the most recent entry.
     """
 
     out: Dict[str, Any] = {
@@ -196,18 +195,22 @@ def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, 
 
     cleaned_items: List[Dict[str, Any]] = []
     for item in items:
-        res_out: Dict[str, Dict[str, Any]] = {}
-        for f in FUNCS:
-            hist = item["respostas"][f]
-            res_out[f] = {"historico": hist, "atual": hist[-1] if hist else None}
-        cleaned_items.append({
-            "numero": item["numero"],
-            "pergunta": item["pergunta"],
-            "respostas": res_out,
-        })
+        sup_hist = item["respostas"]["suprimento"]
+        prod_hist = item["respostas"]["produção"]
+        res_out: Dict[str, Any] = {
+            "suprimento": sup_hist,
+            "produção": prod_hist[-1] if prod_hist else None,
+        }
+        cleaned_items.append(
+            {
+                "numero": item["numero"],
+                "pergunta": item["pergunta"],
+                "respostas": res_out,
+            }
+        )
 
     def sort_key(it: Dict[str, Any]):
-        has_atual = any(it["respostas"][f]["atual"] is not None for f in FUNCS)
+        has_atual = bool(it["respostas"]["suprimento"] or it["respostas"]["produção"])
         if has_atual:
             return (0, -it["numero"])
         return (1, it["pergunta"])
@@ -240,11 +243,13 @@ def write_summary_csv(data: Dict[str, Any], path: Path) -> bool:
     writer = csv.writer(output)
     writer.writerow(["numero", "pergunta", "suprimento_atual", "producao_atual"])
     for item in data["itens"]:
+        sup_hist = item["respostas"]["suprimento"]
+        prod_atual = item["respostas"]["produção"]
         writer.writerow([
             item["numero"],
             item["pergunta"],
-            item["respostas"]["suprimento"]["atual"] or "",
-            item["respostas"]["produção"]["atual"] or "",
+            sup_hist[-1] if sup_hist else "",
+            prod_atual or "",
         ])
     return write_if_changed(path, output.getvalue().encode("utf-8"))
 
@@ -280,7 +285,12 @@ def is_temp_file(path: Path) -> bool:
     """Return ``True`` for temporary or partial files."""
 
     name = path.name
-    return name.startswith("~$") or name.endswith(".~")
+    return (
+        name.startswith("~$")
+        or name.endswith(".~")
+        or name.endswith("_clean.json")
+        or name.endswith("_resumo.json")
+    )
 
 
 def process_file(path: Path) -> None:
@@ -308,8 +318,8 @@ def process_file(path: Path) -> None:
     final = build_output(raw, merged)
 
     json_payload = json.dumps(final, ensure_ascii=False, indent=2).encode("utf-8")
-    json_changed = write_if_changed(CLEAN_DIR / f"{path.stem}_clean.json", json_payload)
-    csv_changed = write_summary_csv(final, CLEAN_DIR / f"{path.stem}_resumo.csv")
+    json_changed = write_if_changed(OUT_DIR / f"{path.stem}_clean.json", json_payload)
+    csv_changed = write_summary_csv(final, OUT_DIR / f"{path.stem}_resumo.csv")
 
     if json_changed or csv_changed:
         logger.info("limpo com sucesso: %s", path.name)
