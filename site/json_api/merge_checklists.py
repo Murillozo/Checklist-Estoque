@@ -1,6 +1,5 @@
 import os
 import json
-import os
 import shutil
 from typing import Any, Dict, List, Optional
 
@@ -21,33 +20,49 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
     if ano_sup and ano_prod and ano_sup != ano_prod:
         avisos.append(f"Divergência de ano: suprimento={ano_sup}, produção={ano_prod}")
 
+    def _first_key(data: Dict[str, Any], keys: List[str]) -> Any:
+        for key in keys:
+            if key in data:
+                return data.get(key)
+        return None
+
     result: Dict[str, Any] = {
         "obra": obra,
         "ano": ano,
         "respondentes": {
-            "suprimento": json_suprimento.get("suprimento"),
-            "produção": json_producao.get("produção"),
+            "suprimento": _first_key(json_suprimento, ["suprimento", "produção", "producao"]),
+            "produção": _first_key(json_producao, ["produção", "producao", "suprimento"]),
         },
     }
 
     itens: Dict[int, Dict[str, Any]] = {}
+    def _extract_respostas(item: Dict[str, Any], keys: List[str]) -> Optional[List[str]]:
+        respostas = item.get("respostas")
+        if isinstance(respostas, dict):
+            for k in keys:
+                v = respostas.get(k)
+                if isinstance(v, list):
+                    return v
+        resposta = item.get("resposta")
+        return resposta if isinstance(resposta, list) else None
+
     for item in json_suprimento.get("itens", []):
         numero = item.get("numero")
         if numero is None:
             continue
         pergunta = item.get("pergunta", "")
-        resposta = item.get("resposta")
+        resposta = _extract_respostas(item, ["suprimento", "produção", "producao"])
         itens.setdefault(numero, {})["pergunta_sup"] = pergunta
-        itens[numero]["res_sup"] = resposta if isinstance(resposta, list) else None
+        itens[numero]["res_sup"] = resposta
     for item in json_producao.get("itens", []):
         numero = item.get("numero")
         if numero is None:
             continue
         pergunta = item.get("pergunta", "")
-        resposta = item.get("resposta")
+        resposta = _extract_respostas(item, ["produção", "producao", "suprimento"])
         entry = itens.setdefault(numero, {})
         entry["pergunta_prod"] = pergunta
-        entry["res_prod"] = resposta if isinstance(resposta, list) else None
+        entry["res_prod"] = resposta
 
     result_items: List[Dict[str, Any]] = []
     for numero in sorted(itens):
@@ -110,7 +125,14 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
     merged: List[Dict[str, Any]] = []
     for obra, entries in by_obra.items():
         sup = next((e for e in entries if "suprimento" in e["data"]), None)
-        prod = next((e for e in entries if "produção" in e["data"]), None)
+        prod = next(
+            (
+                e
+                for e in entries
+                if "produção" in e["data"] or "producao" in e["data"]
+            ),
+            None,
+        )
         if not (sup and prod):
             continue
         result = merge_checklists(sup["data"], prod["data"])
