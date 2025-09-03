@@ -121,6 +121,8 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                 marcados
             }
 
+
+            
             val itensChecklist = prevItems + questions.indices.map { i ->
                 ChecklistItem(i + 55, questions[i], mapOf("producao" to respostasSelecionadas[i]))
             }
