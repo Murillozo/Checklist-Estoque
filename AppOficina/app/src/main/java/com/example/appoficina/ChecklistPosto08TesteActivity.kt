@@ -127,7 +127,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
         )
 
         val unidadeOptions = listOf("V", "kV")
-        val resUnidadeOptions = listOf("Ohm", "Mohm", "Gigaohm", "MΩ", "GΩ", "TΩ", "mA")
+        val resUnidadeOptions = listOf("Ω", "MΩ", "GΩ", "TΩ", "mA")
         val tensaoPerguntas = listOf(
             "4.2 - Comando x Terra",
             "4.3 - Força - Fase A x BC Terra",
