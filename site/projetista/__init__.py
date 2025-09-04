@@ -1044,6 +1044,32 @@ def checklist_view(filename):
         return redirect(url_for('projetista.checklist_list'))
     with open(caminho, encoding='utf-8') as f:
         dados = json.load(f)
+    # Extrai apenas as respostas mais recentes e remove valores nulos
+    itens_brutos = dados.get('itens', [])
+    itens_processados = []
+    for item in itens_brutos:
+        respostas_dict = item.get('respostas') or {}
+        respostas_coletadas = []
+        for pessoa, respostas in respostas_dict.items():
+            ultima = None
+            if isinstance(respostas, list):
+                for r in reversed(respostas):
+                    if r is not None:
+                        ultima = r
+                        break
+            else:
+                if respostas is not None:
+                    ultima = respostas
+            if ultima is not None:
+                respostas_coletadas.append(f"{pessoa}: {ultima}")
+        if respostas_coletadas:
+            itens_processados.append({
+                'numero': item.get('numero'),
+                'pergunta': item.get('pergunta'),
+                'resposta': ', '.join(respostas_coletadas)
+            })
+    itens_processados.sort(key=lambda x: x.get('numero', 0), reverse=True)
+    dados['itens'] = itens_processados
     # verifica se existe revisão anterior para comparação
     obra = dados.get('obra', 'Desconhecida') or 'Desconhecida'
     safe_obra = "".join(c for c in obra if c.isalnum() or c in ('-','_')) or 'obra'
