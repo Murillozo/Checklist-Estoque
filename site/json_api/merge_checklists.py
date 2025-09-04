@@ -100,6 +100,44 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
     return result
 
 
+def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Deduplicate checklist items by ``numero`` or ``pergunta``.
+
+    When the same question appears multiple times, newer answers replace older
+    ones while preserving existing answers that are still ``None`` in the new
+    entry.
+    """
+
+    merged: Dict[Any, Dict[str, Any]] = {}
+    for item in items:
+        key = item.get("numero")
+        if key is None:
+            key = item.get("pergunta")
+        if key is None:
+            continue
+
+        if key not in merged:
+            merged[key] = item
+            continue
+
+        existing = merged[key]
+        respostas_novas = item.get("respostas", {}) or {}
+        respostas_exist = existing.setdefault("respostas", {})
+        for setor, resp in respostas_novas.items():
+            if resp is not None:
+                respostas_exist[setor] = resp
+
+        if len(item.get("pergunta", "")) > len(existing.get("pergunta", "")):
+            existing["pergunta"] = item["pergunta"]
+        if item.get("numero") is not None:
+            existing["numero"] = item["numero"]
+
+    try:
+        return sorted(merged.values(), key=lambda x: x.get("numero"))
+    except TypeError:
+        return list(merged.values())
+
+
 def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dict[str, Any]]:
     """Merge checklist pairs found in ``base_dir`` grouped by ``obra``.
 
@@ -124,19 +162,52 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
     os.makedirs(output_dir, exist_ok=True)
     merged: List[Dict[str, Any]] = []
     for obra, entries in by_obra.items():
-        sup = next((e for e in entries if "suprimento" in e["data"]), None)
-        prod = next(
-            (
-                e
-                for e in entries
-                if "produção" in e["data"] or "producao" in e["data"]
-            ),
-            None,
+        # group entries by type and select the most recent one of each
+        sup_entries = [e for e in entries if "suprimento" in e["data"]]
+        prod_entries = [
+            e
+            for e in entries
+            if "produção" in e["data"] or "producao" in e["data"]
+        ]
+        sup = (
+            max(sup_entries, key=lambda e: os.path.getmtime(e["path"]))
+            if sup_entries
+            else None
+        )
+        prod = (
+            max(prod_entries, key=lambda e: os.path.getmtime(e["path"]))
+            if prod_entries
+            else None
         )
         if not (sup and prod):
             continue
+
         result = merge_checklists(sup["data"], prod["data"])
         out_path = os.path.join(output_dir, f"checklist_{obra}.json")
+
+        # merge with existing checklist if present, overwriting only updated items
+        if os.path.exists(out_path):
+            try:
+                with open(out_path, "r", encoding="utf-8") as fp:
+                    existing = json.load(fp)
+            except Exception:
+                existing = {}
+
+            combined_items = existing.get("itens", []) + result.get("itens", [])
+            result["itens"] = _dedup_items(combined_items)
+
+            existing_mats = {
+                m.get("material"): m
+                for m in existing.get("materiais", [])
+                if m.get("material")
+            }
+            for mat in result.get("materiais", []) or []:
+                nome = mat.get("material")
+                if nome:
+                    existing_mats[nome] = mat
+            if existing_mats:
+                result["materiais"] = list(existing_mats.values())
+
         with open(out_path, "w", encoding="utf-8") as fp:
             json.dump(result, fp, ensure_ascii=False, indent=2)
         try:
