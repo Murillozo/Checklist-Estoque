@@ -19,7 +19,7 @@ import logging
 import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 
 # ---------------------------------------------------------------------------
 # Optional watchdog import.  If unavailable we will fallback to simple polling.
@@ -37,6 +37,10 @@ WATCH_DIR = BASE_DIR / "site" / "json_api" / "Posto02_Oficina"
 OUT_DIR = WATCH_DIR
 LOG_FILE = OUT_DIR / "clean_watch.log"
 FUNCS = ("suprimento", "produção")
+BASE_CHECKLIST = WATCH_DIR.parent / "checklist_PRO1000.json"
+
+# Map of numero -> pergunta from the base checklist.  Populated at runtime
+BASE_QUESTIONS: Dict[int, str] = {}
 
 logger = logging.getLogger("clean_watch")
 
@@ -60,20 +64,8 @@ def setup_logging() -> None:
     logger.addHandler(fh)
 
 
-def dedupe(seq: Iterable[str]) -> List[str]:
-    """Remove duplicates preserving order."""
-
-    seen = set()
-    out: List[str] = []
-    for item in seq:
-        if item not in seen:
-            seen.add(item)
-            out.append(item)
-    return out
-
-
 def normalize_responses(value: Any) -> List[str]:
-    """Normalize a response field into a list of cleaned strings."""
+    """Normalize a response field into a list of cleaned strings, preserving order."""
 
     items: List[str] = []
     if value is None:
@@ -85,9 +77,9 @@ def normalize_responses(value: Any) -> List[str]:
     cleaned: List[str] = []
     for v in items:
         s = v.strip()
-        if s and s.upper() != "NA":
+        if s and s.upper() not in {"NA", "NULL"}:
             cleaned.append(s)
-    return dedupe(cleaned)
+    return cleaned
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +99,26 @@ def load_json(path: Path) -> Optional[Dict[str, Any]]:
         return None
 
 
+def load_base_questions() -> None:
+    """Populate ``BASE_QUESTIONS`` from ``checklist_PRO1000.json`` if present."""
+
+    global BASE_QUESTIONS
+    data = load_json(BASE_CHECKLIST)
+    mapping: Dict[int, str] = {}
+    if data:
+        for item in data.get("itens", []):
+            try:
+                numero = int(item.get("numero"))
+                pergunta = str(item.get("pergunta", "")).strip()
+            except Exception:
+                continue
+            if pergunta:
+                mapping[numero] = pergunta
+    if not mapping:
+        logger.warning("base checklist não encontrada ou inválida: %s", BASE_CHECKLIST)
+    BASE_QUESTIONS = mapping
+
+
 def clean_item(raw_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Normalise an individual item from the checklist.
 
@@ -116,11 +128,12 @@ def clean_item(raw_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
     try:
         numero = int(raw_item.get("numero"))
-        pergunta = str(raw_item.get("pergunta", "")).strip()
+        pergunta_raw = str(raw_item.get("pergunta", "")).strip()
         respostas = raw_item.get("respostas", {})
     except Exception:
         return None
 
+    pergunta = BASE_QUESTIONS.get(numero, pergunta_raw)
     if not pergunta:
         return None
     if not isinstance(respostas, dict):
@@ -144,45 +157,40 @@ def clean_item(raw_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 
 def merge_duplicates(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Merge items that have the same question.
+    """Merge items that have the same ``numero``.
 
     Histories from duplicated questions are concatenated in the order of
-    appearance, removing duplicates while preserving chronology.  The most
-    recent answer for each function is therefore the last element of the
-    combined history list.
+    appearance.  The most recent answer for each function is therefore the
+    last element of the combined history list.
     """
 
-    grouped: Dict[str, Dict[str, Any]] = {}
-    order: List[str] = []
+    grouped: Dict[int, Dict[str, Any]] = {}
+    order: List[int] = []
     for item in items:
-        q = item["pergunta"]
-        if q not in grouped:
-            grouped[q] = {
-                "numero": item["numero"],
-                "pergunta": q,
+        n = item["numero"]
+        if n not in grouped:
+            grouped[n] = {
+                "numero": n,
+                "pergunta": item["pergunta"],
                 "respostas": {f: list(item["respostas"][f]) for f in FUNCS},
             }
-            order.append(q)
+            order.append(n)
         else:
-            g = grouped[q]
-            g["numero"] = max(g["numero"], item["numero"])
+            g = grouped[n]
             for f in FUNCS:
                 g["respostas"][f].extend(item["respostas"][f])
 
     result: List[Dict[str, Any]] = []
-    for q in order:
-        g = grouped[q]
-        for f in FUNCS:
-            g["respostas"][f] = dedupe(g["respostas"][f])
-        result.append(g)
+    for n in order:
+        result.append(grouped[n])
     return result
 
 
 def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Build the final JSON structure.
 
-    Each item consolidates duplicate questions and contains lists of respostas
-    for ``suprimento`` while ``produção`` holds only the most recent entry.
+    Each item consolidates duplicate questions and retains only the most
+    recent resposta for each função, omitting those that are missing.
     """
 
     out: Dict[str, Any] = {
@@ -197,20 +205,22 @@ def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, 
     for item in items:
         sup_hist = item["respostas"]["suprimento"]
         prod_hist = item["respostas"]["produção"]
-        res_out: Dict[str, Any] = {
-            "suprimento": sup_hist,
-            "produção": prod_hist[-1] if prod_hist else None,
-        }
+        respostas: Dict[str, Any] = {}
+        if sup_hist:
+            respostas["suprimento"] = sup_hist[-1]
+        if prod_hist:
+            respostas["produção"] = prod_hist[-1]
         cleaned_items.append(
             {
                 "numero": item["numero"],
                 "pergunta": item["pergunta"],
-                "respostas": res_out,
+                "respostas": respostas,
             }
         )
 
     def sort_key(it: Dict[str, Any]):
-        has_atual = bool(it["respostas"]["suprimento"] or it["respostas"]["produção"])
+        res = it["respostas"]
+        has_atual = bool(res.get("suprimento") or res.get("produção"))
         if has_atual:
             return (0, -it["numero"])
         return (1, it["pergunta"])
@@ -243,13 +253,12 @@ def write_summary_csv(data: Dict[str, Any], path: Path) -> bool:
     writer = csv.writer(output)
     writer.writerow(["numero", "pergunta", "suprimento_atual", "producao_atual"])
     for item in data["itens"]:
-        sup_hist = item["respostas"]["suprimento"]
-        prod_atual = item["respostas"]["produção"]
+        respostas = item["respostas"]
         writer.writerow([
             item["numero"],
             item["pergunta"],
-            sup_hist[-1] if sup_hist else "",
-            prod_atual or "",
+            respostas.get("suprimento", ""),
+            respostas.get("produção", ""),
         ])
     return write_if_changed(path, output.getvalue().encode("utf-8"))
 
@@ -330,13 +339,12 @@ def process_file(path: Path) -> None:
 def process_existing_files() -> None:
     """Process all JSON files already present in ``WATCH_DIR``."""
 
-    for path in WATCH_DIR.glob("*.json"):
-        if is_temp_file(path):
-            continue
-        try:
-            process_file(path)
-        except Exception as exc:  # pragma: no cover - robust against errors
-            logger.error("erro ao processar %s: %s", path, exc)
+    for path in WATCH_DIR.rglob("*.json"):
+        if path.is_file() and not is_temp_file(path):
+            try:
+                process_file(path)
+            except Exception as exc:  # pragma: no cover - robust against errors
+                logger.error("erro ao processar %s: %s", path, exc)
 
 
 # ---------------------------------------------------------------------------
@@ -354,7 +362,7 @@ def start_watchdog() -> None:  # pragma: no cover - requires watchdog
             if event.is_directory:
                 return
             path = Path(event.src_path)
-            if path.parent != WATCH_DIR or path.suffix.lower() != ".json" or is_temp_file(path):
+            if path.suffix.lower() != ".json" or is_temp_file(path):
                 return
             try:
                 process_file(path)
@@ -362,7 +370,7 @@ def start_watchdog() -> None:  # pragma: no cover - requires watchdog
                 logger.error("erro ao processar %s: %s", path, exc)
 
     observer = Observer()
-    observer.schedule(Handler(), str(WATCH_DIR), recursive=False)
+    observer.schedule(Handler(), str(WATCH_DIR), recursive=True)
     observer.start()
     try:
         while True:
@@ -379,7 +387,7 @@ def start_polling() -> None:
     known_mtimes: Dict[Path, float] = {}
     try:
         while True:
-            for path in WATCH_DIR.glob("*.json"):
+            for path in WATCH_DIR.rglob("*.json"):
                 if is_temp_file(path):
                     continue
                 try:
@@ -414,6 +422,7 @@ def run(once: bool = False) -> None:
 
     setup_logging()
     WATCH_DIR.mkdir(parents=True, exist_ok=True)
+    load_base_questions()
     process_existing_files()
     if once:
         return
