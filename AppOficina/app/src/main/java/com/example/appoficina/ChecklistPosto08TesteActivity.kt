@@ -40,6 +40,8 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
         }
 
         // 8.3 - TESTE - DADOS
+        addLabel("8.3 - TESTE - DADOS")
+
         addLabel("Responsável")
         val responsavelInput = EditText(this)
         container.addView(responsavelInput)
@@ -116,6 +118,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
         fetchAmbientData(altitudeInput, humidadeInput)
 
         // 8.4 - TESTE - TENSÃO APLICADA
+        addLabel("8.4 - TESTE - TENSÃO APLICADA")
         data class TensaoRefs(
             val unidade: Spinner,
             val valor: EditText,
@@ -159,7 +162,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
                 this,
                 android.R.layout.simple_spinner_dropdown_item,
                 resUnidadeOptions
-            
+
             )
             val resVal = EditText(this)
             resVal.hint = "Resultado: Valor"
@@ -189,7 +192,8 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
             na.setOnCheckedChangeListener { _, isChecked -> if (isChecked) { c.isChecked = false; nc.isChecked = false } }
         }
 
-        // 8.5 - CONFIGURAÇÃO DE DISPOSITIVOS
+        // 8.5 - TESTE - CONFIGURAÇÃO DE DISPOSITIVOS
+        addLabel("8.5 - TESTE - CONFIGURAÇÃO DE DISPOSITIVOS")
         val configPerguntas = listOf(
             "Multimedidores",
             "Controladores",
@@ -218,7 +222,8 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
             na.setOnCheckedChangeListener { _, isChecked -> if (isChecked) c.isChecked = false }
         }
 
-        // 8.5 - FUNCIONAIS
+        // 8.5 - TESTE - FUNCIONAIS
+        addLabel("8.5 - TESTE - FUNCIONAIS")
         val funcPerguntas = listOf(
             "Sinalizadores",
             "Status à campo",
