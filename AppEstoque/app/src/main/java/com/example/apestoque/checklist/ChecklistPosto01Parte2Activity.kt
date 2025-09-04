@@ -49,7 +49,8 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
         val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
-        val triplets = (55..128).mapNotNull { i ->
+        val triplets = (75..94).mapNotNull { i ->
+
             val c = resources.getIdentifier("cbQ${i}C", "id", packageName)
             val nc = resources.getIdentifier("cbQ${i}NC", "id", packageName)
             val na = resources.getIdentifier("cbQ${i}NA", "id", packageName)
@@ -91,74 +92,6 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         }
 
         val questions = listOf(
-            "1.1 - INVÓLUCRO - CAIXA: Identificação do projeto",
-            "1.1 - INVÓLUCRO - CAIXA: Separação - POSTO - 07",
-            "1.1 - INVÓLUCRO - CAIXA: Referências x Projeto",
-            "1.1 - INVÓLUCRO - CAIXA: Material em bom estado",
-
-            "1.2 - INVÓLUCRO - AUTOPORTANTE: Identificação do projeto",
-            "1.2 - INVÓLUCRO - AUTOPORTANTE: Separação - POSTO - 07",
-            "1.2 - INVÓLUCRO - AUTOPORTANTE: Referências x Projeto",
-            "1.2 - INVÓLUCRO - AUTOPORTANTE: Material em bom estado",
-
-            "1.3 - INVÓLUCRO - PLACAS DE MONTAGEM: Identificação do projeto",
-            "1.3 - INVÓLUCRO - PLACAS DE MONTAGEM: Separação - POSTO - 07",
-            "1.3 - INVÓLUCRO - PLACAS DE MONTAGEM: Referências x Projeto",
-            "1.3 - INVÓLUCRO - PLACAS DE MONTAGEM: Material em bom estado",
-
-            "1.4 - INVÓLUCRO - FLANGES: Identificação do projeto",
-            "1.4 - INVÓLUCRO - FLANGES: Separação - POSTO - 07",
-            "1.4 - INVÓLUCRO - FLANGES: Referências x Projeto",
-            "1.4 - INVÓLUCRO - FLANGES: Material em bom estado",
-
-            "1.5 - INVÓLUCRO - PORTAS COM RECORTE: Identificação do projeto",
-            "1.5 - INVÓLUCRO - PORTAS COM RECORTE: Separação - POSTO - 07",
-            "1.5 - INVÓLUCRO - PORTAS COM RECORTE: Referências x Projeto",
-            "1.5 - INVÓLUCRO - PORTAS COM RECORTE: Material em bom estado",
-
-            "1.6 - INVÓLUCRO - CONTRAPORTAS COM RECORTE: Identificação do projeto",
-            "1.6 - INVÓLUCRO - CONTRAPORTAS COM RECORTE: Separação - POSTO - 07",
-            "1.6 - INVÓLUCRO - CONTRAPORTAS COM RECORTE: Referências x Projeto",
-            "1.6 - INVÓLUCRO - CONTRAPORTAS COM RECORTE: Material em bom estado",
-
-            "1.7 - CABOS: Identificação do projeto",
-            "1.7 - CABOS: Separação - POSTO - 01",
-            "1.7 - CABOS: Referências x Projeto",
-            "1.7 - CABOS: Material em bom estado",
-
-            "1.8 - BARRAMENTO: Identificação do projeto",
-            "1.8 - BARRAMENTO: Separação - POSTO - 04",
-            "1.8 - BARRAMENTO: Referências x Projeto",
-            "1.8 - BARRAMENTO: Material em bom estado",
-
-            "1.9 - TRILHOS: Identificação do projeto",
-            "1.9 - TRILHOS: Separação - POSTO - 03",
-            "1.9 - TRILHOS: Referências x Projeto",
-            "1.9 - TRILHOS: Material em bom estado",
-
-            "1.10 - CANALETAS: Identificação do projeto",
-            "1.10 - CANALETAS: Separação - POSTO - 03",
-            "1.10 - CANALETAS: Referências x Projeto",
-            "1.10 - CANALETAS: Material em bom estado",
-
-            "1.11 - ETIQUETAS: Identificação do projeto",
-            "1.11 - ETIQUETAS: Separação - POSTO - 01",
-            "1.11 - ETIQUETAS: Referências x Projeto",
-            "1.11 - ETIQUETAS: Material em bom estado",
-
-            "1.12 - PARAFUSOS/PORCAS/ARRUELAS: Identificação do projeto",
-            "1.12 - PARAFUSOS/PORCAS/ARRUELAS: Separação - POSTO - 01",
-            "1.12 - PARAFUSOS/PORCAS/ARRUELAS: Referências x Projeto",
-            "1.12 - PARAFUSOS/PORCAS/ARRUELAS: Material em bom estado",
-
-            "1.13 - ISOLADORES: Identificação do projeto",
-            "1.13 - ISOLADORES: Separação - POSTO - 01",
-            "1.13 - ISOLADORES: Referências x Projeto",
-            "1.13 - ISOLADORES: Material em bom estado",
-
-            "1.14 - PALETIZAÇÃO: Fabricação do palete",
-            "1.14 - PALETIZAÇÃO: Fixação no invólucro",
-
             "1.15 - COMPONENTES: Identificação do projeto",
             "1.15 - COMPONENTES: Separação - POSTO - 01",
             "1.15 - COMPONENTES: Referências x Projeto",
@@ -202,8 +135,8 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
 
             
             val itensChecklist = prevItems + triplets.indices.map { i ->
-                ChecklistItem(i + 55, questions[i], mapOf("producao" to respostasSelecionadas[i]))
-            }
+                ChecklistItem(i + 75, questions[i], mapOf("producao" to respostasSelecionadas[i]))
+
 
             val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
 
