@@ -220,11 +220,12 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
 
 
 def find_mismatches(directory: str) -> List[Dict[str, Any]]:
-    """Return merged checklists that have differing answers.
+    """Return merged checklists that have differing or missing answers.
 
     Looks for ``checklist_*.json`` files inside ``directory`` and checks each
-    item where both ``suprimento`` and ``produção`` answers are present but
-    differ. Only checklists containing at least one divergence are returned.
+    item where ``suprimento`` or ``produção`` answers are missing/empty or
+    where both answers are present but differ. Only checklists containing at
+    least one divergence are returned.
     """
 
     resultados: List[Dict[str, Any]] = []
@@ -242,7 +243,10 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
             resp = item.get("respostas", {})
             sup = resp.get("suprimento")
             prod = resp.get("produção")
-            if sup is not None and prod is not None and sup != prod:
+
+            missing_sup = not sup
+            missing_prod = not prod
+            if missing_sup or missing_prod or sup != prod:
                 divergencias.append(
                     {
                         "numero": item.get("numero"),
@@ -264,12 +268,12 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
 
 
 def move_matching_checklists(base_dir: str) -> List[str]:
-    """Move merged checklists with matching answers to the next stage.
+    """Move merged checklists with complete matching answers to the next stage.
 
     Looks into ``Posto01_Oficina`` inside ``base_dir`` and moves any
     ``checklist_*.json`` files where all ``suprimento`` and ``produção``
-    answers are identical to ``Posto02_Oficina``. Returns a list of moved
-    filenames.
+    answers are present and identical to ``Posto02_Oficina``. Returns a list of
+    moved filenames.
     """
 
     src_dir = os.path.join(base_dir, "Posto01_Oficina")
