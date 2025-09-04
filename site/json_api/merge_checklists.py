@@ -124,19 +124,62 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
     os.makedirs(output_dir, exist_ok=True)
     merged: List[Dict[str, Any]] = []
     for obra, entries in by_obra.items():
-        sup = next((e for e in entries if "suprimento" in e["data"]), None)
-        prod = next(
-            (
-                e
-                for e in entries
-                if "produção" in e["data"] or "producao" in e["data"]
-            ),
-            None,
+        # group entries by type and select the most recent one of each
+        sup_entries = [e for e in entries if "suprimento" in e["data"]]
+        prod_entries = [
+            e
+            for e in entries
+            if "produção" in e["data"] or "producao" in e["data"]
+        ]
+        sup = (
+            max(sup_entries, key=lambda e: os.path.getmtime(e["path"]))
+            if sup_entries
+            else None
+        )
+        prod = (
+            max(prod_entries, key=lambda e: os.path.getmtime(e["path"]))
+            if prod_entries
+            else None
         )
         if not (sup and prod):
             continue
+
         result = merge_checklists(sup["data"], prod["data"])
         out_path = os.path.join(output_dir, f"checklist_{obra}.json")
+
+        # merge with existing checklist if present, overwriting only updated items
+        if os.path.exists(out_path):
+            try:
+                with open(out_path, "r", encoding="utf-8") as fp:
+                    existing = json.load(fp)
+            except Exception:
+                existing = {}
+
+            existing_items = {
+                item.get("numero"): item
+                for item in existing.get("itens", [])
+                if item.get("numero") is not None
+            }
+            for item in result.get("itens", []):
+                numero = item.get("numero")
+                if numero is not None:
+                    existing_items[numero] = item
+            result["itens"] = sorted(
+                existing_items.values(), key=lambda x: x.get("numero")
+            )
+
+            existing_mats = {
+                m.get("material"): m
+                for m in existing.get("materiais", [])
+                if m.get("material")
+            }
+            for mat in result.get("materiais", []) or []:
+                nome = mat.get("material")
+                if nome:
+                    existing_mats[nome] = mat
+            if existing_mats:
+                result["materiais"] = list(existing_mats.values())
+
         with open(out_path, "w", encoding="utf-8") as fp:
             json.dump(result, fp, ensure_ascii=False, indent=2)
         try:
