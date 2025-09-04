@@ -38,6 +38,7 @@ OUT_DIR = WATCH_DIR
 LOG_FILE = OUT_DIR / "clean_watch.log"
 FUNCS = ("suprimento", "produção")
 BASE_CHECKLIST = WATCH_DIR.parent / "checklist_PRO1000.json"
+ANCHOR_PERGUNTA = "1.1 - INVÓLUCRO - CAIXA: Identificação do projeto"
 
 # Map of numero -> pergunta from the base checklist.  Populated at runtime
 BASE_QUESTIONS: Dict[int, str] = {}
@@ -186,11 +187,16 @@ def merge_duplicates(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return result
 
 
+def slice_from_anchor(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    idx = next((i for i, it in enumerate(items) if it.get("pergunta") == ANCHOR_PERGUNTA), 0)
+    return items[idx:]
+
+
 def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Build the final JSON structure.
 
     Each item consolidates duplicate questions and retains only the most
-    recent resposta for each função, omitting those that are missing.
+    recent resposta for cada função; when ausente, a string vazia é usada.
     """
 
     out: Dict[str, Any] = {
@@ -205,11 +211,12 @@ def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, 
     for item in items:
         sup_hist = item["respostas"]["suprimento"]
         prod_hist = item["respostas"]["produção"]
-        respostas: Dict[str, Any] = {}
-        if sup_hist:
-            respostas["suprimento"] = sup_hist[-1]
-        if prod_hist:
-            respostas["produção"] = prod_hist[-1]
+
+        respostas = {
+            "suprimento": sup_hist[-1] if sup_hist else "",
+            "produção": prod_hist[-1] if prod_hist else "",
+        }
+
         cleaned_items.append(
             {
                 "numero": item["numero"],
@@ -217,7 +224,6 @@ def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, 
                 "respostas": respostas,
             }
         )
-
     def sort_key(it: Dict[str, Any]):
         res = it["respostas"]
         has_atual = bool(res.get("suprimento") or res.get("produção"))
@@ -324,6 +330,7 @@ def process_file(path: Path) -> None:
                 cleaned.append(item)
 
     merged = merge_duplicates(cleaned)
+    merged = slice_from_anchor(merged)
     final = build_output(raw, merged)
 
     json_payload = json.dumps(final, ensure_ascii=False, indent=2).encode("utf-8")
