@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.apestoque.R
@@ -48,15 +49,24 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
         val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
-        val triplets = (55..128).map { i ->
+        val triplets = (55..128).mapNotNull { i ->
             val c = resources.getIdentifier("cbQ${i}C", "id", packageName)
             val nc = resources.getIdentifier("cbQ${i}NC", "id", packageName)
             val na = resources.getIdentifier("cbQ${i}NA", "id", packageName)
-            Triple(
-                findViewById<CheckBox>(c),
-                findViewById<CheckBox>(nc),
-                findViewById<CheckBox>(na),
-            )
+
+            val cbC = findViewById<CheckBox?>(c)
+            val cbNC = findViewById<CheckBox?>(nc)
+            val cbNA = findViewById<CheckBox?>(na)
+
+            if (cbC == null || cbNC == null || cbNA == null) {
+                Log.w(
+                    "ChecklistPosto01Parte2",
+                    "Missing checkbox ID for index $i: C=$c, NC=$nc, NA=$na"
+                )
+                null
+            } else {
+                Triple(cbC, cbNC, cbNA)
+            }
         }
 
         triplets.forEach { (cbC, cbNC, cbNA) ->
@@ -191,7 +201,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
 
 
             
-            val itensChecklist = prevItems + questions.indices.map { i ->
+            val itensChecklist = prevItems + triplets.indices.map { i ->
                 ChecklistItem(i + 55, questions[i], mapOf("producao" to respostasSelecionadas[i]))
             }
 
