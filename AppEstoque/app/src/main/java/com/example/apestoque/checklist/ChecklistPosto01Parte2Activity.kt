@@ -50,6 +50,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
         val triplets = (75..94).mapNotNull { i ->
+
             val c = resources.getIdentifier("cbQ${i}C", "id", packageName)
             val nc = resources.getIdentifier("cbQ${i}NC", "id", packageName)
             val na = resources.getIdentifier("cbQ${i}NA", "id", packageName)
@@ -135,7 +136,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             
             val itensChecklist = prevItems + triplets.indices.map { i ->
                 ChecklistItem(i + 75, questions[i], mapOf("producao" to respostasSelecionadas[i]))
-            }
+
 
             val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
 
