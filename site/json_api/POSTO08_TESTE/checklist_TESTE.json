@@ -15,11 +15,7 @@
       { "numero": 8309, "pergunta": "Tensão de comando", "respostas": { "inspetor": ["222"] } },
       { "numero": 8310, "pergunta": "Tensão circuito auxiliar", "respostas": { "inspetor": ["23"] } },
       { "numero": 8311, "pergunta": "Tensão circuito de força", "respostas": { "inspetor": ["222"] } },
-        { "numero": 8312, "pergunta": "4.2 - Comando x Terra", "respostas": { "inspetor": ["V", "23", "Ohm", "34", "C"] } },
-        { "numero": 8313, "pergunta": "4.3 - Força - Fase A x BC Terra", "respostas": { "inspetor": ["V", "45", "Ohm", "56", "C"] } },
-        { "numero": 8314, "pergunta": "4.4 - Força - Fase B x AC Terra", "respostas": { "inspetor": ["V", "66", "Ohm", "76", "C"] } },
-        { "numero": 8315, "pergunta": "4.5 - Força - Fase C x AB Terra", "respostas": { "inspetor": ["V", "22", "Ohm", "67", "C"] } },
-        { "numero": 8316, "pergunta": "4.6 - Força - Fase ABC x Terra", "respostas": { "inspetor": ["V", "222", "Ohm", "55", "C"] } },
+
       { "numero": 8317, "pergunta": "Multimedidores", "respostas": { "inspetor": ["C"] } },
       { "numero": 8318, "pergunta": "Controladores", "respostas": { "inspetor": ["C"] } },
       { "numero": 8319, "pergunta": "Drives", "respostas": { "inspetor": ["C"] } },

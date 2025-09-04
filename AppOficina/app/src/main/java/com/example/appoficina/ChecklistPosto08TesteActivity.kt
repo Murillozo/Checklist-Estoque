@@ -41,6 +41,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
 
         // 8.3 - TESTE - DADOS
         addLabel("8.3 - TESTE - DADOS")
+
         addLabel("Responsável")
         val responsavelInput = EditText(this)
         container.addView(responsavelInput)
@@ -129,7 +130,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
         )
 
         val unidadeOptions = listOf("V", "kV")
-        val resUnidadeOptions = listOf("Ohm", "Mohm", "Gigaohm", "MΩ", "GΩ", "TΩ", "mA")
+        val resUnidadeOptions = listOf("Ω", "MΩ", "GΩ", "TΩ", "mA")
         val tensaoPerguntas = listOf(
             "4.2 - Comando x Terra",
             "4.3 - Força - Fase A x BC Terra",
@@ -161,6 +162,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
                 this,
                 android.R.layout.simple_spinner_dropdown_item,
                 resUnidadeOptions
+
             )
             val resVal = EditText(this)
             resVal.hint = "Resultado: Valor"
