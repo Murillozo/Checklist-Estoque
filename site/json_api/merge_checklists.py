@@ -100,6 +100,44 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
     return result
 
 
+def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Deduplicate checklist items by ``numero`` or ``pergunta``.
+
+    When the same question appears multiple times, newer answers replace older
+    ones while preserving existing answers that are still ``None`` in the new
+    entry.
+    """
+
+    merged: Dict[Any, Dict[str, Any]] = {}
+    for item in items:
+        key = item.get("numero")
+        if key is None:
+            key = item.get("pergunta")
+        if key is None:
+            continue
+
+        if key not in merged:
+            merged[key] = item
+            continue
+
+        existing = merged[key]
+        respostas_novas = item.get("respostas", {}) or {}
+        respostas_exist = existing.setdefault("respostas", {})
+        for setor, resp in respostas_novas.items():
+            if resp is not None:
+                respostas_exist[setor] = resp
+
+        if len(item.get("pergunta", "")) > len(existing.get("pergunta", "")):
+            existing["pergunta"] = item["pergunta"]
+        if item.get("numero") is not None:
+            existing["numero"] = item["numero"]
+
+    try:
+        return sorted(merged.values(), key=lambda x: x.get("numero"))
+    except TypeError:
+        return list(merged.values())
+
+
 def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dict[str, Any]]:
     """Merge checklist pairs found in ``base_dir`` grouped by ``obra``.
 
@@ -155,18 +193,8 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
             except Exception:
                 existing = {}
 
-            existing_items = {
-                item.get("numero"): item
-                for item in existing.get("itens", [])
-                if item.get("numero") is not None
-            }
-            for item in result.get("itens", []):
-                numero = item.get("numero")
-                if numero is not None:
-                    existing_items[numero] = item
-            result["itens"] = sorted(
-                existing_items.values(), key=lambda x: x.get("numero")
-            )
+            combined_items = existing.get("itens", []) + result.get("itens", [])
+            result["itens"] = _dedup_items(combined_items)
 
             existing_mats = {
                 m.get("material"): m
