@@ -159,6 +159,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
                 this,
                 android.R.layout.simple_spinner_dropdown_item,
                 resUnidadeOptions
+            
             )
             val resVal = EditText(this)
             resVal.hint = "Resultado: Valor"

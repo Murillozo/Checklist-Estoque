@@ -36,7 +36,7 @@ function gerarPDF(base){
     <tr>
       <td>{{ loop.index }}</td>
       <td>{{ item.pergunta }}</td>
-      <td>{{ item.resposta | join(', ') }}</td>
+      <td>{{ item.resposta }}</td>
     </tr>
     {% endfor %}
   </tbody>
