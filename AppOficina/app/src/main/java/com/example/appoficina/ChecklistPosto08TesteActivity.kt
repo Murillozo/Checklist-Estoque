@@ -126,7 +126,8 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
             val na: CheckBox,
         )
 
-        val unidadeOptions = listOf("V", "kV", "Ohm", "MΩ", "GΩ")
+        val unidadeOptions = listOf("V", "kV")
+        val resUnidadeOptions = listOf("Ohm", "Mohm", "Gigaohm", "MΩ", "GΩ", "TΩ", "mA")
         val tensaoPerguntas = listOf(
             "4.2 - Comando x Terra",
             "4.3 - Força - Fase A x BC Terra",
@@ -157,7 +158,8 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
             resUni.adapter = ArrayAdapter(
                 this,
                 android.R.layout.simple_spinner_dropdown_item,
-                unidadeOptions
+                resUnidadeOptions
+            
             )
             val resVal = EditText(this)
             resVal.hint = "Resultado: Valor"
