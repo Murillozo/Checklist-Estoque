@@ -194,6 +194,15 @@ def merge_duplicates(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
     result: List[Dict[str, Any]] = []
     for g in grouped.values():
+        for f in FUNCS:
+            seen: set[str] = set()
+            unique: List[str] = []
+            for resp in reversed(g["respostas"][f]):
+                if resp not in seen:
+                    seen.add(resp)
+                    unique.append(resp)
+            unique.reverse()
+            g["respostas"][f] = unique
         nums = g["numeros"]
         candidates = [n for n, q in BASE_QUESTIONS.items() if q == g["pergunta"]]
         canonical = min(candidates) if candidates else None
