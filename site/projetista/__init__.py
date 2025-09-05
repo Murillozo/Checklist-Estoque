@@ -16,8 +16,19 @@ import urllib.parse
 # PDF generation uses the fpdf2 package (pip install fpdf2) for Unicode support.
 # Ensure that the TrueType font "DejaVuSans.ttf" is placed alongside this file.
 from fpdf import FPDF
+from fontTools.ttLib import TTLibError
+import logging
 import re
 LOGO_PATH = os.path.join(os.path.dirname(__file__), 'static', 'evomax_logo.png')
+
+
+def _identity(txt: str) -> str:
+    return txt
+
+
+def _latin1(txt: str) -> str:
+    return txt.encode('latin-1', 'replace').decode('latin-1')
+
 
 
 bp = Blueprint('projetista', __name__)
@@ -668,6 +679,8 @@ def checklist_pdf(filename):
     data_checklist = dados.get("data_checklist", datetime.now().strftime("%d/%m/%Y"))
 
     # ---------- PDF ----------
+    safe_text = _identity
+
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
                      cidade_estado='', projesta='', data_checklist='', inspetor='',
@@ -770,6 +783,27 @@ def checklist_pdf(filename):
             self.set_text_color(128)
             self.cell(0, 10, f'Página {self.page_no()}/{{nb}}', align='C')
 
+        def cell(self, *args, **kwargs):
+            if args:
+                args = list(args)
+                if len(args) >= 3 and isinstance(args[2], str):
+                    args[2] = safe_text(args[2])
+                args = tuple(args)
+            if 'txt' in kwargs and isinstance(kwargs['txt'], str):
+                kwargs['txt'] = safe_text(kwargs['txt'])
+            return super().cell(*args, **kwargs)
+
+        def multi_cell(self, *args, **kwargs):
+            if args:
+                args = list(args)
+                if len(args) >= 3 and isinstance(args[2], str):
+                    args[2] = safe_text(args[2])
+                args = tuple(args)
+            if 'txt' in kwargs and isinstance(kwargs['txt'], str):
+                kwargs['txt'] = safe_text(kwargs['txt'])
+            return super().multi_cell(*args, **kwargs)
+
+
     pdf = ChecklistPDF(
         obra=dados.get('obra', ''),
         ano=dados.get('ano', ''),
@@ -791,14 +825,15 @@ def checklist_pdf(filename):
     # Fontes (Unicode) — a fonte TrueType "DejaVuSans.ttf" está incluída
     # no diretório desta aplicação para permitir caracteres como "Ω".
     ttf_path = os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf')
-    if os.path.exists(ttf_path):
+    try:
         pdf.add_font('DejaVu', '', ttf_path, uni=True)
         pdf.add_font('DejaVu', 'B', ttf_path, uni=True)
         pdf.add_font('DejaVu', 'I', ttf_path, uni=True)
         base_font = 'DejaVu'
-    else:
-        # fallback (pode perder acentos/símbolos)
+    except (OSError, TTLibError):
+        logging.warning('Não foi possível carregar DejaVuSans.ttf; usando Arial.')
         base_font = 'Arial'
+        safe_text = _latin1
 
     pdf.alias_nb_pages()
     pdf.add_page()
