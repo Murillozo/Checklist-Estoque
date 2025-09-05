@@ -36,6 +36,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
     }
 
     itens: Dict[int, Dict[str, Any]] = {}
+    itens_por_pergunta: Dict[str, List[int]] = {}
     def _extract_respostas(item: Dict[str, Any], keys: List[str]) -> Optional[List[str]]:
         respostas = item.get("respostas")
         if isinstance(respostas, dict):
@@ -54,6 +55,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         resposta = _extract_respostas(item, ["suprimento", "produção", "producao"])
         itens.setdefault(numero, {})["pergunta_sup"] = pergunta
         itens[numero]["res_sup"] = resposta
+        itens_por_pergunta.setdefault(pergunta, []).append(numero)
     for item in json_producao.get("itens", []):
         numero = item.get("numero")
         if numero is None:
@@ -63,24 +65,38 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         entry = itens.setdefault(numero, {})
         entry["pergunta_prod"] = pergunta
         entry["res_prod"] = resposta
+        itens_por_pergunta.setdefault(pergunta, []).append(numero)
+    def _merge_list(a: Optional[List[str]], b: Optional[List[str]]) -> Optional[List[str]]:
+        if not b:
+            return a
+        if not a:
+            return b
+        return list(dict.fromkeys(a + b))
 
     result_items: List[Dict[str, Any]] = []
-    for numero in sorted(itens):
-        entry = itens[numero]
-        pergunta_sup = entry.get("pergunta_sup", "")
-        pergunta_prod = entry.get("pergunta_prod", "")
-        pergunta = pergunta_sup if len(pergunta_sup) >= len(pergunta_prod) else pergunta_prod
+    for pergunta, numeros in itens_por_pergunta.items():
+        nums = sorted({n for n in numeros if n is not None})
+        pergunta_final = pergunta
+        res_sup: Optional[List[str]] = None
+        res_prod: Optional[List[str]] = None
+        for numero in nums:
+            entry = itens.get(numero, {})
+            pergunta_sup = entry.get("pergunta_sup", "")
+            pergunta_prod = entry.get("pergunta_prod", "")
+            if len(pergunta_sup) > len(pergunta_final):
+                pergunta_final = pergunta_sup
+            if len(pergunta_prod) > len(pergunta_final):
+                pergunta_final = pergunta_prod
+            res_sup = _merge_list(res_sup, entry.get("res_sup"))
+            res_prod = _merge_list(res_prod, entry.get("res_prod"))
         result_items.append(
             {
-                "numero": numero,
-                "pergunta": pergunta or pergunta_prod or pergunta_sup,
-                "respostas": {
-                    "suprimento": entry.get("res_sup"),
-                    "produção": entry.get("res_prod"),
-                },
+                "numero": nums,
+                "pergunta": pergunta_final,
+                "respostas": {"suprimento": res_sup, "produção": res_prod},
             }
         )
-    result["itens"] = result_items
+    result["itens"] = sorted(result_items, key=lambda x: x["numero"][0] if x.get("numero") else 0)
 
     materiais: Dict[str, Dict[str, Any]] = {}
     for mat in json_suprimento.get("materiais", []) + json_producao.get("materiais", []):
@@ -101,40 +117,55 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
 
 
 def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Deduplicate checklist items by ``numero`` or ``pergunta``.
+    """Deduplicate checklist items grouping by ``pergunta`` when available.
 
-    When the same question appears multiple times, newer answers replace older
-    ones while preserving existing answers that are still ``None`` in the new
-    entry.
+    Items that share the same question will have their answers merged and their
+    numbers accumulated in a list. Answers that are ``None`` are ignored so that
+    existing non-empty answers are preserved.
     """
 
     merged: Dict[Any, Dict[str, Any]] = {}
     for item in items:
-        key = item.get("numero")
-        if key is None:
-            key = item.get("pergunta")
+        key = item.get("pergunta") or item.get("numero")
         if key is None:
             continue
 
         if key not in merged:
-            merged[key] = item
+            entry = dict(item)
+            numero = entry.get("numero")
+            if numero is not None and not isinstance(numero, list):
+                entry["numero"] = [numero]
+            elif numero is None:
+                entry["numero"] = []
+            merged[key] = entry
             continue
 
         existing = merged[key]
+        numero_novo = item.get("numero")
+        if isinstance(numero_novo, list):
+            for n in numero_novo:
+                if n not in existing["numero"]:
+                    existing["numero"].append(n)
+        elif numero_novo is not None and numero_novo not in existing["numero"]:
+            existing["numero"].append(numero_novo)
+
         respostas_novas = item.get("respostas", {}) or {}
         respostas_exist = existing.setdefault("respostas", {})
         for setor, resp in respostas_novas.items():
-            if resp is not None:
+            if resp is None:
+                continue
+            atual = respostas_exist.get(setor)
+            if atual is None:
                 respostas_exist[setor] = resp
+            else:
+                respostas_exist[setor] = list(dict.fromkeys(atual + resp))
 
         if len(item.get("pergunta", "")) > len(existing.get("pergunta", "")):
             existing["pergunta"] = item["pergunta"]
-        if item.get("numero") is not None:
-            existing["numero"] = item["numero"]
 
     try:
-        return sorted(merged.values(), key=lambda x: x.get("numero"))
-    except TypeError:
+        return sorted(merged.values(), key=lambda x: x["numero"][0] if x.get("numero") else 0)
+    except Exception:
         return list(merged.values())
 
 
