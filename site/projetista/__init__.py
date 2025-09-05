@@ -788,16 +788,15 @@ def checklist_pdf(filename):
     pdf.set_margins(left=6, top=35, right=6)
     pdf.set_auto_page_break(auto=False, margin=20)
 
-    # Fontes (Unicode)
-    # Coloque "DejaVuSans.ttf" ao lado deste arquivo (projetista/__init__.py)
-    base_font = 'Arial'
-    try:
-        ttf_path = os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf')
+    # Fontes (Unicode) — a fonte TrueType "DejaVuSans.ttf" está incluída
+    # no diretório desta aplicação para permitir caracteres como "Ω".
+    ttf_path = os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf')
+    if os.path.exists(ttf_path):
         pdf.add_font('DejaVu', '', ttf_path, uni=True)
         pdf.add_font('DejaVu', 'B', ttf_path, uni=True)
         pdf.add_font('DejaVu', 'I', ttf_path, uni=True)
         base_font = 'DejaVu'
-    except Exception:
+    else:
         # fallback (pode perder acentos/símbolos)
         base_font = 'Arial'
 
