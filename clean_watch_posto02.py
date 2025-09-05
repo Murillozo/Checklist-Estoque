@@ -158,32 +158,41 @@ def clean_item(raw_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 
 def merge_duplicates(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Merge items that have the same ``numero``.
+    """Merge items that have the same ``pergunta``.
 
-    Histories from duplicated questions are concatenated in the order of
-    appearance.  The most recent answer for each function is therefore the
-    last element of the combined history list.
+    Each pergunta acts as the primary identifier.  Histories from duplicated
+    questions are concatenated per função preserving their original order so
+    that the last element of each list remains the most recent resposta.  The
+    returned ``numero`` for each pergunta is the canonical one defined in
+    ``BASE_QUESTIONS`` when available; otherwise the smallest ``numero``
+    encountered for that pergunta is used.
     """
 
-    grouped: Dict[int, Dict[str, Any]] = {}
-    order: List[int] = []
+    grouped: Dict[str, Dict[str, Any]] = {}
+    order: List[str] = []
     for item in items:
-        n = item["numero"]
-        if n not in grouped:
-            grouped[n] = {
-                "numero": n,
-                "pergunta": item["pergunta"],
+        key = item["pergunta"]
+        if key not in grouped:
+            grouped[key] = {
+                "pergunta": key,
+                "numeros": [item["numero"]],
                 "respostas": {f: list(item["respostas"][f]) for f in FUNCS},
             }
-            order.append(n)
+            order.append(key)
         else:
-            g = grouped[n]
+            g = grouped[key]
+            g["numeros"].append(item["numero"])
             for f in FUNCS:
                 g["respostas"][f].extend(item["respostas"][f])
 
     result: List[Dict[str, Any]] = []
-    for n in order:
-        result.append(grouped[n])
+    for key in order:
+        g = grouped[key]
+        nums = g["numeros"]
+        candidates = [n for n, q in BASE_QUESTIONS.items() if q == key]
+        canonical = max(candidates) if candidates else None
+        numero = canonical if canonical is not None else min(nums)
+        result.append({"numero": numero, "pergunta": key, "respostas": g["respostas"]})
     return result
 
 
@@ -195,8 +204,9 @@ def slice_from_anchor(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Build the final JSON structure.
 
-    Each item consolidates duplicate questions and retains only the most
-    recent resposta for cada função; when ausente, a string vazia é usada.
+    Each item consolidates duplicate questions and preserves the full
+    histórico de respostas por função.  Listas vazias são representadas como
+    ``null`` no JSON resultante.
     """
 
     out: Dict[str, Any] = {
@@ -213,8 +223,8 @@ def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, 
         prod_hist = item["respostas"]["produção"]
 
         respostas = {
-            "suprimento": sup_hist[-1] if sup_hist else "",
-            "produção": prod_hist[-1] if prod_hist else "",
+            "suprimento": sup_hist if sup_hist else None,
+            "produção": prod_hist if prod_hist else None,
         }
 
         cleaned_items.append(
@@ -224,14 +234,8 @@ def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, 
                 "respostas": respostas,
             }
         )
-    def sort_key(it: Dict[str, Any]):
-        res = it["respostas"]
-        has_atual = bool(res.get("suprimento") or res.get("produção"))
-        if has_atual:
-            return (0, -it["numero"])
-        return (1, it["pergunta"])
 
-    cleaned_items.sort(key=sort_key)
+    cleaned_items.sort(key=lambda it: it["numero"])
     out["itens"] = cleaned_items
     return out
 
@@ -260,11 +264,13 @@ def write_summary_csv(data: Dict[str, Any], path: Path) -> bool:
     writer.writerow(["numero", "pergunta", "suprimento_atual", "producao_atual"])
     for item in data["itens"]:
         respostas = item["respostas"]
+        sup_hist = respostas.get("suprimento") or []
+        prod_hist = respostas.get("produção") or []
         writer.writerow([
             item["numero"],
             item["pergunta"],
-            respostas.get("suprimento", ""),
-            respostas.get("produção", ""),
+            sup_hist[-1] if sup_hist else "",
+            prod_hist[-1] if prod_hist else "",
         ])
     return write_if_changed(path, output.getvalue().encode("utf-8"))
 
