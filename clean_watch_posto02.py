@@ -138,7 +138,12 @@ def clean_item(raw_item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     except Exception:
         return None
 
-    pergunta = BASE_QUESTIONS.get(numero, pergunta_raw)
+    # Preserve the pergunta from the raw item.  The canonical mapping from
+    # ``BASE_QUESTIONS`` will be used later during the merge step solely to
+    # determine the final ``numero``.  Using the raw text here avoids
+    # associating a pergunta with an incorrect entry when the numbers differ
+    # between the base checklist and the incoming JSON.
+    pergunta = pergunta_raw or BASE_QUESTIONS.get(numero, "")
     if not pergunta:
         return None
     if not isinstance(respostas, dict):
