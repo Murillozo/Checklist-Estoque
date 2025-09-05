@@ -75,6 +75,10 @@ def normalize_responses(value: Any) -> List[str]:
         items = [value]
     elif isinstance(value, list):
         items = [v for v in value if isinstance(v, str)]
+        # fonte registra respostas mais recentes primeiro; invertemos
+        # para manter a ordem cronológica e garantir que o último
+        # elemento represente a resposta mais atual
+        items.reverse()
     cleaned: List[str] = []
     for v in items:
         s = v.strip()
@@ -169,30 +173,31 @@ def merge_duplicates(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
 
     grouped: Dict[str, Dict[str, Any]] = {}
-    order: List[str] = []
     for item in items:
         key = item["pergunta"]
-        if key not in grouped:
-            grouped[key] = {
+        g = grouped.setdefault(
+            key,
+            {
                 "pergunta": key,
-                "numeros": [item["numero"]],
-                "respostas": {f: list(item["respostas"][f]) for f in FUNCS},
-            }
-            order.append(key)
-        else:
-            g = grouped[key]
-            g["numeros"].append(item["numero"])
-            for f in FUNCS:
-                g["respostas"][f].extend(item["respostas"][f])
+                "numeros": [],
+                "respostas": {f: [] for f in FUNCS},
+            },
+        )
+        g["numeros"].append(item["numero"])
+        for f in FUNCS:
+            g["respostas"][f].extend(item["respostas"][f])
 
     result: List[Dict[str, Any]] = []
-    for key in order:
-        g = grouped[key]
+    for g in grouped.values():
         nums = g["numeros"]
-        candidates = [n for n, q in BASE_QUESTIONS.items() if q == key]
-        canonical = max(candidates) if candidates else None
+        candidates = [n for n, q in BASE_QUESTIONS.items() if q == g["pergunta"]]
+        canonical = min(candidates) if candidates else None
         numero = canonical if canonical is not None else min(nums)
-        result.append({"numero": numero, "pergunta": key, "respostas": g["respostas"]})
+        result.append(
+            {"numero": numero, "pergunta": g["pergunta"], "respostas": g["respostas"]}
+        )
+
+    result.sort(key=lambda it: it["numero"])
     return result
 
 
@@ -334,6 +339,9 @@ def process_file(path: Path) -> None:
             item = clean_item(r)
             if item:
                 cleaned.append(item)
+    # ordena para que itens mais antigos apareçam primeiro, garantindo que
+    # o último histórico represente a resposta mais recente
+    cleaned.sort(key=lambda it: it["numero"])
 
     merged = merge_duplicates(cleaned)
     merged = slice_from_anchor(merged)
