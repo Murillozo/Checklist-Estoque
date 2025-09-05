@@ -189,7 +189,8 @@ def merge_duplicates(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     for key in order:
         g = grouped[key]
         nums = g["numeros"]
-        canonical = next((n for n, q in BASE_QUESTIONS.items() if q == key), None)
+        candidates = [n for n, q in BASE_QUESTIONS.items() if q == key]
+        canonical = max(candidates) if candidates else None
         numero = canonical if canonical is not None else min(nums)
         result.append({"numero": numero, "pergunta": key, "respostas": g["respostas"]})
     return result
@@ -203,8 +204,9 @@ def slice_from_anchor(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Build the final JSON structure.
 
-    Each item consolidates duplicate questions and retains only the most
-    recent resposta for cada função; when ausente, a string vazia é usada.
+    Each item consolidates duplicate questions and preserves the full
+    histórico de respostas por função.  Listas vazias são representadas como
+    ``null`` no JSON resultante.
     """
 
     out: Dict[str, Any] = {
@@ -221,8 +223,8 @@ def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, 
         prod_hist = item["respostas"]["produção"]
 
         respostas = {
-            "suprimento": sup_hist[-1] if sup_hist else "",
-            "produção": prod_hist[-1] if prod_hist else "",
+            "suprimento": sup_hist if sup_hist else None,
+            "produção": prod_hist if prod_hist else None,
         }
 
         cleaned_items.append(
@@ -262,11 +264,13 @@ def write_summary_csv(data: Dict[str, Any], path: Path) -> bool:
     writer.writerow(["numero", "pergunta", "suprimento_atual", "producao_atual"])
     for item in data["itens"]:
         respostas = item["respostas"]
+        sup_hist = respostas.get("suprimento") or []
+        prod_hist = respostas.get("produção") or []
         writer.writerow([
             item["numero"],
             item["pergunta"],
-            respostas.get("suprimento", ""),
-            respostas.get("produção", ""),
+            sup_hist[-1] if sup_hist else "",
+            prod_hist[-1] if prod_hist else "",
         ])
     return write_if_changed(path, output.getvalue().encode("utf-8"))
 
