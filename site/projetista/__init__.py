@@ -33,7 +33,9 @@ def _latin1(txt: str) -> str:
 def draw_ohm(pdf: FPDF, x: float, y: float, size: float = 12) -> None:
     """Desenha o símbolo Ω usando a fonte "Symbol".
 
-    Útil quando a fonte Unicode DejaVu não está disponível.
+    Deve ser utilizado apenas quando o PDF foi gerado no modo de
+    contingência (sem DejaVu), garantindo que o símbolo esteja presente
+    mesmo sem suporte Unicode completo.
     """
     prev_family, prev_style, prev_size = pdf.font_family, pdf.font_style, pdf.font_size_pt
     pdf.set_font('Symbol', size=size)
@@ -42,7 +44,15 @@ def draw_ohm(pdf: FPDF, x: float, y: float, size: float = 12) -> None:
 
 
 def _load_dejavu(pdf: FPDF):
-    """Tenta carregar DejaVuSans.ttf de diversos caminhos predefinidos."""
+    """Tenta carregar DejaVuSans.ttf de diversos caminhos predefinidos.
+
+    A ordem de busca é: diretório atual, ``static/`` local, diretórios
+    ``projetista`` na raiz do projeto e ``site/projetista`` na raiz. Por
+    fim, se a variável de ambiente ``DEJAVU_TTF`` estiver definida, o
+    caminho informado é testado. Em caso de sucesso, as variantes
+    regular, negrito e itálico são registradas no FPDF com suporte
+    Unicode. Caso contrário, mantém-se o fallback para Arial.
+    """
     tested = []
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
     candidates = [
