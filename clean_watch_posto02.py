@@ -232,14 +232,8 @@ def build_output(raw: Dict[str, Any], items: List[Dict[str, Any]]) -> Dict[str, 
                 "respostas": respostas,
             }
         )
-    def sort_key(it: Dict[str, Any]):
-        res = it["respostas"]
-        has_atual = bool(res.get("suprimento") or res.get("produção"))
-        if has_atual:
-            return (0, -it["numero"])
-        return (1, it["pergunta"])
 
-    cleaned_items.sort(key=sort_key)
+    cleaned_items.sort(key=lambda it: it["numero"])
     out["itens"] = cleaned_items
     return out
 
