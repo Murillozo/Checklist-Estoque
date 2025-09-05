@@ -30,6 +30,46 @@ def _latin1(txt: str) -> str:
     return txt.encode('latin-1', 'replace').decode('latin-1')
 
 
+def draw_ohm(pdf: FPDF, x: float, y: float, size: float = 12) -> None:
+    """Desenha o símbolo Ω usando a fonte "Symbol".
+
+    Útil quando a fonte Unicode DejaVu não está disponível.
+    """
+    prev_family, prev_style, prev_size = pdf.font_family, pdf.font_style, pdf.font_size_pt
+    pdf.set_font('Symbol', size=size)
+    pdf.text(x, y, 'W')  # 'W' representa Ω na codificação da fonte Symbol
+    pdf.set_font(prev_family, prev_style, prev_size)
+
+
+def _load_dejavu(pdf: FPDF):
+    """Tenta carregar DejaVuSans.ttf de diversos caminhos predefinidos."""
+    tested = []
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    candidates = [
+        os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf'),
+        os.path.join(os.path.dirname(__file__), 'static', 'DejaVuSans.ttf'),
+        os.path.join(root_dir, 'projetista', 'DejaVuSans.ttf'),
+        os.path.join(root_dir, 'site', 'projetista', 'DejaVuSans.ttf'),
+    ]
+    env_path = os.environ.get('DEJAVU_TTF')
+    if env_path:
+        candidates.append(env_path)
+    for path in candidates:
+        tested.append(path)
+        if not os.path.exists(path):
+            continue
+        try:
+            pdf.add_font('DejaVu', '', path, uni=True)
+            pdf.add_font('DejaVu', 'B', path, uni=True)
+            pdf.add_font('DejaVu', 'I', path, uni=True)
+            logging.info(f'Fonte DejaVuSans carregada: {path}')
+            return 'DejaVu', _identity
+        except (OSError, TTLibError):
+            continue
+    logging.warning('Não foi possível carregar DejaVuSans.ttf; caminhos testados: %s', tested)
+    return 'Arial', _latin1
+
+
 
 bp = Blueprint('projetista', __name__)
 
@@ -822,18 +862,7 @@ def checklist_pdf(filename):
     pdf.set_margins(left=6, top=35, right=6)
     pdf.set_auto_page_break(auto=False, margin=20)
 
-    # Fontes (Unicode) — a fonte TrueType "DejaVuSans.ttf" está incluída
-    # no diretório desta aplicação para permitir caracteres como "Ω".
-    ttf_path = os.path.join(os.path.dirname(__file__), 'DejaVuSans.ttf')
-    try:
-        pdf.add_font('DejaVu', '', ttf_path, uni=True)
-        pdf.add_font('DejaVu', 'B', ttf_path, uni=True)
-        pdf.add_font('DejaVu', 'I', ttf_path, uni=True)
-        base_font = 'DejaVu'
-    except (OSError, TTLibError):
-        logging.warning('Não foi possível carregar DejaVuSans.ttf; usando Arial.')
-        base_font = 'Arial'
-        safe_text = _latin1
+    base_font, safe_text = _load_dejavu(pdf)
 
     pdf.alias_nb_pages()
     pdf.add_page()
