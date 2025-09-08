@@ -18,7 +18,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
 
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
-        val producao = intent.getStringExtra("producao") ?: ""
+        val montador = intent.getStringExtra("montador") ?: ""
 
         val triplets = (200..224).map { i ->
             val cId = resources.getIdentifier("cbQ${i}C", "id", packageName)
@@ -114,7 +114,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             val payload = JSONObject()
             payload.put("obra", obra)
             payload.put("ano", ano)
-            payload.put("produção", producao)
+            payload.put("montador", montador)
             payload.put("itens", itens)
             Thread { enviarChecklist(payload) }.start()
             finish()
