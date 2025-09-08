@@ -59,6 +59,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
             "Grau de poluição 3: Presença de uma poluição condutiva ou de uma poluição seca não-condutiva, que pode se tornar condutiva devido à condensação.",
             "Grau de poluição 4: Ocorre uma condutividade contínua devido a presença de pó condutivo, chuva ou outras condições úmidas."
         )
+        val poluicaoValues = listOf("1", "2", "3", "4")
         poluicaoSpinner.adapter =
             ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, poluicaoOptions)
         container.addView(poluicaoSpinner)
@@ -270,7 +271,10 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
 
                 addItem("Responsável", listOf(responsavelInput.text.toString()))
                 addItem("Altitude em relação ao nivel do mar", listOf(altitudeInput.text.toString()))
-                addItem("Grau de Poluição", listOf(poluicaoSpinner.selectedItem.toString()))
+                addItem(
+                    "Grau de Poluição",
+                    listOf(poluicaoValues[poluicaoSpinner.selectedItemPosition])
+                )
                 addItem("Grau de proteção (IP)", listOf(ipInput.text.toString()))
                 addItem("Instalação", listOf(instalSpinner.selectedItem.toString()))
                 addItem("Aplicação", listOf(aplicSpinner.selectedItem.toString()))
