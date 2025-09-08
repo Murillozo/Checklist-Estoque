@@ -582,9 +582,6 @@ def checklist_pdf(filename):
     # ---------- Helpers de parsing/agrupamento ----------
     def _natural_key_codigo(pergunta: str):
         # pega "1.10" de "1.10 - CANALETAS: ..." e transforma em [1,10]
-        norm = _norm(pergunta)
-        if norm == "TENSAO CIRCUITO DE FORCA":
-            return [4, 1, 5]
         m = re.match(r"\s*([0-9]+(?:\.[0-9]+)*)\s*-\s*", pergunta or "")
         if not m:
             return [float('inf')]
