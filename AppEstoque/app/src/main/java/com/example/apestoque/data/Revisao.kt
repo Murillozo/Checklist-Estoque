@@ -6,7 +6,7 @@ import java.io.Serializable
 
 @JsonClass(generateAdapter = true)
 data class Divergencia(
-    val numero: Int,
+    val numero: List<Int>,
     val pergunta: String,
     val suprimento: List<String>?,
     @Json(name = "produção") val producao: List<String>?,
