@@ -969,15 +969,16 @@ def checklist_pdf(filename):
     def _section_row(title: str, responsaveis_atual):
         nonlocal zebra
         h = _row_height(title)
-        extra = line_h  # espaçamento adicional após o título
-        _maybe_page_break(h + line_h + extra, need_header=False)
+        extra = line_h  # espaçamento adicional antes do título
+        _maybe_page_break(extra + h + line_h, need_header=False)
+        pdf.ln(extra)
         pdf.set_fill_color(*header_fill_rgb)
         y0 = pdf.get_y()
         pdf.rect(left_margin, y0, total_w, h, 'F')
         pdf.set_xy(left_margin + cell_pad, y0 + 1)
         pdf.set_font(base_font, 'B', 10)
         pdf.cell(total_w - 2 * cell_pad, line_h - 2, title, border=0)
-        pdf.ln(h + extra)
+        pdf.ln(h)
         pdf.set_font(base_font, '', 7)
         zebra = False
 
