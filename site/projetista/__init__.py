@@ -955,9 +955,16 @@ def checklist_pdf(filename):
         pdf.set_xy(x + cell_pad, y + 1)
         pdf.cell(col_w_item - 2 * cell_pad, line_h - 2, 'Item', border=0)
         cur_x = x + col_w_item
+        header_labels = {"produção": "Montador"}
         for r in responsaveis_atual:
             pdf.set_xy(cur_x + cell_pad, y + 1)
-            pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, r.title(), border=0, align='C')
+            pdf.cell(
+                col_w_resp - 2 * cell_pad,
+                line_h - 2,
+                header_labels.get(r, r.title()),
+                border=0,
+                align='C',
+            )
             cur_x += col_w_resp
         pdf.ln(line_h)
         pdf.set_font(base_font, '', 9)
@@ -986,12 +993,13 @@ def checklist_pdf(filename):
         roles = set()
         for sub in g.get("subitens", []):
             for k, v in (sub.get("respostas") or {}).items():
+                role_key = "montador" if k == "produção" else k
                 if isinstance(v, list):
                     if any(str(x).strip() for x in v):
-                        roles.add(k)
+                        roles.add(role_key)
                 else:
                     if str(v).strip():
-                        roles.add(k)
+                        roles.add(role_key)
         return sorted(roles)
 
     # ---------- Tabela ----------
