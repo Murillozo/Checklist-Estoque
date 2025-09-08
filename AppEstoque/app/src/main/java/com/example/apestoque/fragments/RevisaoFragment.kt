@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.apestoque.R
@@ -35,13 +36,14 @@ class RevisaoFragment : Fragment() {
         swipe = view.findViewById(R.id.swipeRevisao)
         rv = view.findViewById(R.id.rvRevisao)
         tvMsg = view.findViewById(R.id.tvMensagemRevisao)
+        rv.layoutManager = LinearLayoutManager(requireContext())
         swipe.setOnRefreshListener { carregar() }
         carregar()
     }
 
     private fun carregar() {
         swipe.isRefreshing = true
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val lista = withContext(Dispatchers.IO) { JsonNetworkModule.api(requireContext()).listarRevisao() }
                 if (lista.isEmpty()) {
@@ -58,7 +60,7 @@ class RevisaoFragment : Fragment() {
                     }
                 }
             } catch (e: Exception) {
-                tvMsg.text = "Erro ao carregar"
+                tvMsg.text = "Erro ao carregar: ${e.localizedMessage}"
                 tvMsg.visibility = View.VISIBLE
                 rv.visibility = View.GONE
             } finally {
