@@ -1,105 +1,190 @@
-package com.example.apestoque
+package com.example.apestoque.checklist
 
-import android.content.Intent
+import android.app.Activity
 import android.os.Bundle
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.Toast
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.Fragment
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import androidx.viewpager2.widget.ViewPager2
-import com.example.apestoque.fragments.AprovadoFragment
-import com.example.apestoque.fragments.ComprasFragment
-import com.example.apestoque.fragments.SolicitacoesFragment
-import com.example.apestoque.fragments.RevisaoFragment
-import com.example.apestoque.fragments.LogisticaFragment
-import com.example.apestoque.fragments.InspecionarFragment
-import com.example.apestoque.fragments.CameraFragment
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
-import android.view.Menu
-import android.view.MenuItem
+import androidx.lifecycle.lifecycleScope
+import com.example.apestoque.R
+import com.example.apestoque.data.ChecklistItem
+import com.example.apestoque.data.ChecklistRequest
+import com.example.apestoque.data.ChecklistMaterial
+import com.example.apestoque.data.ComprasRequest
+import com.example.apestoque.data.Item
+import com.example.apestoque.data.NetworkModule
+import com.example.apestoque.data.JsonNetworkModule
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Calendar
+import android.content.Context
 
-class MainActivity : AppCompatActivity() {
-
+class ChecklistPosto01Parte2Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_checklist_posto01_parte2)
 
-        // Toolbar
-        findViewById<Toolbar>(R.id.toolbar).also { setSupportActionBar(it) }
-
-        // Views
-        val swipe = findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
-        val pager = findViewById<ViewPager2>(R.id.viewPager)
-        val tabs  = findViewById<TabLayout>(R.id.tabLayout)
-
-        // Fragments + Titles
-        val frags: List<Fragment> = listOf(
-            SolicitacoesFragment(),
-            ComprasFragment(),
-            AprovadoFragment(),
-            RevisaoFragment(),
-            LogisticaFragment(),
-            InspecionarFragment(),
-            CameraFragment()
-        )
-        val titles = listOf(
-            "Solicitações",
-            "Compras",
-            "Aprovadas",
-            "Revisão",
-            "Logística",
-            "Inspecionar",
-            ""
-        )
-        val icons = listOf(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            android.R.drawable.ic_menu_camera
-        )
-
-        // Adapter
-        pager.adapter = ViewPagerAdapter(this, frags)
-
-        // Conecta abas ao pager
-        TabLayoutMediator(tabs, pager) { tab, i ->
-            tab.text = titles[i]
-            icons[i]?.let { tab.setIcon(it) }
-        }.attach()
-
-        // Pull to refresh
-        swipe.setOnRefreshListener {
-            if (pager.currentItem != 6) {
-                pager.adapter?.notifyItemChanged(pager.currentItem)
-            }
-            swipe.isRefreshing = false
+        val id = intent.getIntExtra("id", -1)
+        if (id == -1) {
+            finish()
+            return
         }
 
-        pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                swipe.isEnabled = position != 6
+        val jsonPend = intent.getStringExtra("pendentes")
+        val obra = intent.getStringExtra("obra") ?: ""
+        val prevJson = intent.getStringExtra("itens") ?: "[]"
+        val jsonMateriais = intent.getStringExtra("materiais") ?: "[]"
+        val prefs = getSharedPreferences("app", Context.MODE_PRIVATE)
+        val suprimento = prefs.getString("operador_suprimentos", "") ?: ""
+
+        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+        val pendentes = jsonPend?.let {
+            val type = Types.newParameterizedType(List::class.java, Item::class.java)
+            moshi.adapter<List<Item>>(type).fromJson(it)
+        }
+        val checklistType = Types.newParameterizedType(List::class.java, ChecklistItem::class.java)
+        val prevItems = moshi.adapter<List<ChecklistItem>>(checklistType).fromJson(prevJson) ?: emptyList()
+        val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
+        val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
+
+        val triplets = (75..94).mapNotNull { i ->
+            val c = resources.getIdentifier("cbQ${i}C", "id", packageName)
+            val nc = resources.getIdentifier("cbQ${i}NC", "id", packageName)
+            val na = resources.getIdentifier("cbQ${i}NA", "id", packageName)
+
+            val cbC = findViewById<CheckBox?>(c)
+            val cbNC = findViewById<CheckBox?>(nc)
+            val cbNA = findViewById<CheckBox?>(na)
+
+            if (cbC == null || cbNC == null || cbNA == null) {
+                Log.w("ChecklistPosto01Parte2", "Missing checkbox ID for index $i: C=$c, NC=$nc, NA=$na")
+                null
+            } else {
+                Triple(cbC, cbNC, cbNA)
             }
-        })
+        }
 
-        swipe.isEnabled = pager.currentItem != 6
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_settings -> {
-                startActivity(Intent(this, SettingsActivity::class.java))
-                true
+        // Torna as opções mutuamente exclusivas
+        triplets.forEach { (cbC, cbNC, cbNA) ->
+            cbC.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    cbNC.isChecked = false
+                    cbNA.isChecked = false
+                }
             }
-            else -> super.onOptionsItemSelected(item)
+            cbNC.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    cbC.isChecked = false
+                    cbNA.isChecked = false
+                }
+            }
+            cbNA.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    cbC.isChecked = false
+                    cbNC.isChecked = false
+                }
+            }
+        }
+
+        val questions = listOf(
+            "1.15 - COMPONENTES: Identificação do projeto",
+            "1.15 - COMPONENTES: Separação - POSTO - 01",
+            "1.15 - COMPONENTES: Referências x Projeto",
+            "1.15 - COMPONENTES: Material em bom estado",
+
+            "1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Identificação do projeto",
+            "1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Separação - POSTO - 07",
+            "1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Referências x Projeto",
+            "1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Material em bom estado",
+
+            "1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Identificação do projeto",
+            "1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Separação - POSTO - 07",
+            "1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Referências x Projeto",
+            "1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Material em bom estado",
+
+            "1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Identificação do projeto",
+            "1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Separação - POSTO - 07",
+            "1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Referências x Projeto",
+            "1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Material em bom estado",
+
+            "1.19 - POLICARBONATO: Identificação do projeto",
+            "1.19 - POLICARBONATO: Separação - POSTO - 03",
+            "1.19 - POLICARBONATO: Referências x Projeto",
+            "1.19 - POLICARBONATO: Material em bom estado",
+        )
+
+        findViewById<Button>(R.id.btnConcluirPosto01Parte2).setOnClickListener {
+            // Sanidade: perguntas x grupos de checkboxes
+            if (questions.size != triplets.size) {
+                Toast.makeText(this, "Quantidade de perguntas/checkboxes não confere.", Toast.LENGTH_SHORT).show()
+                Log.e("ChecklistPosto01Parte2", "questions=${questions.size} triplets=${triplets.size}")
+                return@setOnClickListener
+            }
+
+            // Coleta e validação das escolhas
+            val respostasSelecionadas = mutableListOf<List<String>>()
+            for (i in triplets.indices) {
+                val (cbC, cbNC, cbNA) = triplets[i]
+                val marcados = mutableListOf<String>()
+                if (cbC.isChecked) marcados.add("C")
+                if (cbNC.isChecked) marcados.add("NC")
+                if (cbNA.isChecked) marcados.add("NA")
+                if (marcados.isEmpty()) {
+                    Toast.makeText(this, "Selecione uma opção em: ${questions[i]}", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                respostasSelecionadas.add(marcados)
+            }
+
+            // Constrói os itens do checklist (ids 75..94)
+            val novosItens = triplets.indices.map { i ->
+                ChecklistItem(
+                    i + 75,
+                    questions[i],
+                    mapOf("producao" to respostasSelecionadas[i])
+                )
+            }
+            val itensChecklist = prevItems + novosItens
+
+            val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
+
+            lifecycleScope.launch {
+                try {
+                    val filePath = withContext(Dispatchers.IO) {
+                        val request = ChecklistRequest(obra, ano, suprimento, itensChecklist, materiais)
+                        val response = JsonNetworkModule.api(this@ChecklistPosto01Parte2Activity).salvarChecklist(request)
+                        if (pendentes == null) {
+                            NetworkModule.api(this@ChecklistPosto01Parte2Activity).aprovarSolicitacao(id)
+                        } else {
+                            NetworkModule.api(this@ChecklistPosto01Parte2Activity).marcarCompras(
+                                id,
+                                ComprasRequest(pendentes)
+                            )
+                        }
+                        response.caminho
+                    }
+                    Toast.makeText(
+                        this@ChecklistPosto01Parte2Activity,
+                        "Checklist concluído. Arquivo salvo em:\n$filePath",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                } catch (e: Exception) {
+                    Log.e("ChecklistPosto01Parte2", "Erro ao concluir", e)
+                    Toast.makeText(
+                        this@ChecklistPosto01Parte2Activity,
+                        "Erro ao concluir",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
     }
 }
