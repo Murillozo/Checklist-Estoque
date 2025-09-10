@@ -753,15 +753,18 @@ def checklist_pdf(filename):
     producao = respondentes.get("produção", "").strip()
     inspetor = _encontrar_inspetor(dados)
 
+    teste_insp = dados.get("posto08_teste", {}).get("inspetor", "").strip()
     section_insp_names = {
-        "IQM - Inspeção de Qualidade Mecânica": (dados.get("posto08_iqm", {})
-                                                 .get("inspetor", "").strip()),
-        "IQE - Inspeção de Qualidade Elétrica": (dados.get("posto08_iqe", {})
-                                                 .get("inspetor", "").strip()),
-        "TESTES - DADOS": (dados.get("posto08_teste", {})
-                            .get("inspetor", "").strip()),
-        "TESTE - FUNCIONAIS": (dados.get("posto08_teste", {})
-                               .get("inspetor", "").strip()),
+        "IQM - Inspeção de Qualidade Mecânica": (
+            dados.get("posto08_iqm", {}).get("inspetor", "").strip()
+        ),
+        "IQE - Inspeção de Qualidade Elétrica": (
+            dados.get("posto08_iqe", {}).get("inspetor", "").strip()
+        ),
+        "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS": teste_insp,
+        "TESTES - DADOS": teste_insp,
+        "TESTE - FUNCIONAIS": teste_insp,
+        "TESTE - TENSÃO APLICADA": teste_insp,
     }
 
     cidade_estado = request.args.get("cidade_estado", "").strip()
