@@ -63,35 +63,42 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
             else -> actionButton.text
         }
         actionButton.setOnClickListener {
-            val titulo = when {
-                tipo.startsWith("insp_") || tipo == "posto08_iqm" -> "Nome do inspetor"
-                tipo == "posto02" -> "Nome do montador"
-                else -> "Nome do montador"
-            }
-            promptName(this, titulo) { nome ->
-                if (tipo == "posto08_iqm") {
-                    Thread { marcarDivergenciasTratadas(obra) }.start()
+            if (tipo.startsWith("insp_") || tipo == "posto08_iqm") {
+                val titulo = if (tipo == "posto08_iqm") "Nome do inspetor" else "Nome do inspetor"
+                promptName(this, titulo) { nome ->
+                    if (tipo == "posto08_iqm") {
+                        Thread { marcarDivergenciasTratadas(obra) }.start()
+                    }
+                    val (clazz, extraName) = when (tipo) {
+                        "insp_posto02" -> ChecklistPosto02InspActivity::class.java to "inspetor"
+                        "insp_posto03_pre" -> ChecklistPosto03PreInspActivity::class.java to "inspetor"
+                        "insp_posto04_barramento" -> ChecklistPosto04BarramentoInspActivity::class.java to "inspetor"
+                        "insp_posto05_cablagem" -> ChecklistPosto05CablagemInspActivity::class.java to "inspetor"
+                        "insp_posto06_pre" -> ChecklistPosto06PreInspActivity::class.java to "inspetor"
+                        "insp_posto06_cablagem" -> ChecklistPosto06Cablagem02InspActivity::class.java to "inspetor"
+                        "posto08_iqm" -> ChecklistPosto08IqmActivity::class.java to "inspetor"
+                        else -> ChecklistPosto02InspActivity::class.java to "inspetor"
+                    }
+                    val intent = Intent(this, clazz)
+                    intent.putExtra("obra", obra)
+                    intent.putExtra("ano", ano)
+                    intent.putExtra(extraName, nome)
+                    startActivity(intent)
+                    finish()
                 }
-                val (clazz, extraName) = when (tipo) {
-                    "posto02" -> ChecklistPosto02Activity::class.java to "montador"
-                    "posto03_pre" -> ChecklistPosto03PreActivity::class.java to "montador"
-                    "posto04_barramento" -> ChecklistPosto04BarramentoActivity::class.java to "montador"
-                    "posto05_cablagem" -> ChecklistPosto05CablagemActivity::class.java to "montador"
-                    "posto06_pre" -> ChecklistPosto06PreActivity::class.java to "montador"
-                    "posto06_cablagem" -> ChecklistPosto06Cablagem02Activity::class.java to "montador"
-                    "insp_posto02" -> ChecklistPosto02InspActivity::class.java to "inspetor"
-                    "insp_posto03_pre" -> ChecklistPosto03PreInspActivity::class.java to "inspetor"
-                    "insp_posto04_barramento" -> ChecklistPosto04BarramentoInspActivity::class.java to "inspetor"
-                    "insp_posto05_cablagem" -> ChecklistPosto05CablagemInspActivity::class.java to "inspetor"
-                    "insp_posto06_pre" -> ChecklistPosto06PreInspActivity::class.java to "inspetor"
-                    "insp_posto06_cablagem" -> ChecklistPosto06Cablagem02InspActivity::class.java to "inspetor"
-                    "posto08_iqm" -> ChecklistPosto08IqmActivity::class.java to "inspetor"
-                    else -> ChecklistPosto02Activity::class.java to "montador"
+            } else {
+                val clazz = when (tipo) {
+                    "posto02" -> ChecklistPosto02Activity::class.java
+                    "posto03_pre" -> ChecklistPosto03PreActivity::class.java
+                    "posto04_barramento" -> ChecklistPosto04BarramentoActivity::class.java
+                    "posto05_cablagem" -> ChecklistPosto05CablagemActivity::class.java
+                    "posto06_pre" -> ChecklistPosto06PreActivity::class.java
+                    "posto06_cablagem" -> ChecklistPosto06Cablagem02Activity::class.java
+                    else -> ChecklistPosto02Activity::class.java
                 }
                 val intent = Intent(this, clazz)
                 intent.putExtra("obra", obra)
                 intent.putExtra("ano", ano)
-                intent.putExtra(extraName, nome)
                 startActivity(intent)
                 finish()
             }

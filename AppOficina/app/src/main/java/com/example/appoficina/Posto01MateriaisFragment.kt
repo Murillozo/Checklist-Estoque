@@ -49,13 +49,10 @@ class Posto01MateriaisFragment : Fragment() {
                             tv.text = String.format("%02d - %s - %s", i + 1, obra, ano)
                             tv.setPadding(0, 0, 0, 16)
                             tv.setOnClickListener {
-                                promptName(requireContext(), "Nome do conferente da produção") { producao ->
-                                    val intent = Intent(requireContext(), ChecklistPosto01Parte2Activity::class.java)
-                                    intent.putExtra("obra", obra)
-                                    intent.putExtra("ano", ano)
-                                    intent.putExtra("producao", producao)
-                                    startActivity(intent)
-                                }
+                                val intent = Intent(requireContext(), ChecklistPosto01Parte2Activity::class.java)
+                                intent.putExtra("obra", obra)
+                                intent.putExtra("ano", ano)
+                                startActivity(intent)
                             }
                             listContainer.addView(tv)
                         }
