@@ -660,6 +660,44 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
+    tensao_itens = [
+        _norm("COMANDO X TERRA"),
+        _norm("FORÇA - FASE A X BC TERRA"),
+        _norm("FORÇA - FASE B X AC TERRA"),
+        _norm("FORÇA - FASE C X AB TERRA"),
+        _norm("FORÇA - FASE ABC X TERRA"),
+    ]
+    dados_itens = [
+        _norm("RESPONSAVEL"),
+        _norm("ALTITUDE EM RELAÇÃO AO NIVEL DO MAR"),
+        _norm("GRAU DE POLUIÇÃO"),
+        _norm("GRAU DE PROTEÇÃO (IP)"),
+        _norm("INSTALAÇÃO"),
+        _norm("APLICAÇÃO"),
+        _norm("TEMPERATURA AMBIENTE"),
+        _norm("HUMIDADE RELATIVA"),
+        _norm("TENSÃO DE COMANDO"),
+        _norm("TENSÃO CIRCUITO AUXILIAR"),
+        _norm("TENSÃO CIRCUITO DE FORÇA"),
+    ]
+
+    idx_dados = idx_tensao_ini = idx_tensao_fim = None
+    for i, g in enumerate(grupos):
+        item_norm = _norm(g.get("item", ""))
+        if item_norm in dados_itens:
+            idx_dados = i
+        if item_norm == tensao_itens[0] and idx_tensao_ini is None:
+            idx_tensao_ini = i
+        if item_norm == tensao_itens[-1]:
+            idx_tensao_fim = i
+
+    if None not in (idx_dados, idx_tensao_ini, idx_tensao_fim) and idx_tensao_ini <= idx_tensao_fim:
+        bloco = grupos[idx_tensao_ini:idx_tensao_fim + 1]
+        del grupos[idx_tensao_ini:idx_tensao_fim + 1]
+        if idx_dados > idx_tensao_ini:
+            idx_dados -= len(bloco)
+        grupos[idx_dados + 1:idx_dados + 1] = bloco
+
     def _is_early_item(codigo: str) -> bool:
         parts = (codigo or "").split(".")
         if parts and parts[0] == "1" and len(parts) > 1:
@@ -929,12 +967,14 @@ def checklist_pdf(filename):
             lines.append(cur)
         return lines or [""]
 
-    def _row_height(item_text):
+    def _count_lines(text: str, width_mm: float) -> int:
         lines = []
-        for line in (item_text or "").split("\n"):
-            lines.extend(_wrap_lines(line, col_w_item))
-        max_lines = max(len(lines), 1)
-        return max(line_h * max_lines, line_h)
+        for line in (text or "").split("\n"):
+            lines.extend(_wrap_lines(line, width_mm))
+        return max(len(lines), 1)
+
+    def _row_height(item_text):
+        return max(line_h * _count_lines(item_text, col_w_item), line_h)
 
     current_roles = []
 
@@ -1000,7 +1040,6 @@ def checklist_pdf(filename):
         ("2.1", "PORTA",                         "POSTO - 02: OFICINA"),
         ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
         ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO - Identificação"),
-        ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
 
         ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
 
@@ -1011,6 +1050,7 @@ def checklist_pdf(filename):
         ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
         ("",    "CONTINUIDADE PONTO A PONTO FORCA","IQE - Inspeção de Qualidade Elétrica"),
         ("",    "RESPONSAVEL",                    "TESTES - DADOS"),
+        ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
         ("",    "COMUNICADO A TRANSPORTADORA",    "EXPEDIÇÃO 01"),
         ("",    "LIMPEZA",                         "EXPEDIÇÃO 02"),
     ]
@@ -1062,11 +1102,20 @@ def checklist_pdf(filename):
                 item_text = dash_char
 
             roles_vals = []
+            max_resp_lines = 0
             for role in current_roles:
                 vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
-                roles_vals.append(", ".join(vals) if vals else box_char)
+                if len(vals) >= 5:
+                    formatted = "\n".join(f"{i+1}. {v}" for i, v in enumerate(vals))
+                else:
+                    formatted = ", ".join(vals)
+                if not formatted:
+                    formatted = box_char
+                roles_vals.append(formatted)
+                max_resp_lines = max(max_resp_lines, _count_lines(formatted, col_w_resp))
 
-            h = _row_height(item_text)
+            item_lines = _count_lines(item_text, col_w_item)
+            h = line_h * max(item_lines, max_resp_lines)
             _maybe_page_break(h)
 
             if zebra:
@@ -1087,9 +1136,10 @@ def checklist_pdf(filename):
 
             cur_x = x0 + col_w_item
             for val in roles_vals:
-                pdf.set_xy(cur_x, y0)
-                pdf.cell(col_w_resp, h, val, border=0, align='C')
+                pdf.set_xy(cur_x + cell_pad, y0 + 1)
+                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
                 cur_x += col_w_resp
+                pdf.set_xy(cur_x, y0)
 
             pdf.set_xy(left_margin, y0 + h)
 
