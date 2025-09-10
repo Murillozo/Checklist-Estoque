@@ -40,7 +40,7 @@ class ChecklistPosto05CablagemActivity : AppCompatActivity() {
         val container = findViewById<LinearLayout>(R.id.questions_container)
         val triplets = mutableListOf<Triple<CheckBox, CheckBox, CheckBox>>()
         val spinners = mutableListOf<Spinner>()
-        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto05Cablagem)
+        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto01Parte2)
 
         fun updateButtonState() {
             concluirButton.isEnabled = triplets.all { (c, nc, na) ->
@@ -52,6 +52,21 @@ class ChecklistPosto05CablagemActivity : AppCompatActivity() {
             val tv = TextView(this)
             tv.text = pergunta
             container.addView(tv)
+            val row = LinearLayout(this)
+            row.orientation = LinearLayout.HORIZONTAL
+            val c = CheckBox(this)
+            c.text = "C"
+            val nc = CheckBox(this)
+            nc.text = "N.C"
+            nc.setPadding(24, 0, 0, 0)
+            val na = CheckBox(this)
+            na.text = "N.A"
+            na.setPadding(24, 0, 0, 0)
+            row.addView(c)
+            row.addView(nc)
+            row.addView(na)
+            container.addView(row)
+            triplets.add(Triple(c, nc, na))
 
             val spinner = Spinner(this)
             spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, montadoresList).also {
@@ -68,22 +83,6 @@ class ChecklistPosto05CablagemActivity : AppCompatActivity() {
             }
             container.addView(spinner)
             spinners.add(spinner)
-
-            val row = LinearLayout(this)
-            row.orientation = LinearLayout.HORIZONTAL
-            val c = CheckBox(this)
-            c.text = "C"
-            val nc = CheckBox(this)
-            nc.text = "N.C"
-            nc.setPadding(24, 0, 0, 0)
-            val na = CheckBox(this)
-            na.text = "N.A"
-            na.setPadding(24, 0, 0, 0)
-            row.addView(c)
-            row.addView(nc)
-            row.addView(na)
-            container.addView(row)
-            triplets.add(Triple(c, nc, na))
         }
 
         triplets.forEach { (c, nc, na) ->
