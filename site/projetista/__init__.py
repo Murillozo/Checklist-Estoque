@@ -698,6 +698,7 @@ def checklist_pdf(filename):
             idx_dados -= len(bloco)
         grupos[idx_dados + 1:idx_dados + 1] = bloco
 
+
     def _is_early_item(codigo: str) -> bool:
         parts = (codigo or "").split(".")
         if parts and parts[0] == "1" and len(parts) > 1:
