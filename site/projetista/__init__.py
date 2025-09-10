@@ -753,6 +753,17 @@ def checklist_pdf(filename):
     producao = respondentes.get("produção", "").strip()
     inspetor = _encontrar_inspetor(dados)
 
+    section_insp_names = {
+        "IQM - Inspeção de Qualidade Mecânica": (dados.get("posto08_iqm", {})
+                                                 .get("inspetor", "").strip()),
+        "IQE - Inspeção de Qualidade Elétrica": (dados.get("posto08_iqe", {})
+                                                 .get("inspetor", "").strip()),
+        "TESTES - DADOS": (dados.get("posto08_teste", {})
+                            .get("inspetor", "").strip()),
+        "TESTE - FUNCIONAIS": (dados.get("posto08_teste", {})
+                               .get("inspetor", "").strip()),
+    }
+
     cidade_estado = request.args.get("cidade_estado", "").strip()
     if not cidade_estado:
         cidade = dados.get("cidade", "").strip()
@@ -978,6 +989,7 @@ def checklist_pdf(filename):
         return max(line_h * _count_lines(item_text, col_w_item), line_h)
 
     current_roles = []
+    current_section = ""
 
     def _header_row(responsaveis_atual):
         _maybe_page_break(line_h, need_header=False)
@@ -1008,7 +1020,7 @@ def checklist_pdf(filename):
                 _header_row(current_roles)
 
     def _section_row(title: str, responsaveis_atual):
-        nonlocal zebra
+        nonlocal zebra, current_section
         h = _row_height(title)
         extra = line_h  # espaçamento adicional antes do título
         _maybe_page_break(extra + h + line_h, need_header=False)
@@ -1022,6 +1034,7 @@ def checklist_pdf(filename):
         pdf.ln(h)
         pdf.set_font(base_font, '', 7)
         zebra = False
+        current_section = title
 
     def _roles_present_in_group(g):
         roles = set()
@@ -1106,6 +1119,7 @@ def checklist_pdf(filename):
             max_resp_lines = 0
             for role in current_roles:
                 vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
+                insp_name = section_insp_names.get(current_section, "") if role == "inspetor" else ""
                 if role in ("resposta", "inspetor") and len(vals) >= 5:
                     formatted = (
                         f"1. Tensão aplicada: {vals[1]} {vals[0]}\n"
@@ -1116,6 +1130,8 @@ def checklist_pdf(filename):
                     formatted = "\n".join(f"{i+1}. {v}" for i, v in enumerate(vals))
                 else:
                     formatted = ", ".join(vals)
+                if role == "inspetor" and insp_name:
+                    formatted = f"Inspetor: {insp_name}" + (f"\n{formatted}" if formatted and formatted != box_char else "")
                 if not formatted:
                     formatted = box_char
                 roles_vals.append(formatted)
