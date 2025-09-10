@@ -40,7 +40,7 @@ class ChecklistPosto05CablagemActivity : AppCompatActivity() {
         val container = findViewById<LinearLayout>(R.id.questions_container)
         val triplets = mutableListOf<Triple<CheckBox, CheckBox, CheckBox>>()
         val spinners = mutableListOf<Spinner>()
-        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto01Parte2)
+        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto05Cablagem)
 
         fun updateButtonState() {
             concluirButton.isEnabled = triplets.all { (c, nc, na) ->
@@ -52,6 +52,7 @@ class ChecklistPosto05CablagemActivity : AppCompatActivity() {
             val tv = TextView(this)
             tv.text = pergunta
             container.addView(tv)
+
             val row = LinearLayout(this)
             row.orientation = LinearLayout.HORIZONTAL
             val c = CheckBox(this)
