@@ -660,17 +660,44 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
-    alvo_ct = _norm("COMANDO X TERRA")
-    alvo_resp = _norm("RESPONSAVEL")
-    idx_ct = idx_resp = None
+    tensao_itens = [
+        _norm("COMANDO X TERRA"),
+        _norm("FORÇA - FASE A X BC TERRA"),
+        _norm("FORÇA - FASE B X AC TERRA"),
+        _norm("FORÇA - FASE C X AB TERRA"),
+        _norm("FORÇA - FASE ABC X TERRA"),
+    ]
+    dados_itens = [
+        _norm("RESPONSAVEL"),
+        _norm("ALTITUDE EM RELAÇÃO AO NIVEL DO MAR"),
+        _norm("GRAU DE POLUIÇÃO"),
+        _norm("GRAU DE PROTEÇÃO (IP)"),
+        _norm("INSTALAÇÃO"),
+        _norm("APLICAÇÃO"),
+        _norm("TEMPERATURA AMBIENTE"),
+        _norm("HUMIDADE RELATIVA"),
+        _norm("TENSÃO DE COMANDO"),
+        _norm("TENSÃO CIRCUITO AUXILIAR"),
+        _norm("TENSÃO CIRCUITO DE FORÇA"),
+    ]
+
+    idx_dados = idx_tensao_ini = idx_tensao_fim = None
     for i, g in enumerate(grupos):
         item_norm = _norm(g.get("item", ""))
-        if item_norm == alvo_ct:
-            idx_ct = i
-        elif item_norm == alvo_resp:
-            idx_resp = i
-    if idx_ct is not None and idx_resp is not None and idx_ct < idx_resp:
-        grupos.insert(idx_resp + 1, grupos.pop(idx_ct))
+        if item_norm in dados_itens:
+            idx_dados = i
+        if item_norm == tensao_itens[0] and idx_tensao_ini is None:
+            idx_tensao_ini = i
+        if item_norm == tensao_itens[-1]:
+            idx_tensao_fim = i
+
+    if None not in (idx_dados, idx_tensao_ini, idx_tensao_fim) and idx_tensao_ini <= idx_tensao_fim:
+        bloco = grupos[idx_tensao_ini:idx_tensao_fim + 1]
+        del grupos[idx_tensao_ini:idx_tensao_fim + 1]
+        if idx_dados > idx_tensao_ini:
+            idx_dados -= len(bloco)
+        grupos[idx_dados + 1:idx_dados + 1] = bloco
+
 
     def _is_early_item(codigo: str) -> bool:
         parts = (codigo or "").split(".")
