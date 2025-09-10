@@ -753,6 +753,17 @@ def checklist_pdf(filename):
     producao = respondentes.get("produção", "").strip()
     inspetor = _encontrar_inspetor(dados)
 
+    section_insp_names = {
+        "IQM - Inspeção de Qualidade Mecânica": (dados.get("posto08_iqm", {})
+                                                 .get("inspetor", "").strip()),
+        "IQE - Inspeção de Qualidade Elétrica": (dados.get("posto08_iqe", {})
+                                                 .get("inspetor", "").strip()),
+        "TESTES - DADOS": (dados.get("posto08_teste", {})
+                            .get("inspetor", "").strip()),
+        "TESTE - FUNCIONAIS": (dados.get("posto08_teste", {})
+                               .get("inspetor", "").strip()),
+    }
+
     cidade_estado = request.args.get("cidade_estado", "").strip()
     if not cidade_estado:
         cidade = dados.get("cidade", "").strip()
@@ -937,7 +948,7 @@ def checklist_pdf(filename):
             return usable_w, 0.0, usable_w
         col_w_item = 135.0
         col_w_resp = (usable_w - col_w_item) / count
-        if col_w_resp > 28.0:
+        if count > 1 and col_w_resp > 28.0:
             col_w_resp = 28.0
             col_w_item = usable_w - col_w_resp * count
         elif col_w_resp < 22.0:
@@ -978,6 +989,7 @@ def checklist_pdf(filename):
         return max(line_h * _count_lines(item_text, col_w_item), line_h)
 
     current_roles = []
+    current_section = ""
 
     def _header_row(responsaveis_atual):
         _maybe_page_break(line_h, need_header=False)
@@ -994,8 +1006,13 @@ def checklist_pdf(filename):
         pdf.cell(col_w_item - 2 * cell_pad, line_h - 2, 'Item', border=0)
         cur_x = x + col_w_item
         for r in responsaveis_atual:
+            header_txt = r.title()
+            if r == "inspetor":
+                insp_name = section_insp_names.get(current_section, "").strip()
+                if insp_name:
+                    header_txt = f"Inspetor: {insp_name}"
             pdf.set_xy(cur_x + cell_pad, y + 1)
-            pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, r.title(), border=0, align='C')
+            pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, header_txt, border=0, align='C')
             cur_x += col_w_resp
         pdf.ln(line_h)
         pdf.set_font(base_font, '', 9)
@@ -1008,7 +1025,7 @@ def checklist_pdf(filename):
                 _header_row(current_roles)
 
     def _section_row(title: str, responsaveis_atual):
-        nonlocal zebra
+        nonlocal zebra, current_section
         h = _row_height(title)
         extra = line_h  # espaçamento adicional antes do título
         _maybe_page_break(extra + h + line_h, need_header=False)
@@ -1022,6 +1039,7 @@ def checklist_pdf(filename):
         pdf.ln(h)
         pdf.set_font(base_font, '', 7)
         zebra = False
+        current_section = title
 
     def _roles_present_in_group(g):
         roles = set()
@@ -1106,10 +1124,10 @@ def checklist_pdf(filename):
             max_resp_lines = 0
             for role in current_roles:
                 vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
-                if role == "resposta" and len(vals) >= 5:
+                if role in ("resposta", "inspetor") and len(vals) >= 5:
                     formatted = (
-                        f"1. Tensão aplicada: {vals[0]}, {vals[1]}\n"
-                        f"2. Resultado: {vals[2]}, {vals[3]}\n"
+                        f"1. Tensão aplicada: {vals[1]} {vals[0]}\n"
+                        f"2. Resultado: {vals[3]} {vals[2]}\n"
                         f"3. Situação: {vals[4]}"
                     )
                 elif len(vals) >= 5:
@@ -1144,7 +1162,7 @@ def checklist_pdf(filename):
             cur_x = x0 + col_w_item
             for val in roles_vals:
                 pdf.set_xy(cur_x + cell_pad, y0 + 1)
-                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
+                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='L')
                 cur_x += col_w_resp
                 pdf.set_xy(cur_x, y0)
 
