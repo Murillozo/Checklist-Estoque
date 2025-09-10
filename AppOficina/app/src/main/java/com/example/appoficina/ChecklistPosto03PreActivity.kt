@@ -19,7 +19,10 @@ class ChecklistPosto03PreActivity : AppCompatActivity() {
 
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
-        val montador = intent.getStringExtra("montador") ?: ""
+
+        val montadoresPrefs = getSharedPreferences("config", MODE_PRIVATE)
+            .getString("montadores", "") ?: ""
+        val montadoresList = montadoresPrefs.split("\n").filter { it.isNotBlank() }
 
         val perguntas = listOf(
             "3.1 - COMPONENTES: Montagem",
@@ -44,6 +47,14 @@ class ChecklistPosto03PreActivity : AppCompatActivity() {
 
         val container = findViewById<LinearLayout>(R.id.questions_container)
         val triplets = mutableListOf<Triple<CheckBox, CheckBox, CheckBox>>()
+        val spinners = mutableListOf<Spinner>()
+        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto03Pre)
+
+        fun updateButtonState() {
+            concluirButton.isEnabled = triplets.all { (c, nc, na) ->
+                c.isChecked || nc.isChecked || na.isChecked
+            } && spinners.all { it.selectedItem != null }
+        }
 
         perguntas.forEach { pergunta ->
             val tv = TextView(this)
@@ -64,14 +75,22 @@ class ChecklistPosto03PreActivity : AppCompatActivity() {
             row.addView(na)
             container.addView(row)
             triplets.add(Triple(c, nc, na))
-        }
 
-        val concluirButton = findViewById<Button>(R.id.btnConcluirPosto03Pre)
-
-        fun updateButtonState() {
-            concluirButton.isEnabled = triplets.all { (c, nc, na) ->
-                c.isChecked || nc.isChecked || na.isChecked
+            val spinner = Spinner(this)
+            spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, montadoresList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             }
+            spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                    updateButtonState()
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>) {
+                    updateButtonState()
+                }
+            }
+            container.addView(spinner)
+            spinners.add(spinner)
         }
 
         triplets.forEach { (c, nc, na) ->
@@ -116,12 +135,12 @@ class ChecklistPosto03PreActivity : AppCompatActivity() {
                     }
                 )
                 obj.put("resposta", resp)
+                obj.put("montador", spinners[idx].selectedItem.toString())
                 itens.put(obj)
             }
             val payload = JSONObject()
             payload.put("obra", obra)
             payload.put("ano", ano)
-            payload.put("montador", montador)
             payload.put("itens", itens)
             Thread { enviarChecklist(payload) }.start()
             finish()
