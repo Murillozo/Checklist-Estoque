@@ -1134,6 +1134,8 @@ def checklist_pdf(filename):
                     formatted = "\n".join(f"{i+1}. {v}" for i, v in enumerate(vals))
                 else:
                     formatted = ", ".join(vals)
+                if role == "inspetor" and insp_name:
+                    formatted = f"Inspetor: {insp_name}" + (f"\n{formatted}" if formatted and formatted != box_char else "")
                 if not formatted:
                     formatted = box_char
                 roles_vals.append(formatted)
