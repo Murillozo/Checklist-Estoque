@@ -2,10 +2,12 @@ package com.example.appoficina
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
 import org.json.JSONObject
@@ -22,15 +24,60 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         val ano = intent.getStringExtra("ano") ?: ""
         val inspetor = intent.getStringExtra("inspetor") ?: ""
 
-        val triplets = (200..224).map { i ->
-            val cId = resources.getIdentifier("cbQ${i}C", "id", packageName)
-            val ncId = resources.getIdentifier("cbQ${i}NC", "id", packageName)
-            val naId = resources.getIdentifier("cbQ${i}NA", "id", packageName)
-            Triple(
-                findViewById<CheckBox>(cId),
-                findViewById<CheckBox>(ncId),
-                findViewById<CheckBox>(naId),
-            )
+        val perguntas = listOf(
+            "2.1 - PORTAS: Identificação do projeto",
+            "2.1 - PORTAS: Marcação",
+            "2.1 - PORTAS: Furos",
+            "2.1 - PORTAS: Cortes",
+            "2.1 - PORTAS: Rebarbas",
+            "2.1 - PORTAS: Acabamento",
+            "2.1 - PORTAS: Porta documentos",
+            "2.1 - PORTAS: Montagem no invólucro",
+            "2.2 - PLACAS DE MONTAGEM: Identificação do projeto",
+            "2.2 - PLACAS DE MONTAGEM: Marcação",
+            "2.2 - PLACAS DE MONTAGEM: Furos",
+            "2.2 - PLACAS DE MONTAGEM: Cortes",
+            "2.2 - PLACAS DE MONTAGEM: Rebarbas",
+            "2.2 - PLACAS DE MONTAGEM: Acabamento",
+            "2.3 - CANALETAS: Corte",
+            "2.3 - CANALETAS: Identificação do projeto",
+            "2.3 - CANALETAS: Separação POSTO - 07",
+            "2.3 - TRILHOS: Corte",
+            "2.3 - TRILHOS: Fixação",
+            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Marcação",
+            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Furos",
+            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Cortes",
+            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Rebarbas",
+            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Acabamento",
+            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Fixação",
+        )
+
+        val container = findViewById<LinearLayout>(R.id.questions_container)
+        val triplets = mutableListOf<Triple<CheckBox, CheckBox, CheckBox>>()
+
+        perguntas.forEach { pergunta ->
+            val tv = TextView(this)
+            tv.text = pergunta
+            container.addView(tv)
+
+            val row = LinearLayout(this)
+            row.orientation = LinearLayout.HORIZONTAL
+
+            val c = CheckBox(this)
+            c.text = "C"
+            val nc = CheckBox(this)
+            nc.text = "N.C"
+            nc.setPadding(24, 0, 0, 0)
+            val na = CheckBox(this)
+            na.text = "N.A"
+            na.setPadding(24, 0, 0, 0)
+
+            row.addView(c)
+            row.addView(nc)
+            row.addView(na)
+            container.addView(row)
+
+            triplets.add(Triple(c, nc, na))
         }
 
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto02)
@@ -71,35 +118,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
 
         updateButtonState()
 
-        val perguntas = listOf(
-            "2.1 - PORTAS: Identificação do projeto",
-            "2.1 - PORTAS: Marcação",
-            "2.1 - PORTAS: Furos",
-            "2.1 - PORTAS: Cortes",
-            "2.1 - PORTAS: Rebarbas",
-            "2.1 - PORTAS: Acabamento",
-            "2.1 - PORTAS: Porta documentos",
-            "2.1 - PORTAS: Montagem no invólucro",
-            "2.2 - PLACAS DE MONTAGEM: Identificação do projeto",
-            "2.2 - PLACAS DE MONTAGEM: Marcação",
-            "2.2 - PLACAS DE MONTAGEM: Furos",
-            "2.2 - PLACAS DE MONTAGEM: Cortes",
-            "2.2 - PLACAS DE MONTAGEM: Rebarbas",
-            "2.2 - PLACAS DE MONTAGEM: Acabamento",
-            "2.3 - CANALETAS: Corte",
-            "2.3 - CANALETAS: Identificação do projeto",
-            "2.3 - CANALETAS: Separação POSTO - 07",
-            "2.3 - TRILHOS: Corte",
-            "2.3 - TRILHOS: Fixação",
-            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Marcação",
-            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Furos",
-            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Cortes",
-            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Rebarbas",
-            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Acabamento",
-            "2.3 - COMPONENTES FIXAÇÃO DIRETA: Fixação",
-        )
-
-         fun buildPayload(): JSONObject {
+        fun buildPayload(): JSONObject {
             val itens = JSONArray()
             triplets.forEachIndexed { idx, (c, nc, na) ->
                 val obj = JSONObject()
@@ -156,5 +175,4 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         } catch (_: Exception) {
         }
     }
-
 }
