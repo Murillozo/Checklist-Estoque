@@ -29,6 +29,15 @@
             android:hint="IP da API" />
 
         <EditText
+            android:id="@+id/edit_montadores"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nomes de Montadores (um por linha)"
+            android:inputType="textMultiLine"
+            android:minLines="3"
+            android:gravity="top|start" />
+
+        <EditText
             android:id="@+id/edit_pass_inspetor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
