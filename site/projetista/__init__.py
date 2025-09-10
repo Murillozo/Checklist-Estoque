@@ -660,6 +660,18 @@ def checklist_pdf(filename):
     _coletar_itens(dados, planos)
     grupos = _agrupar_por_codigo_item(planos)
 
+    alvo_ct = _norm("COMANDO X TERRA")
+    alvo_resp = _norm("RESPONSAVEL")
+    idx_ct = idx_resp = None
+    for i, g in enumerate(grupos):
+        item_norm = _norm(g.get("item", ""))
+        if item_norm == alvo_ct:
+            idx_ct = i
+        elif item_norm == alvo_resp:
+            idx_resp = i
+    if idx_ct is not None and idx_resp is not None and idx_ct < idx_resp:
+        grupos.insert(idx_resp + 1, grupos.pop(idx_ct))
+
     def _is_early_item(codigo: str) -> bool:
         parts = (codigo or "").split(".")
         if parts and parts[0] == "1" and len(parts) > 1:
@@ -1002,7 +1014,6 @@ def checklist_pdf(filename):
         ("2.1", "PORTA",                         "POSTO - 02: OFICINA"),
         ("3.1", "COMPONENTE",                    "POSTO - 03: PRÉ-MONTAGEM - 01"),
         ("4.1", "BARRAMENTO",                    "POSTO - 04: BARRAMENTO - Identificação"),
-        ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
 
         ("5.1", "CABLAGEM QD SOBREPOR/EMBUTIR",  "POSTO - 05: CABLAGEM - 01"),
 
@@ -1013,6 +1024,7 @@ def checklist_pdf(filename):
         ("",    "TORQUE PARAFUSOS DOS COMPONENTE","IQM - Inspeção de Qualidade Mecânica"),
         ("",    "CONTINUIDADE PONTO A PONTO FORCA","IQE - Inspeção de Qualidade Elétrica"),
         ("",    "RESPONSAVEL",                    "TESTES - DADOS"),
+        ("4.2", "COMANDO X TERRA",               "TESTE - TENSÃO APLICADA"),
         ("",    "COMUNICADO A TRANSPORTADORA",    "EXPEDIÇÃO 01"),
         ("",    "LIMPEZA",                         "EXPEDIÇÃO 02"),
     ]
