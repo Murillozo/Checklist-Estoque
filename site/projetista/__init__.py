@@ -1006,8 +1006,13 @@ def checklist_pdf(filename):
         pdf.cell(col_w_item - 2 * cell_pad, line_h - 2, 'Item', border=0)
         cur_x = x + col_w_item
         for r in responsaveis_atual:
+            header_txt = r.title()
+            if r == "inspetor":
+                insp_name = section_insp_names.get(current_section, "").strip()
+                if insp_name:
+                    header_txt = f"Inspetor: {insp_name}"
             pdf.set_xy(cur_x + cell_pad, y + 1)
-            pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, r.title(), border=0, align='C')
+            pdf.cell(col_w_resp - 2 * cell_pad, line_h - 2, header_txt, border=0, align='C')
             cur_x += col_w_resp
         pdf.ln(line_h)
         pdf.set_font(base_font, '', 9)
@@ -1119,7 +1124,6 @@ def checklist_pdf(filename):
             max_resp_lines = 0
             for role in current_roles:
                 vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
-                insp_name = section_insp_names.get(current_section, "") if role == "inspetor" else ""
                 if role in ("resposta", "inspetor") and len(vals) >= 5:
                     formatted = (
                         f"1. Tensão aplicada: {vals[1]} {vals[0]}\n"
