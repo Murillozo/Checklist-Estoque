@@ -937,7 +937,7 @@ def checklist_pdf(filename):
             return usable_w, 0.0, usable_w
         col_w_item = 135.0
         col_w_resp = (usable_w - col_w_item) / count
-        if col_w_resp > 28.0:
+        if count > 1 and col_w_resp > 28.0:
             col_w_resp = 28.0
             col_w_item = usable_w - col_w_resp * count
         elif col_w_resp < 22.0:
@@ -1106,7 +1106,7 @@ def checklist_pdf(filename):
             max_resp_lines = 0
             for role in current_roles:
                 vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
-                if role == "resposta" and len(vals) >= 5:
+                if role in ("resposta", "inspetor") and len(vals) >= 5:
                     formatted = (
                         f"1. Tensão aplicada: {vals[0]}, {vals[1]}\n"
                         f"2. Resultado: {vals[2]}, {vals[3]}\n"
@@ -1144,7 +1144,7 @@ def checklist_pdf(filename):
             cur_x = x0 + col_w_item
             for val in roles_vals:
                 pdf.set_xy(cur_x + cell_pad, y0 + 1)
-                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
+                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='L')
                 cur_x += col_w_resp
                 pdf.set_xy(cur_x, y0)
 
