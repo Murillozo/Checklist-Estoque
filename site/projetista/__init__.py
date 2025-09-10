@@ -1108,8 +1108,8 @@ def checklist_pdf(filename):
                 vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
                 if role in ("resposta", "inspetor") and len(vals) >= 5:
                     formatted = (
-                        f"1. Tensão aplicada: {vals[0]}, {vals[1]}\n"
-                        f"2. Resultado: {vals[2]}, {vals[3]}\n"
+                        f"1. Tensão aplicada: {vals[1]} {vals[0]}\n"
+                        f"2. Resultado: {vals[3]} {vals[2]}\n"
                         f"3. Situação: {vals[4]}"
                     )
                 elif len(vals) >= 5:
