@@ -117,3 +117,96 @@ def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> N
     item = saved["posto02"]["itens"][0]
     assert item["respostas"]["produção"] == ["C", "Joao"]
     assert item["respostas"]["inspetor"] == ["C", "Joao", "Maria"]
+
+
+def test_posto02_inspector_can_skip_names(tmp_path: pathlib.Path) -> None:
+    api.BASE_DIR = str(tmp_path)
+    insp_dir = tmp_path / "Posto02_Oficina" / "Posto02_Oficina_Inspetor"
+    insp_dir.mkdir(parents=True)
+
+    base_data = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "posto02": {
+            "itens": [
+                {
+                    "numero": 1,
+                    "pergunta": "Pergunta",
+                    "respostas": {"produção": ["C", "Joao"]},
+                }
+            ]
+        },
+    }
+    with open(insp_dir / "checklist_OBRA1.json", "w", encoding="utf-8") as fp:
+        json.dump(base_data, fp, ensure_ascii=False)
+
+    app = Flask(__name__)
+    app.register_blueprint(api.bp)
+
+    payload = {
+        "obra": "OBRA1",
+        "itens": [
+            {"numero": 1, "pergunta": "Pergunta", "resposta": ["C"]}
+        ],
+        "inspetor": "Inspector",
+    }
+    with app.test_client() as client:
+        res = client.post("/posto02/insp/upload", json=payload)
+        assert res.status_code == 200
+        body = res.get_json()
+
+    assert body["divergencias"] == []
+    dest = pathlib.Path(body["caminho"])
+    assert dest.parent.name == "Posto03_Pre_montagem_01"
+    with open(dest, "r", encoding="utf-8") as fp:
+        saved = json.load(fp)
+    item = saved["posto02"]["itens"][0]
+    assert item["respostas"]["inspetor"] == ["C"]
+
+
+def test_posto03_inspector_ignores_name_differences(tmp_path: pathlib.Path) -> None:
+    api.BASE_DIR = str(tmp_path)
+    insp_dir = (
+        tmp_path / "Posto03_Pre_montagem_01" / "Posto03_Pre_montagem_01_Inspetor"
+    )
+    insp_dir.mkdir(parents=True)
+
+    base_data = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "posto03_pre_montagem_01": {
+            "itens": [
+                {
+                    "numero": 1,
+                    "pergunta": "Pergunta",
+                    "respostas": {"montador": ["C", "Joao"]},
+                }
+            ]
+        },
+    }
+    with open(insp_dir / "checklist_OBRA1.json", "w", encoding="utf-8") as fp:
+        json.dump(base_data, fp, ensure_ascii=False)
+
+    app = Flask(__name__)
+    app.register_blueprint(api.bp)
+
+    payload = {
+        "obra": "OBRA1",
+        "itens": [
+            {"numero": 1, "pergunta": "Pergunta", "resposta": ["C", "Maria"]}
+        ],
+        "inspetor": "Inspector",
+    }
+    with app.test_client() as client:
+        res = client.post("/posto03_pre/insp/upload", json=payload)
+        assert res.status_code == 200
+        body = res.get_json()
+
+    assert body["divergencias"] == []
+    dest = pathlib.Path(body["caminho"])
+    assert dest.parent.name == "POSTO_04_BARRAMENTO"
+    with open(dest, "r", encoding="utf-8") as fp:
+        saved = json.load(fp)
+    item = saved["posto03_pre_montagem_01"]["itens"][0]
+    assert item["respostas"]["montador"] == ["C", "Joao"]
+    assert item["respostas"]["inspetor"] == ["C", "Maria"]

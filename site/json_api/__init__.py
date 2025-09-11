@@ -984,7 +984,7 @@ def posto06_cab2_insp_upload():
         mismatch = (
             not resp_mont
             or not resp_insp
-            or resp_insp[: len(resp_mont)] != resp_mont
+            or resp_insp[0] != resp_mont[0]
         )
         if mismatch:
             divergencias.append({
@@ -1157,7 +1157,7 @@ def posto05_insp_upload():
         mismatch = (
             not resp_mont
             or not resp_insp
-            or resp_insp[: len(resp_mont)] != resp_mont
+            or resp_insp[0] != resp_mont[0]
         )
         if mismatch:
             divergencias.append({
@@ -1337,7 +1337,7 @@ def posto06_pre_insp_upload():
         mismatch = (
             not resp_mont
             or not resp_insp
-            or resp_insp[: len(resp_mont)] != resp_mont
+            or resp_insp[0] != resp_mont[0]
         )
         if mismatch:
             divergencias.append({
@@ -1509,7 +1509,7 @@ def posto04_insp_upload():
         mismatch = (
             not resp_mont
             or not resp_insp
-            or resp_insp[: len(resp_mont)] != resp_mont
+            or resp_insp[0] != resp_mont[0]
         )
         if mismatch:
             divergencias.append({
@@ -1685,7 +1685,7 @@ def posto03_pre_insp_upload():
         mismatch = (
             not resp_mont
             or not resp_insp
-            or resp_insp[: len(resp_mont)] != resp_mont
+            or resp_insp[0] != resp_mont[0]
         )
         if mismatch:
             divergencias.append({
