@@ -269,9 +269,10 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
     """Return merged checklists that have differing or missing answers.
 
     Looks for ``checklist_*.json`` files inside ``directory`` and checks each
-    item where ``suprimento`` or ``produção`` answers are missing/empty or
-    where both answers are present but differ. Only checklists containing at
-    least one divergence are returned.
+    item where ``suprimento`` or ``produção`` answers are missing/empty or where
+    the ``produção`` answer does not start with the ``suprimento`` answer.
+    Additional values present only in ``produção`` are ignored. Only checklists
+    containing at least one divergence are returned.
     """
 
     resultados: List[Dict[str, Any]] = []
@@ -290,9 +291,8 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
             sup = resp.get("suprimento")
             prod = resp.get("produção")
 
-            missing_sup = not sup
-            missing_prod = not prod
-            if missing_sup or missing_prod or sup != prod:
+            mismatch = not sup or not prod or prod[: len(sup)] != sup
+            if mismatch:
                 divergencias.append(
                     {
                         "numero": item.get("numero"),
