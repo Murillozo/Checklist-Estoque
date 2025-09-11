@@ -210,4 +210,3 @@ def test_posto03_inspector_ignores_name_differences(tmp_path: pathlib.Path) -> N
     item = saved["posto03_pre_montagem_01"]["itens"][0]
     assert item["respostas"]["montador"] == ["C", "Joao"]
     assert item["respostas"]["inspetor"] == ["C", "Maria"]
-
