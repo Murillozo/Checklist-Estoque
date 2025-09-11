@@ -127,6 +127,7 @@ class ChecklistPosto06PreActivity : AppCompatActivity() {
                         else -> ""
                     }
                 )
+                resp.put(spinners[idx].selectedItem.toString())
                 obj.put("resposta", resp)
                 obj.put("montador", spinners[idx].selectedItem.toString())
                 itens.put(obj)

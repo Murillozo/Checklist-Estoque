@@ -126,6 +126,7 @@ class ChecklistPosto04BarramentoActivity : AppCompatActivity() {
                         else -> ""
                     }
                 )
+                resp.put(spinners[idx].selectedItem.toString())
                 obj.put("resposta", resp)
                 obj.put("montador", spinners[idx].selectedItem.toString())
                 itens.put(obj)

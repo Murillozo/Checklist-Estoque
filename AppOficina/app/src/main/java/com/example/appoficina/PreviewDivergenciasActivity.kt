@@ -36,7 +36,12 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
             if (respostas != null) {
                 val roles = listOf("montador", "produção", "inspetor")
                 for (role in roles) {
-                    val ans = respostas.optString(role, null)
+                    val value = respostas.opt(role)
+                    val ans = when (value) {
+                        is JSONArray -> (0 until value.length()).joinToString(", ") { value.optString(it) }
+                        null -> null
+                        else -> value.toString()
+                    }
                     if (!ans.isNullOrEmpty()) {
                         builder.append("\n" + role.replaceFirstChar { it.uppercase() } + ": " + ans)
                     }
