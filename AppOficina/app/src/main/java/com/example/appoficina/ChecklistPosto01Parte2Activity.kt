@@ -225,10 +225,10 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             payload.put("obra", obra)
             payload.put("ano", ano)
             payload.put("itens", itens)
-            if (nomeSuprimento.isNotBlank()) {
-                payload.put("suprimento", nomeSuprimento)
-            } else if (nomeProducao.isNotBlank()) {
+            if (nomeProducao.isNotBlank()) {
                 payload.put("produção", nomeProducao)
+            } else if (nomeSuprimento.isNotBlank()) {
+                payload.put("suprimento", nomeSuprimento)
             }
             Thread { enviarChecklist(payload) }.start()
             finish()
