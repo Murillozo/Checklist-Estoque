@@ -72,13 +72,10 @@ class Posto06PreMontagemFragment : Fragment() {
                                         intent.putExtra("tipo", "posto06_pre")
                                         startActivity(intent)
                                     } else {
-                                        promptName(requireContext(), "Nome do montador") { nome ->
-                                            val intent = Intent(requireContext(), ChecklistPosto06PreActivity::class.java)
-                                            intent.putExtra("obra", obra)
-                                            intent.putExtra("ano", ano)
-                                            intent.putExtra("montador", nome)
-                                            startActivity(intent)
-                                        }
+                                        val intent = Intent(requireContext(), ChecklistPosto06PreActivity::class.java)
+                                        intent.putExtra("obra", obra)
+                                        intent.putExtra("ano", ano)
+                                        startActivity(intent)
                                     }
                                 }
                             }.start()
