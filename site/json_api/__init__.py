@@ -271,21 +271,32 @@ def salvar_checklist():
 
 @bp.route('/projects', methods=['GET'])
 def listar_projetos():
-    """Return obra/ano info for each checklist JSON file."""
+    """Return obra/ano info for the newest checklist of each obra."""
     arquivos = [f for f in os.listdir(BASE_DIR) if f.endswith('.json')]
-    projetos = []
-    for nome in sorted(arquivos):
+    recentes = {}
+    for nome in arquivos:
         caminho = path.join(BASE_DIR, nome)
         try:
             with open(caminho, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            projetos.append({
-                'arquivo': nome,
-                'obra': data.get('obra', path.splitext(nome)[0]),
-                'ano': data.get('ano', '')
-            })
         except Exception:
             continue
+        obra = data.get('obra', path.splitext(nome)[0])
+        info = {
+            'arquivo': nome,
+            'obra': obra,
+            'ano': data.get('ano', '')
+        }
+        mtime = os.path.getmtime(caminho)
+        atual = recentes.get(obra)
+        if not atual or mtime > atual['mtime']:
+            info['mtime'] = mtime
+            recentes[obra] = info
+
+    projetos = [
+        {k: v for k, v in entry.items() if k != 'mtime'}
+        for entry in sorted(recentes.values(), key=lambda x: x['obra'])
+    ]
     return jsonify({'projetos': projetos})
 
 

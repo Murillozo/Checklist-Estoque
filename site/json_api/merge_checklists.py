@@ -210,6 +210,21 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
             if prod_entries
             else None
         )
+
+        # remove older checklist files to avoid leftovers
+        for entry in sup_entries:
+            if sup is None or entry["path"] != sup["path"]:
+                try:
+                    os.remove(entry["path"])
+                except OSError:
+                    pass
+        for entry in prod_entries:
+            if prod is None or entry["path"] != prod["path"]:
+                try:
+                    os.remove(entry["path"])
+                except OSError:
+                    pass
+
         if not (sup and prod):
             continue
 
