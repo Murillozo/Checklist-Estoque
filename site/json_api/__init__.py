@@ -313,10 +313,13 @@ def listar_expedicao_projetos():
         try:
             with open(caminho, 'r', encoding='utf-8') as f:
                 data = json.load(f)
+            base = path.splitext(nome)[0]
+            if base.startswith('checklist_'):
+                base = base[len('checklist_'):]
             projetos.append(
                 {
                     'arquivo': nome,
-                    'obra': data.get('obra', path.splitext(nome)[0]),
+                    'obra': data.get('obra', base),
                     'ano': data.get('ano', ''),
                 }
             )
@@ -804,7 +807,12 @@ def posto02_insp_upload():
     for entry in prod_itens.values():
         resp_prod = entry.get('respostas', {}).get('produção')
         resp_insp = entry.get('respostas', {}).get('inspetor')
-        if resp_prod is not None and resp_insp is not None and resp_prod != resp_insp:
+        mismatch = (
+            not resp_prod
+            or not resp_insp
+            or resp_insp[0] != resp_prod[0]
+        )
+        if mismatch:
             divergencias.append({
                 'numero': entry.get('numero'),
                 'pergunta': entry.get('pergunta'),
@@ -975,7 +983,12 @@ def posto06_cab2_insp_upload():
     for entry in prod_itens.values():
         resp_mont = entry.get('respostas', {}).get('montador')
         resp_insp = entry.get('respostas', {}).get('inspetor')
-        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+        mismatch = (
+            not resp_mont
+            or not resp_insp
+            or resp_insp[0] != resp_mont[0]
+        )
+        if mismatch:
             divergencias.append({
                 'numero': entry.get('numero'),
                 'pergunta': entry.get('pergunta'),
@@ -1143,7 +1156,12 @@ def posto05_insp_upload():
     for entry in prod_itens.values():
         resp_mont = entry.get('respostas', {}).get('montador')
         resp_insp = entry.get('respostas', {}).get('inspetor')
-        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+        mismatch = (
+            not resp_mont
+            or not resp_insp
+            or resp_insp[0] != resp_mont[0]
+        )
+        if mismatch:
             divergencias.append({
                 'numero': entry.get('numero'),
                 'pergunta': entry.get('pergunta'),
@@ -1318,7 +1336,12 @@ def posto06_pre_insp_upload():
     for entry in prod_itens.values():
         resp_mont = entry.get('respostas', {}).get('montador')
         resp_insp = entry.get('respostas', {}).get('inspetor')
-        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+        mismatch = (
+            not resp_mont
+            or not resp_insp
+            or resp_insp[0] != resp_mont[0]
+        )
+        if mismatch:
             divergencias.append({
                 'numero': entry.get('numero'),
                 'pergunta': entry.get('pergunta'),
@@ -1485,7 +1508,12 @@ def posto04_insp_upload():
     for entry in prod_itens.values():
         resp_mont = entry.get('respostas', {}).get('montador')
         resp_insp = entry.get('respostas', {}).get('inspetor')
-        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+        mismatch = (
+            not resp_mont
+            or not resp_insp
+            or resp_insp[0] != resp_mont[0]
+        )
+        if mismatch:
             divergencias.append({
                 'numero': entry.get('numero'),
                 'pergunta': entry.get('pergunta'),
@@ -1656,7 +1684,12 @@ def posto03_pre_insp_upload():
     for entry in prod_itens.values():
         resp_mont = entry.get('respostas', {}).get('montador')
         resp_insp = entry.get('respostas', {}).get('inspetor')
-        if resp_mont is not None and resp_insp is not None and resp_mont != resp_insp:
+        mismatch = (
+            not resp_mont
+            or not resp_insp
+            or resp_insp[0] != resp_mont[0]
+        )
+        if mismatch:
             divergencias.append({
                 'numero': entry.get('numero'),
                 'pergunta': entry.get('pergunta'),
