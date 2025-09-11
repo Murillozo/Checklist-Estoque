@@ -807,8 +807,9 @@ def posto02_insp_upload():
         mismatch = (
             not resp_prod
             or not resp_insp
-            or resp_insp[: len(resp_prod)] != resp_prod
+            or resp_insp[0] != resp_prod[0]
         )
+
         if mismatch:
             divergencias.append({
                 'numero': entry.get('numero'),
