@@ -313,10 +313,13 @@ def listar_expedicao_projetos():
         try:
             with open(caminho, 'r', encoding='utf-8') as f:
                 data = json.load(f)
+            base = path.splitext(nome)[0]
+            if base.startswith('checklist_'):
+                base = base[len('checklist_'):]
             projetos.append(
                 {
                     'arquivo': nome,
-                    'obra': data.get('obra', path.splitext(nome)[0]),
+                    'obra': data.get('obra', base),
                     'ano': data.get('ano', ''),
                 }
             )
