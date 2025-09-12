@@ -31,7 +31,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         "ano": ano,
         "respondentes": {
             "suprimento": _first_key(json_suprimento, ["suprimento", "produção", "producao"]),
-            "produção": _first_key(json_producao, ["produção", "producao", "suprimento"]),
+            "produção": _first_key(json_producao, ["montador", "produção", "producao", "suprimento"]),
         },
     }
 
@@ -61,7 +61,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         if numero is None:
             continue
         pergunta = item.get("pergunta", "")
-        resposta = _extract_respostas(item, ["produção", "producao", "suprimento"])
+        resposta = _extract_respostas(item, ["montador", "produção", "producao", "suprimento"])
         entry = itens.setdefault(numero, {})
         entry["pergunta_prod"] = pergunta
         entry["res_prod"] = resposta

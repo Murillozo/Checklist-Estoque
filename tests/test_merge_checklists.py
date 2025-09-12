@@ -45,6 +45,37 @@ def _write_checklist(path: pathlib.Path, sup: list[str], prod: list[str]) -> Non
         json.dump(data, fp, ensure_ascii=False)
 
 
+def test_merge_checklists_accepts_montador_key() -> None:
+    sup = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "suprimento": "Carlos",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"suprimento": ["C"]},
+            }
+        ],
+    }
+    prod = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "montador": "Joao",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"montador": ["C"]},
+            }
+        ],
+    }
+
+    merged = merge.merge_checklists(sup, prod)
+    assert merged["respondentes"]["produção"] == "Joao"
+    assert merged["itens"][0]["respostas"]["produção"] == ["C"]
+
+
 def test_find_mismatches_ignores_additional_production_annotations(tmp_path: pathlib.Path) -> None:
     path = tmp_path / "checklist_OBRA1.json"
     _write_checklist(path, ["C", "Joao"], ["C", "Joao", "Maria"])
