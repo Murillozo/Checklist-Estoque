@@ -208,17 +208,21 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                 val obj = JSONObject()
                 obj.put("numero", 55 + idx)
                 obj.put("pergunta", perguntas[idx])
-                val resp = JSONArray()
-                resp.put(
-                    when {
-                        c.isChecked -> "C"
-                        nc.isChecked -> "NC"
-                        na.isChecked -> "NA"
-                        else -> ""
-                    }
-                )
-                resp.put(spinners[idx].selectedItem.toString())
-                obj.put("resposta", resp)
+                val option = when {
+                    c.isChecked -> "C"
+                    nc.isChecked -> "NC"
+                    na.isChecked -> "NA"
+                    else -> ""
+                }
+                val resp = JSONArray().apply { put(option) }
+                val uniqueResp = JSONArray()
+                val seen = mutableSetOf<String>()
+                for (i in 0 until resp.length()) {
+                    val value = resp.getString(i)
+                    if (seen.add(value)) uniqueResp.put(value)
+                }
+                obj.put("resposta", uniqueResp)
+                obj.put("montador", spinners[idx].selectedItem.toString())
                 itens.put(obj)
             }
             val payload = JSONObject()
