@@ -147,14 +147,12 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                     na.isChecked -> "NA"
                     else -> ""
                 }
-                val nome = spinners[idx].selectedItem.toString()
-                val resp = JSONArray().apply {
-                    put(option)
-                    put(nome)
-                }
-                val uniqueResp = JSONArray((0 until resp.length()).map { resp.getString(it) }.distinct())
-                val respostas = JSONObject().put("montador", uniqueResp)
+                val operadorNome = spinners[idx].selectedItem.toString()
+                val statusArray = JSONArray().apply { put(option) }
+                val uniqueStatus = JSONArray((0 until statusArray.length()).map { statusArray.getString(it) }.distinct())
+                val respostas = JSONObject().put("montador", uniqueStatus)
                 obj.put("respostas", respostas)
+                obj.put("montador", operadorNome)
                 itens.put(obj)
             }
             val payload = JSONObject()
