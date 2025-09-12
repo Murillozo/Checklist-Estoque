@@ -25,6 +25,10 @@ class ChecklistPosto02Activity : AppCompatActivity() {
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
 
+        val nomeSuprimento = intent.getStringExtra("suprimento") ?: ""
+        val nomeProducao = intent.getStringExtra("produção")
+            ?: intent.getStringExtra("producao") ?: ""
+
         val montadoresPrefs = getSharedPreferences("config", MODE_PRIVATE)
             .getString("montadores", "") ?: ""
         val montadoresList = montadoresPrefs.split("\n").filter { it.isNotBlank() }
@@ -137,24 +141,31 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                 val obj = JSONObject()
                 obj.put("numero", 200 + idx)
                 obj.put("pergunta", perguntas[idx])
-                val resp = JSONArray()
-                resp.put(
-                    when {
-                        c.isChecked -> "C"
-                        nc.isChecked -> "NC"
-                        na.isChecked -> "NA"
-                        else -> ""
-                    }
-                )
-                resp.put(spinners[idx].selectedItem.toString())
-                obj.put("resposta", resp)
-                obj.put("montador", spinners[idx].selectedItem.toString())
+                val option = when {
+                    c.isChecked -> "C"
+                    nc.isChecked -> "NC"
+                    na.isChecked -> "NA"
+                    else -> ""
+                }
+                val nome = spinners[idx].selectedItem.toString()
+                val resp = JSONArray().apply {
+                    put(option)
+                    put(nome)
+                }
+                val uniqueResp = JSONArray((0 until resp.length()).map { resp.getString(it) }.distinct())
+                val respostas = JSONObject().put("montador", uniqueResp)
+                obj.put("respostas", respostas)
                 itens.put(obj)
             }
             val payload = JSONObject()
             payload.put("obra", obra)
             payload.put("ano", ano)
             payload.put("itens", itens)
+            if (nomeProducao.isNotBlank()) {
+                payload.put("montador", nomeProducao)
+            } else if (nomeSuprimento.isNotBlank()) {
+                payload.put("suprimento", nomeSuprimento)
+            }
             Thread { enviarChecklist(payload) }.start()
             finish()
         }
