@@ -221,7 +221,8 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                     val value = resp.getString(i)
                     if (seen.add(value)) uniqueResp.put(value)
                 }
-                obj.put("resposta", uniqueResp)
+                val respostas = JSONObject().put("produção", uniqueResp)
+                obj.put("respostas", respostas)
                 obj.put("montador", spinners[idx].selectedItem.toString())
                 itens.put(obj)
             }

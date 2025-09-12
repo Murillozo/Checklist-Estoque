@@ -25,6 +25,10 @@ class ChecklistPosto02Activity : AppCompatActivity() {
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
 
+        val nomeSuprimento = intent.getStringExtra("suprimento") ?: ""
+        val nomeProducao = intent.getStringExtra("produção")
+            ?: intent.getStringExtra("producao") ?: ""
+
         val montadoresPrefs = getSharedPreferences("config", MODE_PRIVATE)
             .getString("montadores", "") ?: ""
         val montadoresList = montadoresPrefs.split("\n").filter { it.isNotBlank() }
@@ -150,7 +154,8 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                     val value = resp.getString(i)
                     if (seen.add(value)) uniqueResp.put(value)
                 }
-                obj.put("resposta", uniqueResp)
+                val respostas = JSONObject().put("produção", uniqueResp)
+                obj.put("respostas", respostas)
                 obj.put("montador", spinners[idx].selectedItem.toString())
                 itens.put(obj)
             }
@@ -158,6 +163,11 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             payload.put("obra", obra)
             payload.put("ano", ano)
             payload.put("itens", itens)
+            if (nomeProducao.isNotBlank()) {
+                payload.put("produção", nomeProducao)
+            } else if (nomeSuprimento.isNotBlank()) {
+                payload.put("suprimento", nomeSuprimento)
+            }
             Thread { enviarChecklist(payload) }.start()
             finish()
         }
