@@ -11,6 +11,7 @@ import importlib
 import importlib.util
 import json
 import pathlib
+import subprocess
 import sys
 from flask import Flask
 
@@ -98,6 +99,37 @@ def test_move_matching_preserves_extra_annotations(tmp_path: pathlib.Path) -> No
 
     assert data["itens"][0]["resposta"] == ["C", "Joao", "Maria"]
     assert find_mismatches(str(tmp_path / "Posto02_Oficina")) == []
+
+
+def test_cli_merges_and_moves_to_posto02(tmp_path: pathlib.Path) -> None:
+    sup = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "suprimento": "Carlos",
+        "itens": [
+            {"numero": 1, "pergunta": "Pergunta", "respostas": {"suprimento": ["C"]}}
+        ],
+    }
+    prod = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "montador": "Joao",
+        "itens": [
+            {"numero": 1, "pergunta": "Pergunta", "respostas": {"montador": ["C"]}}
+        ],
+    }
+    with open(tmp_path / "sup.json", "w", encoding="utf-8") as fp:
+        json.dump(sup, fp, ensure_ascii=False)
+    with open(tmp_path / "prod.json", "w", encoding="utf-8") as fp:
+        json.dump(prod, fp, ensure_ascii=False)
+
+    subprocess.run([sys.executable, str(MODULE_PATH), str(tmp_path)], check=True)
+
+    dest_path = tmp_path / "Posto02_Oficina" / "checklist_OBRA1.json"
+    with open(dest_path, "r", encoding="utf-8") as fp:
+        data = json.load(fp)
+
+    assert data["itens"][0]["resposta"] == ["C"]
 
 
 def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> None:

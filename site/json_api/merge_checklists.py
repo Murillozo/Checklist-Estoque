@@ -371,7 +371,10 @@ def main() -> None:
     )
     args = parser.parse_args()
     merged = merge_directory(args.base_dir, args.output_dir)
+    moved = move_matching_checklists(args.base_dir)
     print(f"Merged {len(merged)} checklist(s)")
+    if moved:
+        print(f"Moved {len(moved)} checklist(s) to Posto02_Oficina")
 
 
 if __name__ == "__main__":
