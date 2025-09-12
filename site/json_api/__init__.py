@@ -715,7 +715,7 @@ def posto08_teste_update():
   
 @bp.route('/posto02/upload', methods=['POST'])
 def posto02_upload():
-    """Append Posto02 produção checklist and move it for inspection."""
+    """Append Posto02 montador checklist and move it for inspection."""
     data = request.get_json() or {}
     obra = data.get('obra')
     if not obra:
@@ -736,11 +736,11 @@ def posto02_upload():
         itens.append({
             'numero': numero,
             'pergunta': pergunta,
-            'respostas': {'produção': resposta},
+            'respostas': {'montador': resposta},
         })
 
     base['posto02'] = {
-        'produção': data.get('produção'),
+        'montador': data.get('montador'),
         'itens': itens,
     }
 
@@ -805,7 +805,7 @@ def posto02_insp_upload():
 
     divergencias = []
     for entry in prod_itens.values():
-        resp_prod = entry.get('respostas', {}).get('produção')
+        resp_prod = entry.get('respostas', {}).get('montador')
         resp_insp = entry.get('respostas', {}).get('inspetor')
         mismatch = (
             not resp_prod
@@ -817,7 +817,7 @@ def posto02_insp_upload():
             divergencias.append({
                 'numero': entry.get('numero'),
                 'pergunta': entry.get('pergunta'),
-                'produção': resp_prod,
+                'montador': resp_prod,
                 'inspetor': resp_insp,
             })
 

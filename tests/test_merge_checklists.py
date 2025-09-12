@@ -82,7 +82,7 @@ def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> N
                 {
                     "numero": 1,
                     "pergunta": "Pergunta",
-                    "respostas": {"produção": ["C", "Joao"]},
+                    "respostas": {"montador": ["C", "Joao"]},
                 }
             ]
         },
@@ -115,7 +115,7 @@ def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> N
     with open(dest, "r", encoding="utf-8") as fp:
         saved = json.load(fp)
     item = saved["posto02"]["itens"][0]
-    assert item["respostas"]["produção"] == ["C", "Joao"]
+    assert item["respostas"]["montador"] == ["C", "Joao"]
     assert item["respostas"]["inspetor"] == ["C", "Joao", "Maria"]
 
 
@@ -132,7 +132,7 @@ def test_posto02_inspector_can_skip_names(tmp_path: pathlib.Path) -> None:
                 {
                     "numero": 1,
                     "pergunta": "Pergunta",
-                    "respostas": {"produção": ["C", "Joao"]},
+                    "respostas": {"montador": ["C", "Joao"]},
                 }
             ]
         },
