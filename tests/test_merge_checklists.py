@@ -37,7 +37,7 @@ def _write_checklist(path: pathlib.Path, sup: list[str], prod: list[str]) -> Non
             {
                 "numero": 1,
                 "pergunta": "Pergunta",
-                "respostas": {"suprimento": sup, "produção": prod},
+                "resposta": list(dict.fromkeys(sup + prod)),
             }
         ],
     }
@@ -73,7 +73,7 @@ def test_merge_checklists_accepts_montador_key() -> None:
 
     merged = merge.merge_checklists(sup, prod)
     assert merged["respondentes"]["produção"] == "Joao"
-    assert merged["itens"][0]["respostas"]["produção"] == ["C"]
+    assert merged["itens"][0]["resposta"] == ["C"]
 
 
 def test_find_mismatches_ignores_additional_production_annotations(tmp_path: pathlib.Path) -> None:
@@ -96,7 +96,7 @@ def test_move_matching_preserves_extra_annotations(tmp_path: pathlib.Path) -> No
     with open(dest_path, "r", encoding="utf-8") as fp:
         data = json.load(fp)
 
-    assert data["itens"][0]["respostas"]["produção"] == ["C", "Joao", "Maria"]
+    assert data["itens"][0]["resposta"] == ["C", "Joao", "Maria"]
     assert find_mismatches(str(tmp_path / "Posto02_Oficina")) == []
 
 
