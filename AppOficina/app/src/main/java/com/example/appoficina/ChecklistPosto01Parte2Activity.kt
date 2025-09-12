@@ -215,7 +215,10 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                     else -> ""
                 }
                 val nome = spinners[idx].selectedItem.toString()
-                val resp = JSONArray().apply { put("$option, $nome") }
+                val resp = JSONArray().apply {
+                    put(option)
+                    put(nome)
+                }
                 val uniqueResp = JSONArray((0 until resp.length()).map { resp.getString(it) }.distinct())
                 val respostas = JSONObject().put("montador", uniqueResp)
                 obj.put("respostas", respostas)
