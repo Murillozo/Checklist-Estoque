@@ -44,6 +44,7 @@
         <activity android:name=".ChecklistPosto08IqeActivity" android:exported="false" android:screenOrientation="landscape" />
         <activity android:name=".ChecklistPosto08IqmActivity" android:exported="false" android:screenOrientation="landscape" />
         <activity android:name=".ChecklistPosto08TesteActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".RevisaoDetailActivity" android:exported="false" android:screenOrientation="landscape" />
 
     </application>
 
