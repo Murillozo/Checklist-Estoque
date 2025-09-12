@@ -198,7 +198,9 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
         prod_entries = [
             e
             for e in entries
-            if "produção" in e["data"] or "producao" in e["data"]
+            if "produção" in e["data"]
+            or "producao" in e["data"]
+            or "montador" in e["data"]
         ]
         sup = (
             max(sup_entries, key=lambda e: os.path.getmtime(e["path"]))
