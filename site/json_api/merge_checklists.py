@@ -89,11 +89,13 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
                 pergunta_final = pergunta_prod
             res_sup = _merge_list(res_sup, entry.get("res_sup"))
             res_prod = _merge_list(res_prod, entry.get("res_prod"))
+
+        res_unificado = _merge_list(res_sup, res_prod)
         result_items.append(
             {
                 "numero": nums,
                 "pergunta": pergunta_final,
-                "respostas": {"suprimento": res_sup, "produção": res_prod},
+                "resposta": res_unificado,
             }
         )
     result["itens"] = sorted(result_items, key=lambda x: x["numero"][0] if x.get("numero") else 0)
@@ -121,7 +123,8 @@ def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
     Items that share the same question will have their answers merged and their
     numbers accumulated in a list. Answers that are ``None`` are ignored so that
-    existing non-empty answers are preserved.
+    existing non-empty answers are preserved. The return format uses a single
+    ``resposta`` list rather than segregated answers by department.
     """
 
     merged: Dict[Any, Dict[str, Any]] = {}
@@ -131,16 +134,17 @@ def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             continue
 
         if key not in merged:
-            entry = dict(item)
-            numero = entry.get("numero")
-            if numero is not None and not isinstance(numero, list):
-                entry["numero"] = [numero]
+            numero = item.get("numero")
+            if isinstance(numero, list):
+                numeros = list(numero)
             elif numero is None:
-                entry["numero"] = []
-            merged[key] = entry
-            continue
+                numeros = []
+            else:
+                numeros = [numero]
+            merged[key] = {"numero": numeros, "pergunta": item.get("pergunta", ""), "resposta": []}
 
         existing = merged[key]
+
         numero_novo = item.get("numero")
         if isinstance(numero_novo, list):
             for n in numero_novo:
@@ -149,16 +153,18 @@ def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         elif numero_novo is not None and numero_novo not in existing["numero"]:
             existing["numero"].append(numero_novo)
 
-        respostas_novas = item.get("respostas", {}) or {}
-        respostas_exist = existing.setdefault("respostas", {})
-        for setor, resp in respostas_novas.items():
-            if resp is None:
-                continue
-            atual = respostas_exist.get(setor)
-            if atual is None:
-                respostas_exist[setor] = resp
-            else:
-                respostas_exist[setor] = list(dict.fromkeys(atual + resp))
+        respostas_novas: List[str] = []
+        if isinstance(item.get("resposta"), list):
+            respostas_novas = item.get("resposta") or []
+        else:
+            respostas_dict = item.get("respostas", {}) or {}
+            for resp in respostas_dict.values():
+                if isinstance(resp, list):
+                    respostas_novas.extend(resp)
+
+        for resp in respostas_novas:
+            if resp not in existing["resposta"]:
+                existing["resposta"].append(resp)
 
         if len(item.get("pergunta", "")) > len(existing.get("pergunta", "")):
             existing["pergunta"] = item["pergunta"]
@@ -268,13 +274,11 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
 
 
 def find_mismatches(directory: str) -> List[Dict[str, Any]]:
-    """Return merged checklists that have differing or missing answers.
+    """Return merged checklists that have missing answers.
 
     Looks for ``checklist_*.json`` files inside ``directory`` and checks each
-    item where ``suprimento`` or ``produção`` answers are missing/empty or where
-    the ``produção`` answer does not start with the ``suprimento`` answer.
-    Additional values present only in ``produção`` are ignored. Only checklists
-    containing at least one divergence are returned.
+    item where the unified ``resposta`` list is missing or empty. Only
+    checklists containing at least one such item are returned.
     """
 
     resultados: List[Dict[str, Any]] = []
@@ -289,18 +293,13 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
 
         divergencias: List[Dict[str, Any]] = []
         for item in data.get("itens", []):
-            resp = item.get("respostas", {})
-            sup = resp.get("suprimento")
-            prod = resp.get("produção")
-
-            mismatch = not sup or not prod or prod[: len(sup)] != sup
-            if mismatch:
+            resp = item.get("resposta") if isinstance(item.get("resposta"), list) else None
+            if not resp:
                 divergencias.append(
                     {
                         "numero": item.get("numero"),
                         "pergunta": item.get("pergunta"),
-                        "suprimento": sup,
-                        "produção": prod,
+                        "resposta": resp,
                     }
                 )
         if divergencias:
@@ -316,12 +315,11 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
 
 
 def move_matching_checklists(base_dir: str) -> List[str]:
-    """Move merged checklists with complete matching answers to the next stage.
+    """Move merged checklists with complete answers to the next stage.
 
     Looks into ``Posto01_Oficina`` inside ``base_dir`` and moves any
-    ``checklist_*.json`` files where all ``suprimento`` and ``produção``
-    answers are present and identical to ``Posto02_Oficina``. Returns a list of
-    moved filenames.
+    ``checklist_*.json`` files where all items contain a non-empty ``resposta``
+    to ``Posto02_Oficina``. Returns a list of moved filenames.
     """
 
     src_dir = os.path.join(base_dir, "Posto01_Oficina")
@@ -373,7 +371,10 @@ def main() -> None:
     )
     args = parser.parse_args()
     merged = merge_directory(args.base_dir, args.output_dir)
+    moved = move_matching_checklists(args.base_dir)
     print(f"Merged {len(merged)} checklist(s)")
+    if moved:
+        print(f"Moved {len(moved)} checklist(s) to Posto02_Oficina")
 
 
 if __name__ == "__main__":
