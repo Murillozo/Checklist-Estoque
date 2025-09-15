@@ -253,6 +253,7 @@ def _ensure_nc_preview(file_path: str) -> None:
 def salvar_checklist():
     """Save a checklist payload to a timestamped JSON file."""
     data = request.get_json() or {}
+    origem = data.get('origem', 'AppEstoque')
     obra = data.get('obra', 'desconhecida')
 
     os.makedirs(BASE_DIR, exist_ok=True)
@@ -263,8 +264,10 @@ def salvar_checklist():
 
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    merge_directory(BASE_DIR)
-    move_matching_checklists(BASE_DIR)
+
+    if origem == 'AppOficina':
+        merge_directory(BASE_DIR)
+        move_matching_checklists(BASE_DIR)
 
     return jsonify({'caminho': file_path})
 
