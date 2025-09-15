@@ -25,6 +25,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
 
+        val nomeMontador = intent.getStringExtra("montador") ?: ""
         val nomeSuprimento = intent.getStringExtra("suprimento") ?: ""
         val nomeProducao = intent.getStringExtra("produção")
             ?: intent.getStringExtra("producao") ?: ""
@@ -159,7 +160,9 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             payload.put("obra", obra)
             payload.put("ano", ano)
             payload.put("itens", itens)
-            if (nomeProducao.isNotBlank()) {
+            if (nomeMontador.isNotBlank()) {
+                payload.put("montador", nomeMontador)
+            } else if (nomeProducao.isNotBlank()) {
                 payload.put("montador", nomeProducao)
             } else if (nomeSuprimento.isNotBlank()) {
                 payload.put("suprimento", nomeSuprimento)

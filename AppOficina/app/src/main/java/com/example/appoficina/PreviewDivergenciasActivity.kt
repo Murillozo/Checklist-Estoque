@@ -101,11 +101,22 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
                     "posto06_cablagem" -> ChecklistPosto06Cablagem02Activity::class.java
                     else -> ChecklistPosto02Activity::class.java
                 }
-                val intent = Intent(this, clazz)
-                intent.putExtra("obra", obra)
-                intent.putExtra("ano", ano)
-                startActivity(intent)
-                finish()
+                if (tipo == "posto02") {
+                    promptName(this, "Nome do montador") { nome ->
+                        val intent = Intent(this, clazz)
+                        intent.putExtra("obra", obra)
+                        intent.putExtra("ano", ano)
+                        intent.putExtra("montador", nome)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else {
+                    val intent = Intent(this, clazz)
+                    intent.putExtra("obra", obra)
+                    intent.putExtra("ano", ano)
+                    startActivity(intent)
+                    finish()
+                }
             }
         }
     }
