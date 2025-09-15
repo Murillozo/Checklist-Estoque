@@ -147,6 +147,8 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         entry["pergunta_prod"] = pergunta
         entry["res_prod"] = resposta
         itens_por_pergunta.setdefault(pergunta, []).append(numero)
+        
+        
     def _merge_dict(
         a: Optional[Dict[str, List[str]]], b: Optional[Dict[str, List[str]]]
     ) -> Optional[Dict[str, List[str]]]:
@@ -258,6 +260,7 @@ def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         )
     except Exception:
         return list(merged.values())
+
 
 
 def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dict[str, Any]]:

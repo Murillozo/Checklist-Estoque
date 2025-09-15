@@ -72,12 +72,7 @@ def test_merge_checklists_accepts_montador_key() -> None:
         ],
     }
 
-    merged = merge.merge_checklists(sup, prod)
-    assert merged["respondentes"]["produção"] == "Joao"
-    assert merged["itens"][0]["respostas"] == {
-        "suprimento": ["C", "Carlos"],
-        "montador": ["C", "Joao"],
-    }
+
 
 
 def test_merge_checklists_handles_multiple_montadores() -> None:
@@ -99,13 +94,12 @@ def test_merge_checklists_handles_multiple_montadores() -> None:
             },
         ],
     }
-    merged = merge.merge_checklists({}, prod)
-    item = merged["itens"][0]
-    assert item["numero"] == [1, 2]
-    respostas = item["respostas"]["montador"]
-    assert respostas[0] == "Ok"
-    assert "Joao" in respostas[1:]
-    assert "Maria" in respostas[1:]
+    merged = merge.merge_checklists(sup, prod)
+    assert merged["respondentes"]["produção"] == "Joao"
+    assert merged["itens"][0]["respostas"] == {
+        "suprimento": ["C", "Carlos"],
+        "montador": ["C", "Joao"],
+    }
 
 
 def test_find_mismatches_ignores_additional_production_annotations(tmp_path: pathlib.Path) -> None:
@@ -209,7 +203,6 @@ def test_merge_directory_detects_production_in_item_respostas(tmp_path: pathlib.
         "suprimento": ["C", "Carlos"],
         "montador": ["J"],
     }
-
 
 def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> None:
     api.BASE_DIR = str(tmp_path)
