@@ -76,21 +76,34 @@ def test_merge_checklists_accepts_montador_key() -> None:
 
 
 def test_merge_checklists_handles_multiple_montadores() -> None:
+    sup = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "suprimento": "Carlos",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"suprimento": ["C"]},
+            }
+        ],
+    }
     prod = {
         "obra": "OBRA1",
         "ano": "2024",
+        "montador": "Joao",
         "itens": [
             {
                 "numero": 1,
                 "pergunta": "Pergunta",
                 "montador": "Joao",
-                "respostas": {"montador": ["Ok"]},
+                "respostas": {"montador": ["C"]},
             },
             {
                 "numero": 2,
-                "pergunta": "Pergunta",
+                "pergunta": "Outra",
                 "montador": "Maria",
-                "respostas": {"montador": ["Ok"]},
+                "respostas": {"montador": ["C"]},
             },
         ],
     }
