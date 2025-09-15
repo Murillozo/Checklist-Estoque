@@ -132,6 +132,45 @@ def test_cli_merges_and_moves_to_posto02(tmp_path: pathlib.Path) -> None:
     assert data["itens"][0]["resposta"] == ["C"]
 
 
+def test_merge_directory_detects_production_in_item_respostas(tmp_path: pathlib.Path) -> None:
+    sup = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "suprimento": "Carlos",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"suprimento": ["C"]},
+            }
+        ],
+    }
+    prod = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"montador": ["J"]},
+            }
+        ],
+    }
+    with open(tmp_path / "sup.json", "w", encoding="utf-8") as fp:
+        json.dump(sup, fp, ensure_ascii=False)
+    with open(tmp_path / "prod.json", "w", encoding="utf-8") as fp:
+        json.dump(prod, fp, ensure_ascii=False)
+
+    merged = merge.merge_directory(str(tmp_path))
+    assert len(merged) == 1
+
+    out_path = tmp_path / "Posto01_Oficina" / "checklist_OBRA1.json"
+    with open(out_path, "r", encoding="utf-8") as fp:
+        data = json.load(fp)
+
+    assert data["itens"][0]["resposta"] == ["C", "J"]
+
+
 def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> None:
     api.BASE_DIR = str(tmp_path)
     insp_dir = tmp_path / "Posto02_Oficina" / "Posto02_Oficina_Inspetor"
