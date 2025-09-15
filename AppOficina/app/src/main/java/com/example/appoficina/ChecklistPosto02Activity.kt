@@ -146,7 +146,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                 val operadorNome = spinners[idx].selectedItem.toString()
                 val respostas = JSONObject().put("montador", JSONArray().put(option))
                 obj.put("respostas", respostas)
-                obj.put("montador", operadorNome)
+                obj.put("operadorNome", operadorNome)
                 itens.put(obj)
             }
             val payload = JSONObject()

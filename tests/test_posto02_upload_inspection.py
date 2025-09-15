@@ -31,7 +31,7 @@ def test_upload_and_inspection_without_divergencias(tmp_path):
             {
                 "numero": 1,
                 "pergunta": "Pergunta1",
-                "montador": "Joao",
+                "operadorNome": "Joao",
                 "respostas": {"montador": ["C"]},
             },
             {

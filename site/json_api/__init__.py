@@ -739,10 +739,11 @@ def posto02_upload():
         resposta = respostas.get("montador") or (
             item.get("resposta") if isinstance(item.get("resposta"), list) else None
         )
+        nome = item.get('montador') or item.get('operadorNome')
         itens.append({
             'numero': numero,
             'pergunta': pergunta,
-            'montador': item.get('montador'),
+            'montador': nome,
             'respostas': {'montador': resposta},
         })
 
