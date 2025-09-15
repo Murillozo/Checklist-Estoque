@@ -25,11 +25,6 @@ class ChecklistPosto02Activity : AppCompatActivity() {
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
 
-        val nomeMontador = intent.getStringExtra("montador") ?: ""
-        val nomeSuprimento = intent.getStringExtra("suprimento") ?: ""
-        val nomeProducao = intent.getStringExtra("produção")
-            ?: intent.getStringExtra("producao") ?: ""
-
         val montadoresPrefs = getSharedPreferences("config", MODE_PRIVATE)
             .getString("montadores", "") ?: ""
         val montadoresList = montadoresPrefs.split("\n").filter { it.isNotBlank() }
@@ -149,9 +144,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                     else -> ""
                 }
                 val operadorNome = spinners[idx].selectedItem.toString()
-                val statusArray = JSONArray().apply { put(option) }
-                val uniqueStatus = JSONArray((0 until statusArray.length()).map { statusArray.getString(it) }.distinct())
-                val respostas = JSONObject().put("montador", uniqueStatus)
+                val respostas = JSONObject().put("montador", JSONArray().put(option))
                 obj.put("respostas", respostas)
                 obj.put("montador", operadorNome)
                 itens.put(obj)
@@ -160,13 +153,6 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             payload.put("obra", obra)
             payload.put("ano", ano)
             payload.put("itens", itens)
-            if (nomeMontador.isNotBlank()) {
-                payload.put("montador", nomeMontador)
-            } else if (nomeProducao.isNotBlank()) {
-                payload.put("montador", nomeProducao)
-            } else if (nomeSuprimento.isNotBlank()) {
-                payload.put("suprimento", nomeSuprimento)
-            }
             Thread { enviarChecklist(payload) }.start()
             finish()
         }

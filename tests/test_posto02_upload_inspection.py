@@ -27,14 +27,27 @@ def test_upload_and_inspection_without_divergencias(tmp_path):
 
     upload_payload = {
         "obra": "OBRA1",
-        "montador": "Joao",
         "itens": [
-            {"numero": 1, "pergunta": "Pergunta1", "respostas": {"montador": ["C"]}},
-            {"numero": 2, "pergunta": "Pergunta2", "resposta": ["C"]},
+            {
+                "numero": 1,
+                "pergunta": "Pergunta1",
+                "montador": "Joao",
+                "respostas": {"montador": ["C"]},
+            },
+            {
+                "numero": 2,
+                "pergunta": "Pergunta2",
+                "montador": "Joao",
+                "resposta": ["C"],
+            },
         ],
     }
     res = client.post("/posto02/upload", json=upload_payload)
     assert res.status_code == 200
+    saved = tmp_path / "Posto02_Oficina" / "Posto02_Oficina_Inspetor" / "checklist_OBRA1.json"
+    with open(saved, "r", encoding="utf-8") as f:
+        stored = json.load(f)
+    assert stored["posto02"]["itens"][0]["montador"] == "Joao"
 
     insp_payload = {
         "obra": "OBRA1",

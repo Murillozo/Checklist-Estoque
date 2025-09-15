@@ -742,11 +742,11 @@ def posto02_upload():
         itens.append({
             'numero': numero,
             'pergunta': pergunta,
+            'montador': item.get('montador'),
             'respostas': {'montador': resposta},
         })
 
     base['posto02'] = {
-        'montador': data.get('montador'),
         'itens': itens,
     }
 
