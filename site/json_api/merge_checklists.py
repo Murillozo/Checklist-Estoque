@@ -4,6 +4,43 @@ import shutil
 from typing import Any, Dict, List, Optional
 
 
+def _merge_respostas(
+    a: Optional[Dict[str, List[str]]], b: Optional[Dict[str, List[str]]]
+) -> Optional[Dict[str, List[str]]]:
+    """Return union of two respostas dictionaries.
+
+    Each key maps to a list whose first element is the answer value and any
+    subsequent elements are respondent names. Duplicates are avoided while
+    preserving order and ensuring the answer value stays at position 0.
+    """
+
+    if not b:
+        return a
+    if not a:
+        return b
+
+    merged: Dict[str, List[str]] = {k: list(v) for k, v in a.items()}
+    for papel, valores in b.items():
+        if not isinstance(valores, list) or not valores:
+            continue
+        existing = merged.setdefault(papel, [])
+        if not existing:
+            merged[papel] = list(valores)
+            continue
+
+        # ensure answer value at index 0
+        answer = valores[0]
+        if existing:
+            if existing[0] != answer and answer not in existing:
+                existing.insert(0, answer)
+        else:
+            existing.append(answer)
+        for nome in valores[1:]:
+            if nome not in existing[1:]:
+                existing.append(nome)
+    return merged
+
+
 def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, Any]) -> Dict[str, Any]:
     """Merge two checklist JSON structures according to business rules."""
     obra_sup = json_suprimento.get("obra", "")
@@ -40,32 +77,49 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
 
     def _extract_respostas(
         item: Dict[str, Any], keys: List[str], parent: Dict[str, Any]
-    ) -> Optional[List[Dict[str, Any]]]:
-        """Return structured answers with role and name information."""
-        coletadas: List[Dict[str, Any]] = []
+    ) -> Optional[Dict[str, List[str]]]:
+        """Collect respostas keyed by role with names appended."""
+
+        coletadas: Dict[str, List[str]] = {}
         respostas = item.get("respostas")
         if isinstance(respostas, dict):
             for papel in keys:
                 valores = respostas.get(papel)
                 if isinstance(valores, list):
+                    lista = list(valores)
                     nome = item.get(papel) or parent.get(papel)
-                    for valor in valores:
-                        coletadas.append({
-                            "papel": papel,
-                            "nome": nome,
-                            "valor": valor,
-                        })
-        elif isinstance(respostas, list):  # already in new format
+                    if nome and nome not in lista[1:]:
+                        if lista:
+                            lista.append(nome)
+                        else:
+                            lista = [nome]
+                    coletadas[papel] = lista
+        elif isinstance(respostas, list):
             for resp in respostas:
-                if isinstance(resp, dict) and {"papel", "valor"} <= set(resp):
-                    coletadas.append(resp)
+                if (
+                    isinstance(resp, dict)
+                    and "valor" in resp
+                    and resp.get("papel")
+                ):
+                    papel = resp["papel"]
+                    lista = [resp["valor"]]
+                    nome = resp.get("nome")
+                    if nome:
+                        lista.append(nome)
+                    coletadas[papel] = lista
 
         if not coletadas:
             resposta = item.get("resposta")
             if isinstance(resposta, list):
-                nome = parent.get(keys[0]) if keys else None
-                for valor in resposta:
-                    coletadas.append({"papel": None, "nome": nome, "valor": valor})
+                papel = keys[0] if keys else "resposta"
+                lista = list(resposta)
+                nome = parent.get(papel)
+                if nome:
+                    if lista:
+                        lista.append(nome)
+                    else:
+                        lista = [nome]
+                coletadas[papel] = lista
         return coletadas or None
 
     for item in json_suprimento.get("itens", []):
@@ -93,31 +147,19 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         entry["pergunta_prod"] = pergunta
         entry["res_prod"] = resposta
         itens_por_pergunta.setdefault(pergunta, []).append(numero)
-    def _merge_list(
-        a: Optional[List[Dict[str, Any]]], b: Optional[List[Dict[str, Any]]]
-    ) -> Optional[List[Dict[str, Any]]]:
-        if not b:
-            return a
-        if not a:
-            return b
-        merged: List[Dict[str, Any]] = list(a)
-        seen = {
-            (d.get("papel"), d.get("nome"), d.get("valor"))
-            for d in merged
-        }
-        for d in b:
-            key = (d.get("papel"), d.get("nome"), d.get("valor"))
-            if key not in seen:
-                merged.append(d)
-                seen.add(key)
-        return merged
+        
+        
+    def _merge_dict(
+        a: Optional[Dict[str, List[str]]], b: Optional[Dict[str, List[str]]]
+    ) -> Optional[Dict[str, List[str]]]:
+        return _merge_respostas(a, b)
 
     result_items: List[Dict[str, Any]] = []
     for pergunta, numeros in itens_por_pergunta.items():
         nums = sorted({n for n in numeros if n is not None})
         pergunta_final = pergunta
-        res_sup: Optional[List[Dict[str, Any]]] = None
-        res_prod: Optional[List[Dict[str, Any]]] = None
+        res_sup: Optional[Dict[str, List[str]]] = None
+        res_prod: Optional[Dict[str, List[str]]] = None
         for numero in nums:
             entry = itens.get(numero, {})
             pergunta_sup = entry.get("pergunta_sup", "")
@@ -126,10 +168,10 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
                 pergunta_final = pergunta_sup
             if len(pergunta_prod) > len(pergunta_final):
                 pergunta_final = pergunta_prod
-            res_sup = _merge_list(res_sup, entry.get("res_sup"))
-            res_prod = _merge_list(res_prod, entry.get("res_prod"))
+            res_sup = _merge_dict(res_sup, entry.get("res_sup"))
+            res_prod = _merge_dict(res_prod, entry.get("res_prod"))
 
-        res_unificado = _merge_list(res_sup, res_prod)
+        res_unificado = _merge_dict(res_sup, res_prod)
         result_items.append(
             {
                 "numero": nums,
@@ -158,13 +200,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
 
 
 def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Deduplicate checklist items grouping by ``pergunta`` when available.
-
-    Items that share the same question will have their answers merged and their
-    numbers accumulated in a list. Answers that are ``None`` are ignored so that
-    existing non-empty answers are preserved. The return format uses a single
-    ``respostas`` list containing ``papel``, ``nome`` and ``valor`` fields.
-    """
+    """Deduplicate checklist items grouping by ``pergunta`` when available."""
 
     merged: Dict[Any, Dict[str, Any]] = {}
     for item in items:
@@ -183,8 +219,7 @@ def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             merged[key] = {
                 "numero": numeros,
                 "pergunta": item.get("pergunta", ""),
-                "respostas": [],
-                "_seen": set(),
+                "respostas": {},
             }
 
         existing = merged[key]
@@ -197,33 +232,27 @@ def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         elif numero_novo is not None and numero_novo not in existing["numero"]:
             existing["numero"].append(numero_novo)
 
-        respostas_novas: List[Dict[str, Any]] = []
-        if isinstance(item.get("respostas"), list):
-            respostas_novas = item.get("respostas") or []
-        elif isinstance(item.get("respostas"), dict):
-            respostas_dict = item.get("respostas") or {}
-            for papel, valores in respostas_dict.items():
-                if isinstance(valores, list):
-                    nome = item.get(papel)
-                    for valor in valores:
-                        respostas_novas.append(
-                            {"papel": papel, "nome": nome, "valor": valor}
-                        )
+        resp_obj: Optional[Dict[str, List[str]]] = None
+        if isinstance(item.get("respostas"), dict):
+            resp_obj = item.get("respostas")
+        elif isinstance(item.get("respostas"), list):
+            temp: Dict[str, List[str]] = {}
+            for resp in item.get("respostas") or []:
+                if isinstance(resp, dict) and "valor" in resp:
+                    papel = resp.get("papel") or "resposta"
+                    lista = temp.setdefault(papel, [])
+                    lista.append(resp["valor"])
+                    nome = resp.get("nome")
+                    if nome:
+                        lista.append(nome)
+            resp_obj = temp
         elif isinstance(item.get("resposta"), list):
-            for valor in item.get("resposta") or []:
-                respostas_novas.append({"papel": None, "nome": None, "valor": valor})
+            resp_obj = {"resposta": list(item.get("resposta") or [])}
 
-        for resp in respostas_novas:
-            key_resp = (resp.get("papel"), resp.get("nome"), resp.get("valor"))
-            if key_resp not in existing["_seen"]:
-                existing["respostas"].append(resp)
-                existing["_seen"].add(key_resp)
+        existing["respostas"] = _merge_respostas(existing.get("respostas"), resp_obj)
 
         if len(item.get("pergunta", "")) > len(existing.get("pergunta", "")):
             existing["pergunta"] = item["pergunta"]
-
-    for entry in merged.values():
-        entry.pop("_seen", None)
 
     try:
         return sorted(
@@ -231,6 +260,7 @@ def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         )
     except Exception:
         return list(merged.values())
+
 
 
 def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -356,12 +386,19 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
 
         divergencias: List[Dict[str, Any]] = []
         for item in data.get("itens", []):
-            resp = None
-            if isinstance(item.get("respostas"), list):
-                resp = item.get("respostas")
+            resp = item.get("respostas")
+            has_resposta = False
+            if isinstance(resp, dict):
+                for valores in resp.values():
+                    if isinstance(valores, list) and valores:
+                        has_resposta = True
+                        break
+            elif isinstance(resp, list):
+                has_resposta = bool(resp)
             elif isinstance(item.get("resposta"), list):  # compat
                 resp = item.get("resposta")
-            if not resp:
+                has_resposta = bool(resp)
+            if not has_resposta:
                 divergencias.append(
                     {
                         "numero": item.get("numero"),
