@@ -735,15 +735,19 @@ def posto02_upload():
     for item in data.get('itens', []):
         numero = item.get('numero')
         pergunta = item.get('pergunta')
-        resposta = item.get('resposta') if isinstance(item.get('resposta'), list) else None
+        respostas = item.get("respostas") or {}
+        resposta = respostas.get("montador") or (
+            item.get("resposta") if isinstance(item.get("resposta"), list) else None
+        )
+        nome = item.get('montador') or item.get('operadorNome')
         itens.append({
             'numero': numero,
             'pergunta': pergunta,
+            'montador': nome,
             'respostas': {'montador': resposta},
         })
 
     base['posto02'] = {
-        'montador': data.get('montador'),
         'itens': itens,
     }
 
