@@ -226,6 +226,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             payload.put("obra", obra)
             payload.put("ano", ano)
             payload.put("itens", itens)
+            payload.put("origem", "AppOficina")
             if (nomeProducao.isNotBlank()) {
                 payload.put("montador", nomeProducao)
             } else if (nomeSuprimento.isNotBlank()) {
