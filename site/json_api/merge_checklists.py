@@ -201,13 +201,18 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
     for obra, entries in by_obra.items():
         # group entries by type and select the most recent one of each
         sup_entries = [e for e in entries if "suprimento" in e["data"]]
-        prod_entries = [
-            e
-            for e in entries
-            if "produção" in e["data"]
-            or "producao" in e["data"]
-            or "montador" in e["data"]
-        ]
+
+        def _is_production(entry: Dict[str, Any]) -> bool:
+            data = entry["data"]
+            if any(k in data for k in ("produção", "producao", "montador")):
+                return True
+            for item in data.get("itens", []) or []:
+                respostas = item.get("respostas") or {}
+                if any(k in respostas for k in ("montador", "produção", "producao")):
+                    return True
+            return False
+
+        prod_entries = [e for e in entries if _is_production(e)]
         sup = (
             max(sup_entries, key=lambda e: os.path.getmtime(e["path"]))
             if sup_entries
