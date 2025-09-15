@@ -22,5 +22,6 @@ data class ChecklistRequest(
     val ano: String,
     val suprimento: String,
     val itens: List<ChecklistItem>,
-    val materiais: List<ChecklistMaterial>
+    val materiais: List<ChecklistMaterial>,
+    val origem: String
 )

@@ -157,7 +157,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     val filePath = withContext(Dispatchers.IO) {
-                        val request = ChecklistRequest(obra, ano, suprimento, itensChecklist, materiais)
+                        val request = ChecklistRequest(obra, ano, suprimento, itensChecklist, materiais, "AppEstoque")
                         val response = JsonNetworkModule.api(this@ChecklistPosto01Parte2Activity).salvarChecklist(request)
                         if (pendentes == null) {
                             NetworkModule.api(this@ChecklistPosto01Parte2Activity).aprovarSolicitacao(id)
