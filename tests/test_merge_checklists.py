@@ -38,7 +38,7 @@ def _write_checklist(path: pathlib.Path, sup: list[str], prod: list[str]) -> Non
             {
                 "numero": 1,
                 "pergunta": "Pergunta",
-                "resposta": list(dict.fromkeys(sup + prod)),
+                "respostas": {"suprimento": sup, "produção": prod},
             }
         ],
     }
@@ -74,7 +74,38 @@ def test_merge_checklists_accepts_montador_key() -> None:
 
     merged = merge.merge_checklists(sup, prod)
     assert merged["respondentes"]["produção"] == "Joao"
-    assert merged["itens"][0]["resposta"] == ["C"]
+    assert merged["itens"][0]["respostas"] == {
+        "suprimento": ["C", "Carlos"],
+        "montador": ["C", "Joao"],
+    }
+
+
+def test_merge_checklists_handles_multiple_montadores() -> None:
+    prod = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "montador": "Joao",
+                "respostas": {"montador": ["Ok"]},
+            },
+            {
+                "numero": 2,
+                "pergunta": "Pergunta",
+                "montador": "Maria",
+                "respostas": {"montador": ["Ok"]},
+            },
+        ],
+    }
+    merged = merge.merge_checklists({}, prod)
+    item = merged["itens"][0]
+    assert item["numero"] == [1, 2]
+    respostas = item["respostas"]["montador"]
+    assert respostas[0] == "Ok"
+    assert "Joao" in respostas[1:]
+    assert "Maria" in respostas[1:]
 
 
 def test_find_mismatches_ignores_additional_production_annotations(tmp_path: pathlib.Path) -> None:
@@ -97,7 +128,10 @@ def test_move_matching_preserves_extra_annotations(tmp_path: pathlib.Path) -> No
     with open(dest_path, "r", encoding="utf-8") as fp:
         data = json.load(fp)
 
-    assert data["itens"][0]["resposta"] == ["C", "Joao", "Maria"]
+    assert data["itens"][0]["respostas"] == {
+        "suprimento": ["C", "Joao"],
+        "produção": ["C", "Joao", "Maria"],
+    }
     assert find_mismatches(str(tmp_path / "Posto02_Oficina")) == []
 
 
@@ -129,7 +163,10 @@ def test_cli_merges_and_moves_to_posto02(tmp_path: pathlib.Path) -> None:
     with open(dest_path, "r", encoding="utf-8") as fp:
         data = json.load(fp)
 
-    assert data["itens"][0]["resposta"] == ["C"]
+    assert data["itens"][0]["respostas"] == {
+        "suprimento": ["C", "Carlos"],
+        "montador": ["C", "Joao"],
+    }
 
 
 def test_merge_directory_detects_production_in_item_respostas(tmp_path: pathlib.Path) -> None:
@@ -168,7 +205,10 @@ def test_merge_directory_detects_production_in_item_respostas(tmp_path: pathlib.
     with open(out_path, "r", encoding="utf-8") as fp:
         data = json.load(fp)
 
-    assert data["itens"][0]["resposta"] == ["C", "J"]
+    assert data["itens"][0]["respostas"] == {
+        "suprimento": ["C", "Carlos"],
+        "montador": ["J"],
+    }
 
 
 def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> None:
