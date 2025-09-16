@@ -748,9 +748,22 @@ def checklist_pdf(filename):
 
     montadores = sorted(_coletar_montadores(dados))
 
-    respondentes = dados.get("respondentes", {})
-    suprimento = respondentes.get("suprimento", "").strip()
-    producao = respondentes.get("produção", "").strip()
+    respondentes = dados.get("respondentes") or {}
+
+    def _safe_responsavel(origem, *chaves):
+        if not isinstance(origem, dict):
+            return ""
+        for chave in chaves:
+            valor = origem.get(chave)
+            if valor is None:
+                continue
+            texto = str(valor).strip()
+            if texto:
+                return texto
+        return ""
+
+    suprimento = _safe_responsavel(respondentes, "suprimento")
+    producao = _safe_responsavel(respondentes, "produção", "producao")
     inspetor = _encontrar_inspetor(dados)
 
     teste_insp = dados.get("posto08_teste", {}).get("inspetor", "").strip()
@@ -932,6 +945,58 @@ def checklist_pdf(filename):
     bullet_char = "•" if base_font == "DejaVu" else "-"
     box_char = "□" if base_font == "DejaVu" else "[]"
     dash_char = "—" if base_font == "DejaVu" else "-"
+
+    STATUS_MARKERS = {
+        "C",
+        "NC",
+        "NA",
+        "ND",
+        "N/D",
+        "OK",
+        "P",
+        "PEND",
+        "PENDENTE",
+    }
+    NAME_ROLES = {"montador", "suprimento", "produção", "producao", "inspetor"}
+
+    def _is_potential_name(valor: str) -> bool:
+        if not valor:
+            return False
+        texto = valor.strip()
+        if not texto:
+            return False
+        if texto.upper() in STATUS_MARKERS:
+            return False
+        letras = sum(1 for ch in texto if ch.isalpha())
+        return letras >= 2
+
+    def _apply_last_name_rule(valores):
+        name_indices = [idx for idx, val in enumerate(valores) if _is_potential_name(val)]
+        if len(name_indices) < 2:
+            return valores
+        last_idx = name_indices[-1]
+        filtrados = []
+        for idx, val in enumerate(valores):
+            if idx == last_idx:
+                filtrados.append(val)
+            elif idx in name_indices[:-1]:
+                continue
+            else:
+                filtrados.append(val)
+        return filtrados
+
+    def _prepare_role_values(role, raw_values):
+        if isinstance(raw_values, list):
+            valores = [str(v).strip() for v in raw_values if str(v).strip()]
+        elif raw_values is None:
+            valores = []
+        else:
+            texto = str(raw_values).strip()
+            valores = [texto] if texto else []
+        role_lower = (role or "").lower()
+        if role_lower in NAME_ROLES:
+            valores = _apply_last_name_rule(valores)
+        return valores
 
     # ---------- Layout / medidas ----------
     left_margin = pdf.l_margin
@@ -1126,8 +1191,10 @@ def checklist_pdf(filename):
             roles_vals = []
             max_resp_lines = 0
             for role in current_roles:
-                vals = [str(v).strip() for v in sub["respostas"].get(role, []) if str(v).strip()]
-                if role in ("resposta", "inspetor") and len(vals) >= 5:
+                role_vals = (sub.get("respostas") or {}).get(role)
+                vals = _prepare_role_values(role, role_vals)
+                role_lower = (role or "").lower()
+                if role_lower in ("resposta", "inspetor") and len(vals) >= 5:
                     formatted = (
                         f"1. Tensão aplicada: {vals[1]} {vals[0]}\n"
                         f"2. Resultado: {vals[3]} {vals[2]}\n"
