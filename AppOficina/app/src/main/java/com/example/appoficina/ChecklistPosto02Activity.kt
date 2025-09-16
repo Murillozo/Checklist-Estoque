@@ -59,7 +59,8 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             concluirButton.isEnabled = triplets.all { (c, nc, na) ->
                 c.isChecked || nc.isChecked || na.isChecked
             } && spinners.all { spinner ->
-                spinner.selectedItem?.toString()?.isNotBlank() == true
+                val selected = spinner.selectedItem
+                selected != null && selected.toString().isNotBlank()
             }
         }
 
@@ -139,24 +140,19 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                     na.isChecked -> "NA"
                     else -> ""
                 }
-
                 val montadorSelecionado = spinners[idx].selectedItem?.toString() ?: ""
-
                 val respostas = JSONObject().put(
                     "montador",
                     JSONArray().put(option).put(montadorSelecionado)
                 )
-
                 obj.put("respostas", respostas)
                 obj.put("montador", montadorSelecionado)
                 itens.put(obj)
             }
-
             val payload = JSONObject()
             payload.put("obra", obra)
             payload.put("ano", ano)
             payload.put("itens", itens)
-
             Thread { enviarChecklist(payload) }.start()
             finish()
         }
