@@ -81,10 +81,13 @@ class Posto02InspetorFragment : Fragment() {
                                             intent.putExtra("tipo", "insp_posto02")
                                             startActivity(intent)
                                         } else {
-                                            val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
-                                            intent.putExtra("obra", obra)
-                                            intent.putExtra("ano", ano)
-                                            startActivity(intent)
+                                            promptName(requireContext(), "Nome do inspetor") { nome ->
+                                                val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
+                                                intent.putExtra("obra", obra)
+                                                intent.putExtra("ano", ano)
+                                                intent.putExtra("inspetor", nome)
+                                                startActivity(intent)
+                                            }
                                         }
                                     }
                                 }.start()
