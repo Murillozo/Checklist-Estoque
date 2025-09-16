@@ -129,8 +129,8 @@ class ChecklistPosto03PreActivity : AppCompatActivity() {
                 val obj = JSONObject()
                 obj.put("numero", 301 + idx)
                 obj.put("pergunta", perguntas[idx])
-                val montadorSelecionado = spinners[idx].selectedItem.toString()
-                val resp = JSONArray().put(
+                val resp = JSONArray()
+                resp.put(
                     when {
                         c.isChecked -> "C"
                         nc.isChecked -> "NC"
@@ -138,8 +138,9 @@ class ChecklistPosto03PreActivity : AppCompatActivity() {
                         else -> ""
                     }
                 )
+                resp.put(spinners[idx].selectedItem.toString())
                 obj.put("resposta", resp)
-                obj.put("montador", montadorSelecionado)
+                obj.put("montador", spinners[idx].selectedItem.toString())
                 itens.put(obj)
             }
             val payload = JSONObject()
