@@ -143,16 +143,14 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             val tv = TextView(this)
             tv.text = pergunta
             container.addView(tv)
+
             val row = LinearLayout(this)
             row.orientation = LinearLayout.HORIZONTAL
-            val c = CheckBox(this)
-            c.text = "C"
-            val nc = CheckBox(this)
-            nc.text = "N.C"
-            nc.setPadding(24, 0, 0, 0)
-            val na = CheckBox(this)
-            na.text = "N.A"
-            na.setPadding(24, 0, 0, 0)
+
+            val c = CheckBox(this).apply { text = "C" }
+            val nc = CheckBox(this).apply { text = "N.C"; setPadding(24, 0, 0, 0) }
+            val na = CheckBox(this).apply { text = "N.A"; setPadding(24, 0, 0, 0) }
+
             row.addView(c)
             row.addView(nc)
             row.addView(na)
@@ -167,7 +165,6 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                 override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                     updateButtonState()
                 }
-
                 override fun onNothingSelected(parent: AdapterView<*>) {
                     updateButtonState()
                 }
@@ -178,24 +175,15 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
 
         triplets.forEach { (c, nc, na) ->
             c.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    nc.isChecked = false
-                    na.isChecked = false
-                }
+                if (isChecked) { nc.isChecked = false; na.isChecked = false }
                 updateButtonState()
             }
             nc.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    c.isChecked = false
-                    na.isChecked = false
-                }
+                if (isChecked) { c.isChecked = false; na.isChecked = false }
                 updateButtonState()
             }
             na.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    c.isChecked = false
-                    nc.isChecked = false
-                }
+                if (isChecked) { c.isChecked = false; nc.isChecked = false }
                 updateButtonState()
             }
         }
@@ -208,27 +196,37 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                 val obj = JSONObject()
                 obj.put("numero", 55 + idx)
                 obj.put("pergunta", perguntas[idx])
+
                 val option = when {
                     c.isChecked -> "C"
                     nc.isChecked -> "NC"
                     na.isChecked -> "NA"
                     else -> ""
                 }
-                val operadorNome = spinners[idx].selectedItem.toString()
-                val statusArray = JSONArray().apply { put(option) }
-                val uniqueStatus = JSONArray((0 until statusArray.length()).map { statusArray.getString(it) }.distinct())
-                val respostas = JSONObject().put("montador", uniqueStatus)
+
+                val respostas = JSONObject()
+                if (nomeSuprimento.isNotBlank()) {
+                    respostas.put("suprimento", JSONArray().apply {
+                        put(option)
+                        put(nomeSuprimento)
+                    })
+                }
+                respostas.put("producao", JSONArray().apply {
+                    put(option)
+                    put(spinners[idx].selectedItem.toString())
+                })
+
                 obj.put("respostas", respostas)
-                obj.put("montador", operadorNome)
                 itens.put(obj)
             }
+
             val payload = JSONObject()
             payload.put("obra", obra)
             payload.put("ano", ano)
             payload.put("itens", itens)
             payload.put("origem", "AppOficina")
             if (nomeProducao.isNotBlank()) {
-                payload.put("montador", nomeProducao)
+                payload.put("producao", nomeProducao)
             } else if (nomeSuprimento.isNotBlank()) {
                 payload.put("suprimento", nomeSuprimento)
             }
