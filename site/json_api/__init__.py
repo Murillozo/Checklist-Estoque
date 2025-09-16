@@ -253,19 +253,29 @@ def _ensure_nc_preview(file_path: str) -> None:
 def salvar_checklist():
     """Save a checklist payload to a timestamped JSON file."""
     data = request.get_json() or {}
-    origem = data.get('origem', 'AppEstoque')
-    obra = data.get('obra', 'desconhecida')
+    origem = str(data.get('origem', 'AppEstoque') or 'AppEstoque')
+
+    obra_raw = data.get('obra')
+    if isinstance(obra_raw, str):
+        obra_val = obra_raw.strip()
+    elif obra_raw is None:
+        obra_val = ''
+    else:
+        obra_val = str(obra_raw)
+    if not obra_val:
+        obra_val = 'desconhecida'
+    data['obra'] = obra_val
 
     os.makedirs(BASE_DIR, exist_ok=True)
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    safe_obra = "".join(c for c in obra if c.isalnum() or c in ('-','_')) or 'obra'
+    safe_obra = "".join(c for c in obra_val if c.isalnum() or c in ('-','_')) or 'obra'
     filename = f"checklist_{safe_obra}_{timestamp}.json"
     file_path = os.path.join(BASE_DIR, filename)
 
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    if origem == 'AppOficina':
+    if origem.strip().lower() == 'appoficina':
         merge_directory(BASE_DIR)
         move_matching_checklists(BASE_DIR)
 
