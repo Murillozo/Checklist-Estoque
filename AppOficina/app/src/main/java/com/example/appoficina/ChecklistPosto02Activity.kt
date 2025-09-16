@@ -3,13 +3,7 @@ package com.example.appoficina
 import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.LinearLayout
-import android.widget.Spinner
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
 import org.json.JSONObject
@@ -74,16 +68,14 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             val tv = TextView(this)
             tv.text = pergunta
             container.addView(tv)
+
             val row = LinearLayout(this)
             row.orientation = LinearLayout.HORIZONTAL
-            val c = CheckBox(this)
-            c.text = "C"
-            val nc = CheckBox(this)
-            nc.text = "N.C"
-            nc.setPadding(24, 0, 0, 0)
-            val na = CheckBox(this)
-            na.text = "N.A"
-            na.setPadding(24, 0, 0, 0)
+
+            val c = CheckBox(this).apply { text = "C" }
+            val nc = CheckBox(this).apply { text = "N.C"; setPadding(24, 0, 0, 0) }
+            val na = CheckBox(this).apply { text = "N.A"; setPadding(24, 0, 0, 0) }
+
             row.addView(c)
             row.addView(nc)
             row.addView(na)
@@ -98,6 +90,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             ).also {
                 it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             }
+
             spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>,
@@ -112,30 +105,22 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                     updateButtonState()
                 }
             }
+
             container.addView(spinner)
             spinners.add(spinner)
         }
 
         triplets.forEach { (c, nc, na) ->
             c.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    nc.isChecked = false
-                    na.isChecked = false
-                }
+                if (isChecked) { nc.isChecked = false; na.isChecked = false }
                 updateButtonState()
             }
             nc.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    c.isChecked = false
-                    na.isChecked = false
-                }
+                if (isChecked) { c.isChecked = false; na.isChecked = false }
                 updateButtonState()
             }
             na.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    c.isChecked = false
-                    nc.isChecked = false
-                }
+                if (isChecked) { c.isChecked = false; nc.isChecked = false }
                 updateButtonState()
             }
         }
@@ -148,6 +133,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                 val obj = JSONObject()
                 obj.put("numero", 200 + idx)
                 obj.put("pergunta", perguntas[idx])
+
                 val option = when {
                     c.isChecked -> "C"
                     nc.isChecked -> "NC"
@@ -175,9 +161,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
     private fun enviarChecklist(json: JSONObject) {
         val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
-        val urls = listOf(
-            "http://$ip:5000/json_api/posto02/upload",
-        )
+        val urls = listOf("http://$ip:5000/json_api/posto02/upload")
         for (addr in urls) {
             try {
                 val url = URL(addr)
@@ -195,4 +179,3 @@ class ChecklistPosto02Activity : AppCompatActivity() {
         }
     }
 }
-
