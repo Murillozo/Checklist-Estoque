@@ -68,19 +68,14 @@ class PreviewDivergenciasActivity : AppCompatActivity() {
             else -> actionButton.text
         }
         actionButton.setOnClickListener {
-            if (tipo == "insp_posto02") {
-                val intent = Intent(this, ChecklistPosto02InspActivity::class.java)
-                intent.putExtra("obra", obra)
-                intent.putExtra("ano", ano)
-                startActivity(intent)
-                finish()
-            } else if (tipo.startsWith("insp_") || tipo == "posto08_iqm") {
+            if (tipo.startsWith("insp_") || tipo == "posto08_iqm") {
                 val titulo = "Nome do inspetor"
                 promptName(this, titulo) { nome ->
                     if (tipo == "posto08_iqm") {
                         Thread { marcarDivergenciasTratadas(obra) }.start()
                     }
                     val (clazz, extraName) = when (tipo) {
+                        "insp_posto02" -> ChecklistPosto02InspActivity::class.java to "inspetor"
                         "insp_posto03_pre" -> ChecklistPosto03PreInspActivity::class.java to "inspetor"
                         "insp_posto04_barramento" -> ChecklistPosto04BarramentoInspActivity::class.java to "inspetor"
                         "insp_posto05_cablagem" -> ChecklistPosto05CablagemInspActivity::class.java to "inspetor"
