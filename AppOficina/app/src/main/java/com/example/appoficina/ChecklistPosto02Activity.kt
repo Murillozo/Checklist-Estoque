@@ -2,13 +2,9 @@ package com.example.appoficina
 
 import android.content.Context
 import android.os.Bundle
-import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
-import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
@@ -89,7 +85,7 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             row.addView(na)
             container.addView(row)
             triplets.add(Triple(c, nc, na))
-
+            
             val spinner = Spinner(this)
             spinner.adapter = ArrayAdapter(
                 this,
