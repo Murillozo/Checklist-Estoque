@@ -226,7 +226,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
             canonical_role="suprimento",
             alias_roles=["suprimento", "produção", "producao"],
         )
-
+        resposta = _canonicalize_suprimento_roles(resposta)
         bucket = _bucket_for(pergunta)
         if numero is not None:
             bucket["numeros"].add(numero)
