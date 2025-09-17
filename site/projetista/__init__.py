@@ -22,6 +22,46 @@ import re
 LOGO_PATH = os.path.join(os.path.dirname(__file__), 'static', 'evomax_logo.png')
 
 
+CHECKLIST_STATUS_MARKERS = {
+    "C",
+    "NC",
+    "NA",
+    "ND",
+    "N/D",
+    "OK",
+    "P",
+    "PEND",
+    "PENDENTE",
+}
+
+
+def format_status_with_names(values, status_markers=None, status_separator=" — ", joiner=", "):
+    """Return a human readable string for checklist answers.
+
+    When the value starts with a status marker (e.g. ``C``/``NC``) followed by
+    responder names, the status is highlighted separately from the names.
+    ``status_separator`` controls how the status and the rest of the names are
+    joined, while ``joiner`` is used for any additional names.
+    """
+
+    markers = status_markers or CHECKLIST_STATUS_MARKERS
+    cleaned = []
+    for raw in values or []:
+        text = str(raw).strip()
+        if text:
+            cleaned.append(text)
+
+    if not cleaned:
+        return ""
+
+    status, *names = cleaned
+    printable_names = [name for name in names if name]
+    if printable_names and status.upper() in markers:
+        return f"{status}{status_separator}{joiner.join(printable_names)}"
+
+    return joiner.join(cleaned)
+
+
 def _identity(txt: str) -> str:
     return txt
 
@@ -946,17 +986,7 @@ def checklist_pdf(filename):
     box_char = "□" if base_font == "DejaVu" else "[]"
     dash_char = "—" if base_font == "DejaVu" else "-"
 
-    STATUS_MARKERS = {
-        "C",
-        "NC",
-        "NA",
-        "ND",
-        "N/D",
-        "OK",
-        "P",
-        "PEND",
-        "PENDENTE",
-    }
+    STATUS_MARKERS = CHECKLIST_STATUS_MARKERS
     NAME_ROLES = {"montador", "suprimento", "produção", "producao", "inspetor"}
 
     def _is_potential_name(valor: str) -> bool:
@@ -1203,7 +1233,7 @@ def checklist_pdf(filename):
                 elif len(vals) >= 5:
                     formatted = "\n".join(f"{i+1}. {v}" for i, v in enumerate(vals))
                 else:
-                    formatted = ", ".join(vals)
+                    formatted = format_status_with_names(vals, STATUS_MARKERS)
                 if not formatted:
                     formatted = box_char
                 roles_vals.append(formatted)
