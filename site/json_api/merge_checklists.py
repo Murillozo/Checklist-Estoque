@@ -292,6 +292,9 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
 
         def _is_production(entry: Dict[str, Any]) -> bool:
             data = entry["data"]
+            origem = str(data.get("origem", "")).strip().lower()
+            if origem == "appoficina":
+                return True
             if any(k in data for k in ("produção", "producao", "montador")):
                 return True
             for item in data.get("itens", []) or []:
