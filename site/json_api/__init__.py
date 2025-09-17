@@ -267,7 +267,7 @@ def salvar_checklist():
     data['obra'] = obra_val
 
     os.makedirs(BASE_DIR, exist_ok=True)
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
     safe_obra = "".join(c for c in obra_val if c.isalnum() or c in ('-','_')) or 'obra'
     filename = f"checklist_{safe_obra}_{timestamp}.json"
     file_path = os.path.join(BASE_DIR, filename)
