@@ -226,7 +226,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
             canonical_role="suprimento",
             alias_roles=["suprimento", "produção", "producao"],
         )
-        resposta = _canonicalize_suprimento_roles(resposta)
+
         bucket = _bucket_for(pergunta)
         if numero is not None:
             bucket["numeros"].add(numero)
@@ -411,7 +411,12 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
     merged: List[Dict[str, Any]] = []
     for obra, entries in by_obra.items():
         # group entries by type and select the most recent one of each
-        sup_entries = [e for e in entries if "suprimento" in e["data"]]
+        sup_entries = [
+            e
+            for e in entries
+            if "suprimento" in e["data"]
+            and str(e["data"].get("origem", "")).strip().lower() != "appoficina"
+        ]
 
         def _is_production(entry: Dict[str, Any]) -> bool:
             data = entry["data"]

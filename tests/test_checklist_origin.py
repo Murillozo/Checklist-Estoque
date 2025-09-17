@@ -56,3 +56,34 @@ def test_salvar_checklist_appoficina_triggers_merge(tmp_path: pathlib.Path, monk
     assert res.status_code == 200
     assert called["merge"] == 1
     assert called["move"] == 1
+
+
+def test_salvar_checklist_multiple_uploads_unique_names(tmp_path: pathlib.Path, monkeypatch):
+    called = {"merge": 0, "move": 0}
+
+    def fake_merge(directory: str) -> None:
+        called["merge"] += 1
+
+    def fake_move(directory: str) -> None:
+        called["move"] += 1
+
+    monkeypatch.setattr(api, "merge_directory", fake_merge)
+    monkeypatch.setattr(api, "move_matching_checklists", fake_move)
+
+    client = _client(tmp_path)
+
+    estoque_payload = {"obra": "OBRA1", "origem": "AppEstoque"}
+    oficina_payload = {"obra": "OBRA1", "origem": "AppOficina"}
+
+    res1 = client.post("/checklist", json=estoque_payload)
+    res2 = client.post("/checklist", json=oficina_payload)
+
+    assert res1.status_code == 200
+    assert res2.status_code == 200
+
+    arquivos = sorted(p.name for p in tmp_path.glob("*.json"))
+    assert len(arquivos) == 2
+    assert arquivos[0] != arquivos[1]
+
+    assert called["merge"] == 1
+    assert called["move"] == 1
