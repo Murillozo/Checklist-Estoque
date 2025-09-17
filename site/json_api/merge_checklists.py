@@ -41,6 +41,37 @@ def _merge_respostas(
     return merged
 
 
+def _canonicalize_suprimento_roles(
+    respostas: Optional[Dict[str, List[str]]]
+) -> Optional[Dict[str, List[str]]]:
+    """Ensure suprimento answers aren't stranded under produção aliases.
+
+    Older AppEstoque payloads reused the ``producao`` role for the questions
+    that belong to the suprimento block (1.15 a 1.19). The collector already
+    tries to remap these aliases, but defensive code here guarantees we never
+    emit a merged checklist without the ``suprimento`` key when the supply
+    side did answer the question.
+    """
+
+    if not isinstance(respostas, dict):
+        return respostas
+    if "suprimento" in respostas:
+        return respostas
+
+    for alias in ("produção", "producao"):
+        valores = respostas.get(alias)
+        if isinstance(valores, list) and valores:
+            ajustado = {
+                chave: list(valor) if isinstance(valor, list) else valor
+                for chave, valor in respostas.items()
+            }
+            ajustado.pop(alias, None)
+            ajustado["suprimento"] = list(valores)
+            return ajustado
+
+    return respostas
+
+
 def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, Any]) -> Dict[str, Any]:
     """Merge two checklist JSON structures according to business rules."""
     obra_sup = json_suprimento.get("obra", "")
@@ -102,24 +133,47 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         return _merge_respostas(a, b)
 
     def _extract_respostas(
-        item: Dict[str, Any], keys: List[str], parent: Dict[str, Any]
+        item: Dict[str, Any],
+        keys: List[str],
+        parent: Dict[str, Any],
+        *,
+        canonical_role: Optional[str] = None,
+        alias_roles: Optional[List[str]] = None,
     ) -> Optional[Dict[str, List[str]]]:
         """Collect respostas keyed by role with names appended."""
 
         coletadas: Dict[str, List[str]] = {}
         respostas = item.get("respostas")
+        alias_set = set(alias_roles or [])
+        if canonical_role:
+            alias_set.add(canonical_role)
+
+        def _store(target: str, valores: List[str]) -> None:
+            if target in coletadas:
+                merged = _merge_respostas({target: coletadas[target]}, {target: valores})
+                coletadas[target] = merged.get(target, valores)
+            else:
+                coletadas[target] = valores
+
         if isinstance(respostas, dict):
             for papel in keys:
                 valores = respostas.get(papel)
                 if isinstance(valores, list):
                     lista = list(valores)
+                    target = (
+                        canonical_role
+                        if canonical_role and papel in alias_set
+                        else papel
+                    )
                     nome = item.get(papel) or parent.get(papel)
+                    if canonical_role and target == canonical_role and not nome:
+                        nome = item.get(canonical_role) or parent.get(canonical_role)
                     if nome and nome not in lista[1:]:
                         if lista:
                             lista.append(nome)
                         else:
                             lista = [nome]
-                    coletadas[papel] = lista
+                    _store(target, lista)
         elif isinstance(respostas, list):
             for resp in respostas:
                 if (
@@ -128,24 +182,36 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
                     and resp.get("papel")
                 ):
                     papel = resp["papel"]
+                    target = (
+                        canonical_role
+                        if canonical_role and papel in alias_set
+                        else papel
+                    )
                     lista = [resp["valor"]]
                     nome = resp.get("nome")
                     if nome:
                         lista.append(nome)
-                    coletadas[papel] = lista
+                    _store(target, lista)
 
         if not coletadas:
             resposta = item.get("resposta")
             if isinstance(resposta, list):
                 papel = keys[0] if keys else "resposta"
+                target = (
+                    canonical_role
+                    if canonical_role and papel in alias_set
+                    else papel
+                )
                 lista = list(resposta)
                 nome = parent.get(papel)
+                if canonical_role and target == canonical_role and not nome:
+                    nome = parent.get(canonical_role)
                 if nome:
                     if lista:
                         lista.append(nome)
                     else:
                         lista = [nome]
-                coletadas[papel] = lista
+                coletadas[target] = lista
         return coletadas or None
 
     for item in json_suprimento.get("itens", []):
@@ -154,8 +220,13 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
             continue
         pergunta = item.get("pergunta", "")
         resposta = _extract_respostas(
-            item, ["suprimento", "produção", "producao"], json_suprimento
+            item,
+            ["suprimento", "produção", "producao"],
+            json_suprimento,
+            canonical_role="suprimento",
+            alias_roles=["suprimento", "produção", "producao"],
         )
+
         bucket = _bucket_for(pergunta)
         if numero is not None:
             bucket["numeros"].add(numero)
