@@ -265,6 +265,58 @@ def test_merge_directory_handles_appoficina_origin(tmp_path: pathlib.Path) -> No
     assert not sup_path.exists()
     assert not prod_path.exists()
 
+
+def test_merge_directory_prefers_real_suprimento_over_appoficina(tmp_path: pathlib.Path) -> None:
+    real_sup = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "suprimento": "Carlos",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"suprimento": ["OK"]},
+            }
+        ],
+    }
+    appoficina_prod = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "origem": "AppOficina",
+        "suprimento": "Deveria Ser Ignorado",
+        "montador": "Joao",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"montador": ["Feito"]},
+            }
+        ],
+    }
+
+    sup_path = tmp_path / "sup_OBRA1.json"
+    app_path = tmp_path / "20240102T120000_OBRA1.json"
+    with open(sup_path, "w", encoding="utf-8") as fp:
+        json.dump(real_sup, fp, ensure_ascii=False)
+    with open(app_path, "w", encoding="utf-8") as fp:
+        json.dump(appoficina_prod, fp, ensure_ascii=False)
+
+    merged = merge.merge_directory(str(tmp_path))
+    assert len(merged) == 1
+
+    out_path = tmp_path / "Posto01_Oficina" / "checklist_OBRA1.json"
+    with open(out_path, "r", encoding="utf-8") as fp:
+        data = json.load(fp)
+
+    assert data["respondentes"]["suprimento"] == "Carlos"
+    assert data["respondentes"]["produção"] == "Joao"
+    respostas = data["itens"][0]["respostas"]
+    assert respostas["suprimento"] == ["OK", "Carlos"]
+    assert respostas["montador"] == ["Feito", "Joao"]
+
+    assert not sup_path.exists()
+    assert not app_path.exists()
+
 def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> None:
     api.BASE_DIR = str(tmp_path)
     insp_dir = tmp_path / "Posto02_Oficina" / "Posto02_Oficina_Inspetor"
