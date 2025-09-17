@@ -414,6 +414,7 @@ def test_merge_directory_handles_appoficina_origin(tmp_path: pathlib.Path) -> No
     assert not sup_path.exists()
     assert not prod_path.exists()
 
+
 def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> None:
     api.BASE_DIR = str(tmp_path)
     insp_dir = tmp_path / "Posto02_Oficina" / "Posto02_Oficina_Inspetor"
