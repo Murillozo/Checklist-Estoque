@@ -41,6 +41,37 @@ def _merge_respostas(
     return merged
 
 
+def _canonicalize_suprimento_roles(
+    respostas: Optional[Dict[str, List[str]]]
+) -> Optional[Dict[str, List[str]]]:
+    """Ensure suprimento answers aren't stranded under produção aliases.
+
+    Older AppEstoque payloads reused the ``producao`` role for the questions
+    that belong to the suprimento block (1.15 a 1.19). The collector already
+    tries to remap these aliases, but defensive code here guarantees we never
+    emit a merged checklist without the ``suprimento`` key when the supply
+    side did answer the question.
+    """
+
+    if not isinstance(respostas, dict):
+        return respostas
+    if "suprimento" in respostas:
+        return respostas
+
+    for alias in ("produção", "producao"):
+        valores = respostas.get(alias)
+        if isinstance(valores, list) and valores:
+            ajustado = {
+                chave: list(valor) if isinstance(valor, list) else valor
+                for chave, valor in respostas.items()
+            }
+            ajustado.pop(alias, None)
+            ajustado["suprimento"] = list(valores)
+            return ajustado
+
+    return respostas
+
+
 def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, Any]) -> Dict[str, Any]:
     """Merge two checklist JSON structures according to business rules."""
     obra_sup = json_suprimento.get("obra", "")
@@ -72,28 +103,77 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         },
     }
 
-    itens: Dict[int, Dict[str, Any]] = {}
-    itens_por_pergunta: Dict[str, List[int]] = {}
+    buckets: Dict[str, Dict[str, Any]] = {}
+
+    def _bucket_for(pergunta: str) -> Dict[str, Any]:
+        bucket = buckets.setdefault(
+            pergunta,
+            {
+                "numeros": set(),
+                "pergunta_sup": "",
+                "pergunta_prod": "",
+                "pergunta_final": pergunta,
+                "res_sup": None,
+                "res_prod": None,
+            },
+        )
+        if pergunta and len(pergunta) > len(bucket.get("pergunta_final", "")):
+            bucket["pergunta_final"] = pergunta
+        return bucket
+
+    def _update_pergunta(bucket: Dict[str, Any], chave: str, texto: str) -> None:
+        if texto and len(texto) > len(bucket.get(chave, "")):
+            bucket[chave] = texto
+            if len(texto) > len(bucket.get("pergunta_final", "")):
+                bucket["pergunta_final"] = texto
+
+    def _merge_dict(
+        a: Optional[Dict[str, List[str]]], b: Optional[Dict[str, List[str]]]
+    ) -> Optional[Dict[str, List[str]]]:
+        return _merge_respostas(a, b)
 
     def _extract_respostas(
-        item: Dict[str, Any], keys: List[str], parent: Dict[str, Any]
+        item: Dict[str, Any],
+        keys: List[str],
+        parent: Dict[str, Any],
+        *,
+        canonical_role: Optional[str] = None,
+        alias_roles: Optional[List[str]] = None,
     ) -> Optional[Dict[str, List[str]]]:
         """Collect respostas keyed by role with names appended."""
 
         coletadas: Dict[str, List[str]] = {}
         respostas = item.get("respostas")
+        alias_set = set(alias_roles or [])
+        if canonical_role:
+            alias_set.add(canonical_role)
+
+        def _store(target: str, valores: List[str]) -> None:
+            if target in coletadas:
+                merged = _merge_respostas({target: coletadas[target]}, {target: valores})
+                coletadas[target] = merged.get(target, valores)
+            else:
+                coletadas[target] = valores
+
         if isinstance(respostas, dict):
             for papel in keys:
                 valores = respostas.get(papel)
                 if isinstance(valores, list):
                     lista = list(valores)
+                    target = (
+                        canonical_role
+                        if canonical_role and papel in alias_set
+                        else papel
+                    )
                     nome = item.get(papel) or parent.get(papel)
+                    if canonical_role and target == canonical_role and not nome:
+                        nome = item.get(canonical_role) or parent.get(canonical_role)
                     if nome and nome not in lista[1:]:
                         if lista:
                             lista.append(nome)
                         else:
                             lista = [nome]
-                    coletadas[papel] = lista
+                    _store(target, lista)
         elif isinstance(respostas, list):
             for resp in respostas:
                 if (
@@ -102,24 +182,36 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
                     and resp.get("papel")
                 ):
                     papel = resp["papel"]
+                    target = (
+                        canonical_role
+                        if canonical_role and papel in alias_set
+                        else papel
+                    )
                     lista = [resp["valor"]]
                     nome = resp.get("nome")
                     if nome:
                         lista.append(nome)
-                    coletadas[papel] = lista
+                    _store(target, lista)
 
         if not coletadas:
             resposta = item.get("resposta")
             if isinstance(resposta, list):
                 papel = keys[0] if keys else "resposta"
+                target = (
+                    canonical_role
+                    if canonical_role and papel in alias_set
+                    else papel
+                )
                 lista = list(resposta)
                 nome = parent.get(papel)
+                if canonical_role and target == canonical_role and not nome:
+                    nome = parent.get(canonical_role)
                 if nome:
                     if lista:
                         lista.append(nome)
                     else:
                         lista = [nome]
-                coletadas[papel] = lista
+                coletadas[target] = lista
         return coletadas or None
 
     for item in json_suprimento.get("itens", []):
@@ -128,11 +220,18 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
             continue
         pergunta = item.get("pergunta", "")
         resposta = _extract_respostas(
-            item, ["suprimento", "produção", "producao"], json_suprimento
+            item,
+            ["suprimento", "produção", "producao"],
+            json_suprimento,
+            canonical_role="suprimento",
+            alias_roles=["suprimento", "produção", "producao"],
         )
-        itens.setdefault(numero, {})["pergunta_sup"] = pergunta
-        itens[numero]["res_sup"] = resposta
-        itens_por_pergunta.setdefault(pergunta, []).append(numero)
+        resposta = _canonicalize_suprimento_roles(resposta)
+        bucket = _bucket_for(pergunta)
+        if numero is not None:
+            bucket["numeros"].add(numero)
+        _update_pergunta(bucket, "pergunta_sup", pergunta)
+        bucket["res_sup"] = _merge_dict(bucket.get("res_sup"), resposta)
     for item in json_producao.get("itens", []):
         numero = item.get("numero")
         if numero is None:
@@ -143,43 +242,67 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
             ["montador", "produção", "producao", "suprimento"],
             json_producao,
         )
-        entry = itens.setdefault(numero, {})
-        entry["pergunta_prod"] = pergunta
-        entry["res_prod"] = resposta
-        itens_por_pergunta.setdefault(pergunta, []).append(numero)
+        bucket = _bucket_for(pergunta)
+        if numero is not None:
+            bucket["numeros"].add(numero)
+        _update_pergunta(bucket, "pergunta_prod", pergunta)
+        bucket["res_prod"] = _merge_dict(bucket.get("res_prod"), resposta)
         
         
-    def _merge_dict(
-        a: Optional[Dict[str, List[str]]], b: Optional[Dict[str, List[str]]]
-    ) -> Optional[Dict[str, List[str]]]:
-        return _merge_respostas(a, b)
-
     result_items: List[Dict[str, Any]] = []
-    for pergunta, numeros in itens_por_pergunta.items():
-        nums = sorted({n for n in numeros if n is not None})
-        pergunta_final = pergunta
-        res_sup: Optional[Dict[str, List[str]]] = None
-        res_prod: Optional[Dict[str, List[str]]] = None
-        for numero in nums:
-            entry = itens.get(numero, {})
-            pergunta_sup = entry.get("pergunta_sup", "")
-            pergunta_prod = entry.get("pergunta_prod", "")
-            if len(pergunta_sup) > len(pergunta_final):
-                pergunta_final = pergunta_sup
-            if len(pergunta_prod) > len(pergunta_final):
-                pergunta_final = pergunta_prod
-            res_sup = _merge_dict(res_sup, entry.get("res_sup"))
-            res_prod = _merge_dict(res_prod, entry.get("res_prod"))
-
+    for pergunta, dados in buckets.items():
+        numeros = sorted(dados.get("numeros", set()))
+        res_sup = dados.get("res_sup")
+        res_prod = dados.get("res_prod")
         res_unificado = _merge_dict(res_sup, res_prod)
+        pergunta_final = dados.get("pergunta_final") or pergunta
         result_items.append(
             {
-                "numero": nums,
+                "numero": numeros,
                 "pergunta": pergunta_final,
                 "respostas": res_unificado,
             }
         )
-    result["itens"] = sorted(result_items, key=lambda x: x["numero"][0] if x.get("numero") else 0)
+    result["itens"] = sorted(
+        result_items, key=lambda x: x["numero"][0] if x.get("numero") else 0
+    )
+
+    def _first_from_items(data: Dict[str, Any], roles: List[str]) -> Optional[str]:
+        for item in data.get("itens", []):
+            for role in roles:
+                nome = item.get(role)
+                if isinstance(nome, str) and nome.strip():
+                    return nome.strip()
+            respostas = item.get("respostas")
+            if isinstance(respostas, dict):
+                for role in roles:
+                    valores = respostas.get(role)
+                    if isinstance(valores, list):
+                        for candidato in valores[1:]:
+                            if isinstance(candidato, str) and candidato.strip():
+                                return candidato.strip()
+            elif isinstance(respostas, list):
+                for resp in respostas:
+                    if (
+                        isinstance(resp, dict)
+                        and resp.get("papel") in roles
+                        and isinstance(resp.get("nome"), str)
+                        and resp["nome"].strip()
+                    ):
+                        return resp["nome"].strip()
+        return None
+
+    if not result["respondentes"].get("suprimento"):
+        nome = _first_from_items(json_suprimento, ["suprimento", "produção", "producao"])
+        if nome:
+            result["respondentes"]["suprimento"] = nome
+
+    if not result["respondentes"].get("produção"):
+        nome = _first_from_items(
+            json_producao, ["montador", "produção", "producao", "suprimento"]
+        )
+        if nome:
+            result["respondentes"]["produção"] = nome
 
     materiais: Dict[str, Dict[str, Any]] = {}
     for mat in json_suprimento.get("materiais", []) + json_producao.get("materiais", []):
@@ -292,6 +415,9 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
 
         def _is_production(entry: Dict[str, Any]) -> bool:
             data = entry["data"]
+            origem = str(data.get("origem", "")).strip().lower()
+            if origem == "appoficina":
+                return True
             if any(k in data for k in ("produção", "producao", "montador")):
                 return True
             for item in data.get("itens", []) or []:

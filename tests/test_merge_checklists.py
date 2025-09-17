@@ -50,7 +50,7 @@ def test_merge_checklists_accepts_montador_key() -> None:
     sup = {
         "obra": "OBRA1",
         "ano": "2024",
-        "suprimento": "Carlos",
+        "suprimento": "Victor",
         "itens": [
             {
                 "numero": 1,
@@ -79,7 +79,7 @@ def test_merge_checklists_handles_multiple_montadores() -> None:
     sup = {
         "obra": "OBRA1",
         "ano": "2024",
-        "suprimento": "Carlos",
+        "suprimento": "Victor",
         "itens": [
             {
                 "numero": 1,
@@ -110,9 +110,149 @@ def test_merge_checklists_handles_multiple_montadores() -> None:
     merged = merge.merge_checklists(sup, prod)
     assert merged["respondentes"]["produção"] == "Joao"
     assert merged["itens"][0]["respostas"] == {
-        "suprimento": ["C", "Carlos"],
+        "suprimento": ["C", "Victor"],
         "montador": ["C", "Joao"],
     }
+
+
+def test_merge_checklists_handles_conflicting_numbers_and_missing_montador() -> None:
+    sup = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "suprimento": "Victor",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta A",
+                "respostas": {"suprimento": ["C"]},
+            },
+            {
+                "numero": 75,
+                "pergunta": "Pergunta B",
+                "respostas": {"suprimento": ["C"]},
+            },
+        ],
+    }
+    prod = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "origem": "AppOficina",
+        "itens": [
+            {
+                "numero": 55,
+                "pergunta": "Pergunta A",
+                "respostas": {"producao": ["C", "Carlos"]},
+            },
+            {
+                "numero": 75,
+                "pergunta": "Pergunta C",
+                "respostas": {"producao": ["C", "Carlos"]},
+            },
+            {
+                "numero": 109,
+                "pergunta": "Pergunta B",
+                "respostas": {"producao": ["C", "Carlos"]},
+            },
+        ],
+    }
+
+    merged = merge.merge_checklists(sup, prod)
+
+    perguntas = {item["pergunta"]: item for item in merged["itens"]}
+    assert perguntas["Pergunta B"]["numero"] == [75, 109]
+    assert perguntas["Pergunta B"]["respostas"] == {
+        "suprimento": ["C", "Victor"],
+        "producao": ["C", "Carlos"],
+    }
+    assert perguntas["Pergunta C"]["numero"] == [75]
+    assert merged["respondentes"]["produção"] == "Carlos"
+
+
+def test_merge_checklists_maps_appestoque_aliases_to_suprimento() -> None:
+    pergunta = "1.15 - COMPONENTES: Identificação do projeto"
+    sup = {
+        "obra": "MERGEKRAI",
+        "ano": "2025",
+        "suprimento": "victorr",
+        "itens": [
+            {
+                "numero": 75,
+                "pergunta": pergunta,
+                "respostas": {"producao": ["C"]},
+            }
+        ],
+    }
+    prod = {
+        "obra": "MERGEKRAI",
+        "ano": "2025",
+        "origem": "AppOficina",
+        "itens": [
+            {
+                "numero": 109,
+                "pergunta": pergunta,
+                "respostas": {"producao": ["C", "Carlos"]},
+            }
+        ],
+    }
+
+    merged = merge.merge_checklists(sup, prod)
+
+    item = next(entry for entry in merged["itens"] if entry["pergunta"] == pergunta)
+    assert item["numero"] == [75, 109]
+    assert item["respostas"] == {
+        "suprimento": ["C", "victorr"],
+        "producao": ["C", "Carlos"],
+    }
+
+
+def test_merge_directory_preserves_suprimento_answers_for_component_block(
+    tmp_path: pathlib.Path,
+) -> None:
+    """Regression for AppEstoque respostas registradas como produção."""
+
+    pergunta_tpl = "1.{idx} - TESTE"
+    sup = {
+        "obra": "OBRA-SUP",
+        "ano": "2026",
+        "suprimento": "Victor",
+        "itens": [
+            {
+                "numero": 74 + idx,
+                "pergunta": pergunta_tpl.format(idx=idx),
+                "respostas": {"producao": ["C"]},
+            }
+            for idx in range(15, 20)
+        ],
+    }
+    prod = {
+        "obra": "OBRA-SUP",
+        "ano": "2026",
+        "origem": "AppOficina",
+        "itens": [
+            {
+                "numero": 108 + idx,
+                "pergunta": pergunta_tpl.format(idx=idx),
+                "respostas": {"producao": ["C", "Carlos"]},
+            }
+            for idx in range(15, 20)
+        ],
+    }
+
+    sup_path = tmp_path / "sup.json"
+    prod_path = tmp_path / "prod.json"
+    sup_path.write_text(json.dumps(sup), encoding="utf-8")
+    prod_path.write_text(json.dumps(prod), encoding="utf-8")
+
+    merged = merge.merge_directory(str(tmp_path))
+    assert merged, "Merge should generate checklist"
+
+    perguntas = {item["pergunta"]: item for item in merged[0]["itens"]}
+    for idx in range(15, 20):
+        pergunta = pergunta_tpl.format(idx=idx)
+        respostas = perguntas[pergunta]["respostas"]
+        assert "suprimento" in respostas
+        assert respostas["suprimento"][0] == "C"
+        assert respostas["producao"][0] == "C"
 
 
 def test_find_mismatches_ignores_additional_production_annotations(tmp_path: pathlib.Path) -> None:
@@ -216,6 +356,54 @@ def test_merge_directory_detects_production_in_item_respostas(tmp_path: pathlib.
         "suprimento": ["C", "Carlos"],
         "montador": ["J"],
     }
+
+
+def test_merge_directory_handles_appoficina_origin(tmp_path: pathlib.Path) -> None:
+    sup = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "suprimento": "Carlos",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"suprimento": ["C"]},
+            }
+        ],
+    }
+    prod = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "origem": "AppOficina",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "resposta": ["OK"],
+            }
+        ],
+    }
+
+    sup_path = tmp_path / "sup_OBRA1.json"
+    prod_path = tmp_path / "20240102T120000_OBRA1.json"
+    with open(sup_path, "w", encoding="utf-8") as fp:
+        json.dump(sup, fp, ensure_ascii=False)
+    with open(prod_path, "w", encoding="utf-8") as fp:
+        json.dump(prod, fp, ensure_ascii=False)
+
+    merged = merge.merge_directory(str(tmp_path))
+    assert len(merged) == 1
+
+    out_path = tmp_path / "Posto01_Oficina" / "checklist_OBRA1.json"
+    with open(out_path, "r", encoding="utf-8") as fp:
+        data = json.load(fp)
+
+    assert data["itens"][0]["respostas"] == {
+        "suprimento": ["C", "Carlos"],
+        "montador": ["OK"],
+    }
+    assert not sup_path.exists()
+    assert not prod_path.exists()
 
 def test_posto02_inspector_allows_extra_annotations(tmp_path: pathlib.Path) -> None:
     api.BASE_DIR = str(tmp_path)
