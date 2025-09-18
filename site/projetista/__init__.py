@@ -828,7 +828,12 @@ def checklist_pdf(filename):
             cidade_estado = f"{cidade}/{estado}"
         else:
             cidade_estado = cidade or estado
-    projesta = request.args.get("projesta", "").strip() or dados.get("projesta", "").strip()
+
+    projetista = request.args.get("projetista", "").strip()
+    if not projetista:
+        projetista = request.args.get("projesta", "").strip()
+    if not projetista:
+        projetista = str(dados.get("projetista") or dados.get("projesta") or "").strip()
     data_checklist = dados.get("data_checklist", datetime.now().strftime("%d/%m/%Y"))
 
     # ---------- PDF ----------
@@ -836,7 +841,7 @@ def checklist_pdf(filename):
 
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
-                     cidade_estado='', projesta='', data_checklist='', inspetor='',
+                     cidade_estado='', projetista='', projesta='', data_checklist='', inspetor='',
                      *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
@@ -845,7 +850,8 @@ def checklist_pdf(filename):
             self.producao = producao
             self.montadores = montadores or []
             self.cidade_estado = cidade_estado
-            self.projesta = projesta
+            self.projetista = projetista or projesta
+            self.projesta = self.projetista
             self.data_checklist = data_checklist
             self.inspetor = inspetor
 
@@ -857,9 +863,15 @@ def checklist_pdf(filename):
                 self.image(LOGO_PATH, x=10, y=5, w=40)
 
             self.set_text_color(255, 255, 255)
-            self.set_font(base_font, 'B', 16)
-            self.set_y(6)
-            self.cell(0, 9, 'Checklist', align='C')
+            self.set_font(base_font, 'B', 22)
+            self.set_y(5.5)
+            # Um pequeno espaçamento entre caracteres para dar um aspecto mais "futurista"
+            set_char_spacing = getattr(self, 'set_char_spacing', None)
+            if callable(set_char_spacing):
+                set_char_spacing(0.75)
+            self.cell(0, 11, 'CHECKLIST', align='C')
+            if callable(set_char_spacing):
+                set_char_spacing(0)
 
             # Só exibe o cartão com informações na primeira página
             if self.page_no() != 1:
@@ -872,7 +884,7 @@ def checklist_pdf(filename):
                 ("Obra",          self.obra or "-"),
                 ("Ano",           str(self.ano or "-")),
                 ("Data do Checklist", self.data_checklist or "-"),
-                ("Projesta",      self.projesta or "-"),
+                ("Projetista",    self.projetista or "-"),
                 ("Inspetor",      self.inspetor or "-"),
                 ("Suprimento",    self.suprimento or "-"),
                 ("Produção",      self.producao or "-"),
@@ -964,7 +976,7 @@ def checklist_pdf(filename):
         producao=producao,
         montadores=montadores,
         cidade_estado=cidade_estado,
-        projesta=projesta,
+        projetista=projetista,
         data_checklist=data_checklist,
         inspetor=inspetor,
         format='A4',
@@ -988,6 +1000,16 @@ def checklist_pdf(filename):
 
     STATUS_MARKERS = CHECKLIST_STATUS_MARKERS
     NAME_ROLES = {"montador", "suprimento", "produção", "producao", "inspetor"}
+    ROLE_LABELS = {
+        "suprimento": "Suprimento",
+        "produção": "Produção",
+        "producao": "Produção",
+        "montador": "Montador",
+        "inspetor": "Inspetor",
+        "logistica": "Logística",
+        "logística": "Logística",
+        "resposta": "Resposta",
+    }
 
     def _is_potential_name(valor: str) -> bool:
         if not valor:
@@ -997,8 +1019,10 @@ def checklist_pdf(filename):
             return False
         if texto.upper() in STATUS_MARKERS:
             return False
+        if any(ch.isdigit() for ch in texto):
+            return False
         letras = sum(1 for ch in texto if ch.isalpha())
-        return letras >= 2
+        return letras >= 3
 
     def _apply_last_name_rule(valores):
         name_indices = [idx for idx, val in enumerate(valores) if _is_potential_name(val)]
@@ -1104,8 +1128,9 @@ def checklist_pdf(filename):
         pdf.cell(col_w_item - 2 * cell_pad, line_h - 2, 'Item', border=0)
         cur_x = x + col_w_item
         for r in responsaveis_atual:
-            header_txt = r.title()
-            if r == "inspetor":
+            role_lower = (r or "").lower()
+            header_txt = ROLE_LABELS.get(role_lower, r.title())
+            if role_lower == "inspetor":
                 insp_name = section_insp_names.get(current_section, "").strip()
                 if insp_name:
                     header_txt = f"Inspetor: {insp_name}"
@@ -1262,7 +1287,7 @@ def checklist_pdf(filename):
             cur_x = x0 + col_w_item
             for val in roles_vals:
                 pdf.set_xy(cur_x + cell_pad, y0 + 1)
-                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='L')
+                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
                 cur_x += col_w_resp
                 pdf.set_xy(cur_x, y0)
 
