@@ -857,9 +857,15 @@ def checklist_pdf(filename):
                 self.image(LOGO_PATH, x=10, y=5, w=40)
 
             self.set_text_color(255, 255, 255)
-            self.set_font(base_font, 'B', 16)
-            self.set_y(6)
-            self.cell(0, 9, 'Checklist', align='C')
+            self.set_font(base_font, 'B', 22)
+            self.set_y(5.5)
+            # Um pequeno espaçamento entre caracteres para dar um aspecto mais "futurista"
+            set_char_spacing = getattr(self, 'set_char_spacing', None)
+            if callable(set_char_spacing):
+                set_char_spacing(0.75)
+            self.cell(0, 11, 'CHECKLIST', align='C')
+            if callable(set_char_spacing):
+                set_char_spacing(0)
 
             # Só exibe o cartão com informações na primeira página
             if self.page_no() != 1:
@@ -1262,7 +1268,7 @@ def checklist_pdf(filename):
             cur_x = x0 + col_w_item
             for val in roles_vals:
                 pdf.set_xy(cur_x + cell_pad, y0 + 1)
-                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='L')
+                pdf.multi_cell(col_w_resp - 2 * cell_pad, line_h, val, border=0, align='C')
                 cur_x += col_w_resp
                 pdf.set_xy(cur_x, y0)
 
