@@ -17,9 +17,9 @@
 function gerarPDF(base){
     const cidade=prompt('Cidade/Estado:');
     if(cidade===null) return;
-    const projesta=prompt('Projesta:');
-    if(projesta===null) return;
-    window.location.href = base + '?cidade_estado=' + encodeURIComponent(cidade) + '&projesta=' + encodeURIComponent(projesta);
+    const projetista=prompt('Projetista:');
+    if(projetista===null) return;
+    window.location.href = base + '?cidade_estado=' + encodeURIComponent(cidade) + '&projesta=' + encodeURIComponent(projetista);
 }
 </script>
 

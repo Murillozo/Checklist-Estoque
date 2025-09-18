@@ -828,7 +828,12 @@ def checklist_pdf(filename):
             cidade_estado = f"{cidade}/{estado}"
         else:
             cidade_estado = cidade or estado
-    projesta = request.args.get("projesta", "").strip() or dados.get("projesta", "").strip()
+
+    projetista = request.args.get("projetista", "").strip()
+    if not projetista:
+        projetista = request.args.get("projesta", "").strip()
+    if not projetista:
+        projetista = str(dados.get("projetista") or dados.get("projesta") or "").strip()
     data_checklist = dados.get("data_checklist", datetime.now().strftime("%d/%m/%Y"))
 
     # ---------- PDF ----------
@@ -836,7 +841,7 @@ def checklist_pdf(filename):
 
     class ChecklistPDF(FPDF):
         def __init__(self, obra='', ano='', suprimento='', producao='', montadores=None,
-                     cidade_estado='', projesta='', data_checklist='', inspetor='',
+                     cidade_estado='', projetista='', projesta='', data_checklist='', inspetor='',
                      *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.obra = obra
@@ -845,7 +850,8 @@ def checklist_pdf(filename):
             self.producao = producao
             self.montadores = montadores or []
             self.cidade_estado = cidade_estado
-            self.projesta = projesta
+            self.projetista = projetista or projesta
+            self.projesta = self.projetista
             self.data_checklist = data_checklist
             self.inspetor = inspetor
 
@@ -878,7 +884,7 @@ def checklist_pdf(filename):
                 ("Obra",          self.obra or "-"),
                 ("Ano",           str(self.ano or "-")),
                 ("Data do Checklist", self.data_checklist or "-"),
-                ("Projesta",      self.projesta or "-"),
+                ("Projetista",    self.projetista or "-"),
                 ("Inspetor",      self.inspetor or "-"),
                 ("Suprimento",    self.suprimento or "-"),
                 ("Produção",      self.producao or "-"),
@@ -970,7 +976,7 @@ def checklist_pdf(filename):
         producao=producao,
         montadores=montadores,
         cidade_estado=cidade_estado,
-        projesta=projesta,
+        projetista=projetista,
         data_checklist=data_checklist,
         inspetor=inspetor,
         format='A4',
@@ -994,6 +1000,16 @@ def checklist_pdf(filename):
 
     STATUS_MARKERS = CHECKLIST_STATUS_MARKERS
     NAME_ROLES = {"montador", "suprimento", "produção", "producao", "inspetor"}
+    ROLE_LABELS = {
+        "suprimento": "Suprimento",
+        "produção": "Produção",
+        "producao": "Produção",
+        "montador": "Montador",
+        "inspetor": "Inspetor",
+        "logistica": "Logística",
+        "logística": "Logística",
+        "resposta": "Resposta",
+    }
 
     def _is_potential_name(valor: str) -> bool:
         if not valor:
@@ -1112,8 +1128,9 @@ def checklist_pdf(filename):
         pdf.cell(col_w_item - 2 * cell_pad, line_h - 2, 'Item', border=0)
         cur_x = x + col_w_item
         for r in responsaveis_atual:
-            header_txt = r.title()
-            if r == "inspetor":
+            role_lower = (r or "").lower()
+            header_txt = ROLE_LABELS.get(role_lower, r.title())
+            if role_lower == "inspetor":
                 insp_name = section_insp_names.get(current_section, "").strip()
                 if insp_name:
                     header_txt = f"Inspetor: {insp_name}"
