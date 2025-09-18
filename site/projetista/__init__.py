@@ -1003,8 +1003,10 @@ def checklist_pdf(filename):
             return False
         if texto.upper() in STATUS_MARKERS:
             return False
+        if any(ch.isdigit() for ch in texto):
+            return False
         letras = sum(1 for ch in texto if ch.isalpha())
-        return letras >= 2
+        return letras >= 3
 
     def _apply_last_name_rule(valores):
         name_indices = [idx for idx, val in enumerate(valores) if _is_potential_name(val)]
