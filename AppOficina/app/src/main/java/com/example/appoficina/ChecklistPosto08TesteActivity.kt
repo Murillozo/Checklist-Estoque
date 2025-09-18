@@ -213,7 +213,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
             val c = CheckBox(this)
             c.text = "C"
             val na = CheckBox(this)
-            na.text = "NA"
+            na.text = "N.A"
             na.setPadding(24, 0, 0, 0)
             row.addView(c)
             row.addView(na)
@@ -242,7 +242,7 @@ class ChecklistPosto08TesteActivity : AppCompatActivity() {
             val c = CheckBox(this)
             c.text = "C"
             val na = CheckBox(this)
-            na.text = "NA"
+            na.text = "N.A"
             na.setPadding(24, 0, 0, 0)
             row.addView(c)
             row.addView(na)

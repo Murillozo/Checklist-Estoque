@@ -51,7 +51,7 @@ class ChecklistPosto08IqmActivity : AppCompatActivity() {
             val c = CheckBox(this)
             c.text = "C"
             val nc = CheckBox(this)
-            nc.text = "N.C"
+            nc.text = "N.A"
             nc.setPadding(24, 0, 0, 0)
             row.addView(c)
             row.addView(nc)
@@ -87,7 +87,7 @@ class ChecklistPosto08IqmActivity : AppCompatActivity() {
                     obj.put("pergunta", perguntas[idx])
                     val respostas = JSONObject()
                     val arr = JSONArray()
-                    arr.put(if (c.isChecked) "C" else "NC")
+                    arr.put(if (c.isChecked) "C" else "NA")
                     respostas.put("inspetor", arr)
                     obj.put("respostas", respostas)
                     itens.put(obj)
