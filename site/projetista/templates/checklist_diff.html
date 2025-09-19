@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>Diferenças - {{ obra }}</h1>
+<p><strong>Comparando:</strong> {{ anterior }} → {{ filename }}</p>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Pergunta</th>
+      <th>Anterior</th>
+      <th>Atual</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in diff %}
+    <tr>
+      <td>{{ item.pergunta }}</td>
+      <td>{{ item.antigo }}</td>
+      <td>{{ item.novo }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3">Nenhuma diferença encontrada.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,8 @@
+<resources>
+    <item name="btnSeguirPosto02" type="id"/>
+    <item name="btnSeguirPosto03Pre" type="id"/>
+    <item name="btnSeguirPosto04Barramento" type="id"/>
+    <item name="btnSeguirPosto05Cablagem" type="id"/>
+    <item name="btnSeguirPosto06Cablagem02" type="id"/>
+    <item name="btnSeguirPosto06Pre" type="id"/>
+</resources>
