@@ -291,6 +291,40 @@ def test_move_matching_preserves_extra_annotations(tmp_path: pathlib.Path) -> No
     assert find_mismatches(str(tmp_path / "Posto02_Oficina")) == []
 
 
+def test_move_matching_removes_raw_uploads(tmp_path: pathlib.Path) -> None:
+    src_dir = tmp_path / "Posto01_Oficina"
+    src_dir.mkdir()
+
+    checklist_path = src_dir / "checklist_OBRA1.json"
+    data = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"suprimento": ["C"], "produção": ["C"]},
+            }
+        ],
+    }
+    with open(checklist_path, "w", encoding="utf-8") as fp:
+        json.dump(data, fp, ensure_ascii=False)
+
+    leftover = tmp_path / "checklist_OBRA1_20240101000000.json"
+    with open(leftover, "w", encoding="utf-8") as fp:
+        json.dump({"obra": "OBRA1", "itens": []}, fp, ensure_ascii=False)
+
+    other = tmp_path / "checklist_OBRA2_20240101000000.json"
+    with open(other, "w", encoding="utf-8") as fp:
+        json.dump({"obra": "OBRA2", "itens": []}, fp, ensure_ascii=False)
+
+    moved = move_matching_checklists(str(tmp_path))
+    assert moved == ["checklist_OBRA1.json"]
+
+    assert not leftover.exists()
+    assert other.exists()
+
+
 def test_cli_merges_and_moves_to_posto02(tmp_path: pathlib.Path) -> None:
     sup = {
         "obra": "OBRA1",
