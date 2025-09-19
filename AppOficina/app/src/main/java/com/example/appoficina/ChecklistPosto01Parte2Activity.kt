@@ -2,22 +2,29 @@ package com.example.appoficina
 
 import android.content.Context
 import android.os.Bundle
+import android.graphics.Typeface
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
+import java.util.Locale
 
 class ChecklistPosto01Parte2Activity : AppCompatActivity() {
+    private var previewDialogShown = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_checklist_posto01_parte2)
@@ -233,6 +240,8 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             Thread { enviarChecklist(payload) }.start()
             finish()
         }
+
+        buscarPreVisualizacao(obra)
     }
 
     private fun enviarChecklist(json: JSONObject) {
@@ -255,6 +264,190 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             } catch (_: Exception) {
                 // tenta próximo endereço
             }
+        }
+    }
+
+    private fun buscarPreVisualizacao(obra: String) {
+        if (obra.isBlank() || previewDialogShown) {
+            return
+        }
+
+        Thread {
+            val ip = getSharedPreferences("config", MODE_PRIVATE)
+                .getString("api_ip", "192.168.0.135")
+            if (ip.isNullOrBlank()) {
+                return@Thread
+            }
+
+            val endereco = try {
+                "http://$ip:5000/json_api/checklist?obra=" +
+                    URLEncoder.encode(obra, "UTF-8")
+            } catch (_: Exception) {
+                return@Thread
+            }
+
+            try {
+                val url = URL(endereco)
+                val conn = url.openConnection() as HttpURLConnection
+                conn.connectTimeout = 5000
+                conn.readTimeout = 5000
+                val codigo = conn.responseCode
+                if (codigo in 200..299) {
+                    val resposta = conn.inputStream.bufferedReader().use { it.readText() }
+                    val json = JSONObject(resposta)
+                    val checklist = json.optJSONObject("checklist")
+                    if (checklist != null) {
+                        runOnUiThread { exibirPreVisualizacao(checklist) }
+                    }
+                }
+                conn.disconnect()
+            } catch (_: Exception) {
+            }
+        }.start()
+    }
+
+    private fun exibirPreVisualizacao(checklist: JSONObject) {
+        if (previewDialogShown || isFinishing || isDestroyed) {
+            return
+        }
+
+        val itens = checklist.optJSONArray("itens") ?: return
+        if (itens.length() == 0) {
+            return
+        }
+
+        previewDialogShown = true
+
+        val density = resources.displayMetrics.density
+        val paddingGrande = (16 * density).toInt()
+        val paddingPequeno = (8 * density).toInt()
+
+        val scroll = ScrollView(this)
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(paddingGrande, paddingGrande, paddingGrande, paddingGrande)
+        }
+
+        val cabecalho = StringBuilder().apply {
+            append("Obra: ")
+            append(checklist.optString("obra"))
+            val ano = checklist.optString("ano")
+            if (ano.isNotBlank()) {
+                append("\nAno: ")
+                append(ano)
+            }
+        }
+
+        val respondentes = checklist.optJSONObject("respondentes")
+        if (respondentes != null) {
+            val partes = mutableListOf<String>()
+            val iterator = respondentes.keys()
+            while (iterator.hasNext()) {
+                val papel = iterator.next()
+                val nome = respondentes.optString(papel)
+                if (nome.isNotBlank()) {
+                    partes.add("${formatarPapel(papel)}: $nome")
+                }
+            }
+            if (partes.isNotEmpty()) {
+                cabecalho.append("\n")
+                cabecalho.append(partes.joinToString("\n"))
+            }
+        }
+
+        val headerView = TextView(this).apply {
+            text = cabecalho.toString()
+            setPadding(0, 0, 0, paddingPequeno)
+        }
+        container.addView(headerView)
+
+        for (i in 0 until itens.length()) {
+            val item = itens.optJSONObject(i) ?: continue
+            val pergunta = item.optString("pergunta")
+            if (pergunta.isNotBlank()) {
+                val perguntaView = TextView(this).apply {
+                    text = pergunta
+                    setTypeface(typeface, Typeface.BOLD)
+                    setPadding(0, if (i == 0) 0 else paddingPequeno, 0, 0)
+                }
+                container.addView(perguntaView)
+            }
+
+            var adicionouResposta = false
+            val respostas = item.optJSONObject("respostas")
+            if (respostas != null) {
+                val chaves = mutableListOf<String>()
+                val iterator = respostas.keys()
+                while (iterator.hasNext()) {
+                    chaves.add(iterator.next())
+                }
+                chaves.sort()
+                for (papel in chaves) {
+                    val valor = formatarValor(respostas.opt(papel))
+                    if (valor.isBlank()) {
+                        continue
+                    }
+                    val respostaView = TextView(this).apply {
+                        text = "\u2022 ${formatarPapel(papel)}: $valor"
+                        setPadding(0, paddingPequeno / 2, 0, 0)
+                    }
+                    container.addView(respostaView)
+                    adicionouResposta = true
+                }
+            }
+
+            if (!adicionouResposta) {
+                val valorSimples = formatarValor(item.opt("resposta"))
+                if (valorSimples.isNotBlank()) {
+                    val respostaView = TextView(this).apply {
+                        text = "\u2022 Resposta: $valorSimples"
+                        setPadding(0, paddingPequeno / 2, 0, 0)
+                    }
+                    container.addView(respostaView)
+                }
+            }
+        }
+
+        scroll.addView(container)
+
+        AlertDialog.Builder(this)
+            .setTitle("Pré-visualização do checklist anterior")
+            .setView(scroll)
+            .setPositiveButton("Fechar", null)
+            .setOnDismissListener { previewDialogShown = true }
+            .show()
+    }
+
+    private fun formatarValor(valor: Any?): String {
+        return when (valor) {
+            null -> ""
+            JSONObject.NULL -> ""
+            is JSONArray -> {
+                val partes = mutableListOf<String>()
+                for (i in 0 until valor.length()) {
+                    val entrada = valor.opt(i)
+                    if (entrada == null || entrada == JSONObject.NULL) {
+                        continue
+                    }
+                    partes.add(entrada.toString())
+                }
+                if (partes.isEmpty()) {
+                    ""
+                } else if (partes.size == 1) {
+                    partes[0]
+                } else {
+                    val resposta = partes.first()
+                    val nomes = partes.drop(1).joinToString(", ")
+                    "$resposta ($nomes)"
+                }
+            }
+            else -> valor.toString()
+        }
+    }
+
+    private fun formatarPapel(papel: String): String {
+        return papel.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
         }
     }
 }
