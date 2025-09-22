@@ -145,7 +145,45 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             findViewById<ScrollView>(R.id.preview_scroll),
             findViewById(R.id.preview_header),
             findViewById<ImageButton>(R.id.preview_close_button),
-        )
+ 
+        previewContainer = findViewById(R.id.preview_container)
+        previewContent = findViewById(R.id.preview_content)
+        previewScroll = findViewById(R.id.preview_scroll)
+
+        val previewHeader = findViewById<View>(R.id.preview_header)
+        val previewCloseButton = findViewById<ImageButton>(R.id.preview_close_button)
+
+        previewCloseButton.setOnClickListener {
+            previewContainer.visibility = View.GONE
+        }
+
+        var dragOffsetX = 0f
+        var dragOffsetY = 0f
+        previewHeader.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    dragOffsetX = previewContainer.x - event.rawX
+                    dragOffsetY = previewContainer.y - event.rawY
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val parent = previewContainer.parent
+                    if (parent is View && parent.width > 0 && parent.height > 0) {
+                        val maxX = (parent.width - previewContainer.width).coerceAtLeast(0)
+                        val maxY = (parent.height - previewContainer.height).coerceAtLeast(0)
+                        val newX = (event.rawX + dragOffsetX).coerceIn(0f, maxX.toFloat())
+                        val newY = (event.rawY + dragOffsetY).coerceIn(0f, maxY.toFloat())
+                        previewContainer.x = newX
+                        previewContainer.y = newY
+                        true
+                    } else {
+                        false
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> true
+                else -> false
+            }
+        }
 
         fun updateButtonState() {
             concluirButton.isEnabled = triplets.all { (c, nc, na) ->
