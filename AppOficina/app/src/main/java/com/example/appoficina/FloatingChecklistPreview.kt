@@ -348,6 +348,7 @@ class FloatingChecklistPreview(
         }
     }
 
+
     private fun formatarValor(valor: Any?): String {
         return when (valor) {
             null -> ""
