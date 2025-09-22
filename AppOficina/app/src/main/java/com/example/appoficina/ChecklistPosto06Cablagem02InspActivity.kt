@@ -1,13 +1,14 @@
 package com.example.appoficina
 
-import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
 import org.json.JSONObject
@@ -23,6 +24,16 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
         val inspetor = intent.getStringExtra("inspetor") ?: ""
+
+        val previewHelper = FloatingChecklistPreview(
+            this,
+            findViewById(R.id.preview_container),
+            findViewById<LinearLayout>(R.id.preview_content),
+            findViewById<ScrollView>(R.id.preview_scroll),
+            findViewById(R.id.preview_header),
+            findViewById<ImageButton>(R.id.preview_close_button),
+        )
+        previewHelper.loadPreviousChecklist(obra, ano)
 
         val perguntas = listOf(
             "6.3 - CABLAGEM - AUTOPORTANTES: Fabricação",
