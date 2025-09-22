@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.appoficina.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -23,13 +24,16 @@ class FloatingChecklistPreview(
     private val previewScroll: ScrollView,
     previewHeader: View,
     previewCloseButton: ImageButton,
+    private val previewToggleButton: ImageButton? = null,
+    private val sectionKey: String? = null,
 ) {
-    private var previewShown = false
+    private var previewLoaded = false
+    private var previewVisible = false
     private var fetchInProgress = false
 
     init {
         previewCloseButton.setOnClickListener {
-            previewContainer.visibility = View.GONE
+            hidePreview()
         }
 
         var dragOffsetX = 0f
@@ -59,10 +63,24 @@ class FloatingChecklistPreview(
                 else -> false
             }
         }
+
+        previewToggleButton?.apply {
+            visibility = View.GONE
+            isEnabled = false
+            setImageResource(android.R.drawable.ic_menu_view)
+            contentDescription = activity.getString(R.string.show_previous_checklist)
+            setOnClickListener {
+                if (previewVisible) {
+                    hidePreview()
+                } else if (previewLoaded) {
+                    showPreview(animated = true)
+                }
+            }
+        }
     }
 
     fun loadPreviousChecklist(obra: String?, ano: String?) {
-        if (obra.isNullOrBlank() || previewShown || fetchInProgress) {
+        if (obra.isNullOrBlank() || previewLoaded || fetchInProgress) {
             return
         }
 
@@ -111,23 +129,33 @@ class FloatingChecklistPreview(
         }.start()
     }
 
+    private data class SectionInfo(val container: JSONObject, val itens: JSONArray)
+
     private fun mostrarChecklist(checklist: JSONObject) {
-        if (previewShown || activity.isFinishing || activity.isDestroyed) {
+        if (activity.isFinishing || activity.isDestroyed) {
             return
         }
 
-        val itens = checklist.optJSONArray("itens") ?: return
+        val section = selecionarSecao(checklist)
+        previewContent.removeAllViews()
+
+        if (section == null) {
+            exibirMensagemVazia()
+            return
+        }
+
+        val itens = section.itens
         if (itens.length() == 0) {
+            exibirMensagemVazia()
             return
         }
 
-        previewShown = true
+        previewLoaded = true
 
         val density = activity.resources.displayMetrics.density
         val paddingGrande = (16 * density).toInt()
         val paddingPequeno = (8 * density).toInt()
 
-        previewContent.removeAllViews()
         previewContent.setPadding(paddingGrande, paddingGrande, paddingGrande, paddingGrande)
 
         val cabecalho = StringBuilder().apply {
@@ -140,21 +168,34 @@ class FloatingChecklistPreview(
             }
         }
 
-        val respondentes = checklist.optJSONObject("respondentes")
-        if (respondentes != null) {
-            val partes = mutableListOf<String>()
+        val nomes = linkedMapOf<String, String>()
+
+        checklist.optJSONObject("respondentes")?.let { respondentes ->
             val iterator = respondentes.keys()
             while (iterator.hasNext()) {
                 val papel = iterator.next()
                 val nome = respondentes.optString(papel)
                 if (nome.isNotBlank()) {
-                    partes.add("${formatarPapel(papel)}: $nome")
+                    nomes[papel] = nome
                 }
             }
-            if (partes.isNotEmpty()) {
-                cabecalho.append("\n")
-                cabecalho.append(partes.joinToString("\n"))
+        }
+
+        val papeisExtras = listOf("suprimento", "produção", "montador", "inspetor")
+        for (papel in papeisExtras) {
+            val nome = section.container.optString(papel)
+            if (nome.isNotBlank()) {
+                nomes.putIfAbsent(papel, nome)
             }
+        }
+
+        if (nomes.isNotEmpty()) {
+            cabecalho.append("\n")
+            cabecalho.append(
+                nomes.entries.joinToString("\n") { (papel, nome) ->
+                    "${formatarPapel(papel)}: $nome"
+                },
+            )
         }
 
         val headerView = TextView(activity).apply {
@@ -210,10 +251,101 @@ class FloatingChecklistPreview(
             }
         }
 
+        previewToggleButton?.apply {
+            visibility = View.VISIBLE
+            isEnabled = true
+        }
+
+        showPreview(animated = true)
+    }
+
+    private fun selecionarSecao(checklist: JSONObject): SectionInfo? {
+        sectionKey?.let { chave ->
+            val alvoDireto = checklist.optJSONObject(chave)
+            val candidatoDireto = alvoDireto?.optJSONArray("itens")
+            if (alvoDireto != null && candidatoDireto != null) {
+                return SectionInfo(alvoDireto, candidatoDireto)
+            }
+
+            val iterator = checklist.keys()
+            while (iterator.hasNext()) {
+                val atual = iterator.next()
+                if (atual.equals(chave, ignoreCase = true)) {
+                    val secao = checklist.optJSONObject(atual)
+                    val itens = secao?.optJSONArray("itens")
+                    if (secao != null && itens != null) {
+                        return SectionInfo(secao, itens)
+                    }
+                }
+            }
+        }
+
+        val itensTopo = checklist.optJSONArray("itens")
+        if (itensTopo != null) {
+            return SectionInfo(checklist, itensTopo)
+        }
+
+        val iterator = checklist.keys()
+        while (iterator.hasNext()) {
+            val chave = iterator.next()
+            val secao = checklist.optJSONObject(chave) ?: continue
+            val itens = secao.optJSONArray("itens") ?: continue
+            if (itens.length() > 0) {
+                return SectionInfo(secao, itens)
+            }
+        }
+
+        return null
+    }
+
+    private fun exibirMensagemVazia() {
+        previewLoaded = true
+        val density = activity.resources.displayMetrics.density
+        val padding = (16 * density).toInt()
+        previewContent.setPadding(padding, padding, padding, padding)
+        previewContent.addView(
+            TextView(activity).apply {
+                text = activity.getString(R.string.no_previous_checklist)
+            },
+        )
+        previewToggleButton?.apply {
+            visibility = View.VISIBLE
+            isEnabled = true
+        }
+        showPreview(animated = true)
+    }
+
+    private fun showPreview(animated: Boolean) {
+        if (!previewLoaded || activity.isFinishing || activity.isDestroyed) {
+            return
+        }
+
         previewScroll.scrollTo(0, 0)
-        previewContainer.alpha = 0f
-        previewContainer.visibility = View.VISIBLE
-        previewContainer.animate().alpha(1f).setDuration(200L).start()
+        previewToggleButton?.apply {
+            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            contentDescription = activity.getString(R.string.hide_previous_checklist)
+        }
+
+        if (animated) {
+            previewContainer.alpha = 0f
+            previewContainer.visibility = View.VISIBLE
+            previewContainer.animate().alpha(1f).setDuration(200L).start()
+        } else {
+            previewContainer.animate().cancel()
+            previewContainer.alpha = 1f
+            previewContainer.visibility = View.VISIBLE
+        }
+        previewVisible = true
+    }
+
+    private fun hidePreview() {
+        previewContainer.animate().cancel()
+        previewContainer.visibility = View.GONE
+        previewVisible = false
+        previewToggleButton?.apply {
+            setImageResource(android.R.drawable.ic_menu_view)
+            contentDescription = activity.getString(R.string.show_previous_checklist)
+        }
     }
 
     private fun formatarValor(valor: Any?): String {

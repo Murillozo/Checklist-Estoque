@@ -93,4 +93,18 @@
         </ScrollView>
     </LinearLayout>
 
+    <ImageButton
+        android:id="@+id/preview_toggle_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_preview_toggle"
+        android:contentDescription="@string/show_previous_checklist"
+        android:elevation="8dp"
+        android:padding="12dp"
+        android:src="@android:drawable/ic_menu_view"
+        android:tint="?android:attr/textColorPrimary"
+        android:visibility="gone" />
+
 </FrameLayout>
