@@ -549,6 +549,44 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
     return resultados
 
 
+def _delete_raw_checklists_for_obra(base_dir: str, obra: Any) -> None:
+    """Remove raw checklist uploads for ``obra`` from ``base_dir``."""
+
+    if obra is None:
+        return
+
+    expected = str(obra).strip()
+    if not expected:
+        return
+
+    try:
+        entries = os.listdir(base_dir)
+    except OSError:
+        return
+
+    for fname in entries:
+        if not (fname.startswith("checklist_") and fname.endswith(".json")):
+            continue
+        path = os.path.join(base_dir, fname)
+        if not os.path.isfile(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as fp:
+                payload = json.load(fp)
+        except Exception:
+            continue
+
+        valor = payload.get("obra")
+        valor_normalized = str(valor).strip() if isinstance(valor, str) else (
+            str(valor) if valor is not None else ""
+        )
+        if valor_normalized == expected:
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+
 def move_matching_checklists(base_dir: str) -> List[str]:
     """Move merged checklists with complete answers to the next stage.
 
@@ -580,6 +618,7 @@ def move_matching_checklists(base_dir: str) -> List[str]:
         if obra in divergentes:
             continue
         shutil.move(path, os.path.join(dest_dir, fname))
+        _delete_raw_checklists_for_obra(base_dir, obra)
         moved.append(fname)
     return moved
 

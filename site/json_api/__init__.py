@@ -249,6 +249,72 @@ def _ensure_nc_preview(file_path: str) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+@bp.route('/checklist', methods=['GET'])
+def obter_checklist_existente():
+    """Return the most recent checklist JSON for the requested obra."""
+
+    obra_param = request.args.get('obra')
+    if not obra_param:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    obra_normalizada = str(obra_param).strip()
+    if not obra_normalizada:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    alvo = obra_normalizada.lower()
+    safe_prefix = ''.join(
+        c for c in obra_normalizada if c.isalnum() or c in ('-', '_')
+    ).lower()
+
+    candidatos = []
+
+    def _coletar(diretorio: str) -> None:
+        if not os.path.isdir(diretorio):
+            return
+
+        for nome in os.listdir(diretorio):
+            if not nome.endswith('.json'):
+                continue
+
+            caminho = os.path.join(diretorio, nome)
+
+            base = os.path.splitext(nome)[0]
+            if base.startswith('checklist_'):
+                base = base[len('checklist_'):]
+            candidato_nome = base.lower()
+
+            deve_considerar = not safe_prefix or candidato_nome.startswith(safe_prefix)
+
+            try:
+                with open(caminho, 'r', encoding='utf-8') as f:
+                    dados = json.load(f)
+            except Exception:
+                continue
+
+            obra_arquivo = dados.get('obra')
+            if isinstance(obra_arquivo, str) and obra_arquivo.strip():
+                deve_considerar = obra_arquivo.strip().lower() == alvo
+
+            if not deve_considerar:
+                continue
+
+            try:
+                mtime = os.path.getmtime(caminho)
+            except OSError:
+                continue
+
+            candidatos.append((mtime, dados))
+
+    _coletar(BASE_DIR)
+    _coletar(os.path.join(BASE_DIR, 'Posto01_Oficina'))
+
+    if not candidatos:
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    _, selecionado = max(candidatos, key=lambda item: item[0])
+    return jsonify({'checklist': selecionado})
+
+
 @bp.route('/checklist', methods=['POST'])
 def salvar_checklist():
     """Save a checklist payload to a timestamped JSON file."""
