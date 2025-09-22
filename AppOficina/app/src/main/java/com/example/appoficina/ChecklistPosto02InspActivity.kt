@@ -33,6 +33,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             findViewById<ScrollView>(R.id.preview_scroll),
             findViewById(R.id.preview_header),
             findViewById<ImageButton>(R.id.preview_close_button),
+            findViewById<ImageButton>(R.id.preview_toggle_button),
         )
         previewHelper.loadPreviousChecklist(obra, ano)
 
