@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.appoficina.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -23,13 +24,15 @@ class FloatingChecklistPreview(
     private val previewScroll: ScrollView,
     previewHeader: View,
     previewCloseButton: ImageButton,
+    private val previewToggleButton: ImageButton? = null,
 ) {
-    private var previewShown = false
+    private var previewLoaded = false
+    private var previewVisible = false
     private var fetchInProgress = false
 
     init {
         previewCloseButton.setOnClickListener {
-            previewContainer.visibility = View.GONE
+            hidePreview()
         }
 
         var dragOffsetX = 0f
@@ -59,10 +62,24 @@ class FloatingChecklistPreview(
                 else -> false
             }
         }
+
+        previewToggleButton?.apply {
+            visibility = View.GONE
+            isEnabled = false
+            setImageResource(android.R.drawable.ic_menu_view)
+            contentDescription = activity.getString(R.string.show_previous_checklist)
+            setOnClickListener {
+                if (previewVisible) {
+                    hidePreview()
+                } else if (previewLoaded) {
+                    showPreview(animated = true)
+                }
+            }
+        }
     }
 
     fun loadPreviousChecklist(obra: String?, ano: String?) {
-        if (obra.isNullOrBlank() || previewShown || fetchInProgress) {
+        if (obra.isNullOrBlank() || previewLoaded || fetchInProgress) {
             return
         }
 
@@ -112,7 +129,7 @@ class FloatingChecklistPreview(
     }
 
     private fun mostrarChecklist(checklist: JSONObject) {
-        if (previewShown || activity.isFinishing || activity.isDestroyed) {
+        if (activity.isFinishing || activity.isDestroyed) {
             return
         }
 
@@ -121,7 +138,7 @@ class FloatingChecklistPreview(
             return
         }
 
-        previewShown = true
+        previewLoaded = true
 
         val density = activity.resources.displayMetrics.density
         val paddingGrande = (16 * density).toInt()
@@ -210,10 +227,45 @@ class FloatingChecklistPreview(
             }
         }
 
+        previewToggleButton?.apply {
+            visibility = View.VISIBLE
+            isEnabled = true
+        }
+
+        showPreview(animated = true)
+    }
+
+    private fun showPreview(animated: Boolean) {
+        if (!previewLoaded || activity.isFinishing || activity.isDestroyed) {
+            return
+        }
+
         previewScroll.scrollTo(0, 0)
-        previewContainer.alpha = 0f
-        previewContainer.visibility = View.VISIBLE
-        previewContainer.animate().alpha(1f).setDuration(200L).start()
+        previewToggleButton?.apply {
+            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            contentDescription = activity.getString(R.string.hide_previous_checklist)
+        }
+
+        if (animated) {
+            previewContainer.alpha = 0f
+            previewContainer.visibility = View.VISIBLE
+            previewContainer.animate().alpha(1f).setDuration(200L).start()
+        } else {
+            previewContainer.animate().cancel()
+            previewContainer.alpha = 1f
+            previewContainer.visibility = View.VISIBLE
+        }
+        previewVisible = true
+    }
+
+    private fun hidePreview() {
+        previewContainer.animate().cancel()
+        previewContainer.visibility = View.GONE
+        previewVisible = false
+        previewToggleButton?.apply {
+            setImageResource(android.R.drawable.ic_menu_view)
+            contentDescription = activity.getString(R.string.show_previous_checklist)
+        }
     }
 
     private fun formatarValor(valor: Any?): String {
