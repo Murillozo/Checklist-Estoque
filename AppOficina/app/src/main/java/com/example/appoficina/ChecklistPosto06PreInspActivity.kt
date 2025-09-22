@@ -33,6 +33,7 @@ class ChecklistPosto06PreInspActivity : AppCompatActivity() {
             findViewById(R.id.preview_header),
             findViewById<ImageButton>(R.id.preview_close_button),
             findViewById<ImageButton>(R.id.preview_toggle_button),
+            sectionKey = "posto06_pre_montagem_02",
         )
         previewHelper.loadPreviousChecklist(obra, ano)
 

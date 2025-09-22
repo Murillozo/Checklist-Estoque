@@ -25,6 +25,7 @@ class FloatingChecklistPreview(
     previewHeader: View,
     previewCloseButton: ImageButton,
     private val previewToggleButton: ImageButton? = null,
+    private val sectionKey: String? = null,
 ) {
     private var previewLoaded = false
     private var previewVisible = false
@@ -128,13 +129,24 @@ class FloatingChecklistPreview(
         }.start()
     }
 
+    private data class SectionInfo(val container: JSONObject, val itens: JSONArray)
+
     private fun mostrarChecklist(checklist: JSONObject) {
         if (activity.isFinishing || activity.isDestroyed) {
             return
         }
 
-        val itens = checklist.optJSONArray("itens") ?: return
+        val section = selecionarSecao(checklist)
+        previewContent.removeAllViews()
+
+        if (section == null) {
+            exibirMensagemVazia()
+            return
+        }
+
+        val itens = section.itens
         if (itens.length() == 0) {
+            exibirMensagemVazia()
             return
         }
 
@@ -144,7 +156,6 @@ class FloatingChecklistPreview(
         val paddingGrande = (16 * density).toInt()
         val paddingPequeno = (8 * density).toInt()
 
-        previewContent.removeAllViews()
         previewContent.setPadding(paddingGrande, paddingGrande, paddingGrande, paddingGrande)
 
         val cabecalho = StringBuilder().apply {
@@ -157,21 +168,34 @@ class FloatingChecklistPreview(
             }
         }
 
-        val respondentes = checklist.optJSONObject("respondentes")
-        if (respondentes != null) {
-            val partes = mutableListOf<String>()
+        val nomes = linkedMapOf<String, String>()
+
+        checklist.optJSONObject("respondentes")?.let { respondentes ->
             val iterator = respondentes.keys()
             while (iterator.hasNext()) {
                 val papel = iterator.next()
                 val nome = respondentes.optString(papel)
                 if (nome.isNotBlank()) {
-                    partes.add("${formatarPapel(papel)}: $nome")
+                    nomes[papel] = nome
                 }
             }
-            if (partes.isNotEmpty()) {
-                cabecalho.append("\n")
-                cabecalho.append(partes.joinToString("\n"))
+        }
+
+        val papeisExtras = listOf("suprimento", "produção", "montador", "inspetor")
+        for (papel in papeisExtras) {
+            val nome = section.container.optString(papel)
+            if (nome.isNotBlank()) {
+                nomes.putIfAbsent(papel, nome)
             }
+        }
+
+        if (nomes.isNotEmpty()) {
+            cabecalho.append("\n")
+            cabecalho.append(
+                nomes.entries.joinToString("\n") { (papel, nome) ->
+                    "${formatarPapel(papel)}: $nome"
+                },
+            )
         }
 
         val headerView = TextView(activity).apply {
@@ -235,6 +259,62 @@ class FloatingChecklistPreview(
         showPreview(animated = true)
     }
 
+    private fun selecionarSecao(checklist: JSONObject): SectionInfo? {
+        sectionKey?.let { chave ->
+            val alvoDireto = checklist.optJSONObject(chave)
+            val candidatoDireto = alvoDireto?.optJSONArray("itens")
+            if (alvoDireto != null && candidatoDireto != null) {
+                return SectionInfo(alvoDireto, candidatoDireto)
+            }
+
+            val iterator = checklist.keys()
+            while (iterator.hasNext()) {
+                val atual = iterator.next()
+                if (atual.equals(chave, ignoreCase = true)) {
+                    val secao = checklist.optJSONObject(atual)
+                    val itens = secao?.optJSONArray("itens")
+                    if (secao != null && itens != null) {
+                        return SectionInfo(secao, itens)
+                    }
+                }
+            }
+        }
+
+        val itensTopo = checklist.optJSONArray("itens")
+        if (itensTopo != null) {
+            return SectionInfo(checklist, itensTopo)
+        }
+
+        val iterator = checklist.keys()
+        while (iterator.hasNext()) {
+            val chave = iterator.next()
+            val secao = checklist.optJSONObject(chave) ?: continue
+            val itens = secao.optJSONArray("itens") ?: continue
+            if (itens.length() > 0) {
+                return SectionInfo(secao, itens)
+            }
+        }
+
+        return null
+    }
+
+    private fun exibirMensagemVazia() {
+        previewLoaded = true
+        val density = activity.resources.displayMetrics.density
+        val padding = (16 * density).toInt()
+        previewContent.setPadding(padding, padding, padding, padding)
+        previewContent.addView(
+            TextView(activity).apply {
+                text = activity.getString(R.string.no_previous_checklist)
+            },
+        )
+        previewToggleButton?.apply {
+            visibility = View.VISIBLE
+            isEnabled = true
+        }
+        showPreview(animated = true)
+    }
+
     private fun showPreview(animated: Boolean) {
         if (!previewLoaded || activity.isFinishing || activity.isDestroyed) {
             return
@@ -267,6 +347,7 @@ class FloatingChecklistPreview(
             contentDescription = activity.getString(R.string.show_previous_checklist)
         }
     }
+
 
     private fun formatarValor(valor: Any?): String {
         return when (valor) {

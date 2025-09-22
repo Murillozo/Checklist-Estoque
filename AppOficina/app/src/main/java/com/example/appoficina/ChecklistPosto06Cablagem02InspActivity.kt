@@ -33,6 +33,7 @@ class ChecklistPosto06Cablagem02InspActivity : AppCompatActivity() {
             findViewById(R.id.preview_header),
             findViewById<ImageButton>(R.id.preview_close_button),
             findViewById<ImageButton>(R.id.preview_toggle_button),
+            sectionKey = "posto06_cablagem_02",
         )
         previewHelper.loadPreviousChecklist(obra, ano)
 

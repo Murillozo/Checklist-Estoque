@@ -3,4 +3,5 @@
     <string name="inspetor">Inspetor</string>
     <string name="show_previous_checklist">Mostrar pré-visualização anterior</string>
     <string name="hide_previous_checklist">Ocultar pré-visualização anterior</string>
+    <string name="no_previous_checklist">Nenhum checklist anterior disponível</string>
 </resources>
