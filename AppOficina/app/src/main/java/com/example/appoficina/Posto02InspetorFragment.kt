@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import org.json.JSONArray
 import org.json.JSONObject
@@ -81,13 +82,28 @@ class Posto02InspetorFragment : Fragment() {
                                             intent.putExtra("tipo", "insp_posto02")
                                             startActivity(intent)
                                         } else {
-                                            promptName(requireContext(), "Nome do inspetor") { nome ->
-                                                val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
-                                                intent.putExtra("obra", obra)
-                                                intent.putExtra("ano", ano)
-                                                intent.putExtra("inspetor", nome)
-                                                startActivity(intent)
-                                            }
+                                            AlertDialog.Builder(requireContext())
+                                                .setTitle("Checklist anterior")
+                                                .setMessage("Deseja visualizar o checklist anterior antes de iniciar a inspeção?")
+                                                .setPositiveButton("Visualizar") { _, _ ->
+                                                    val intent = Intent(requireContext(), ChecklistHistoryActivity::class.java)
+                                                    intent.putExtra("obra", obra)
+                                                    intent.putExtra("ano", ano)
+                                                    intent.putExtra("tipo", "insp_posto02")
+                                                    intent.putExtra("sectionKey", "posto02")
+                                                    startActivity(intent)
+                                                }
+                                                .setNegativeButton("Iniciar inspeção") { _, _ ->
+                                                    promptName(requireContext(), "Nome do inspetor") { nome ->
+                                                        val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
+                                                        intent.putExtra("obra", obra)
+                                                        intent.putExtra("ano", ano)
+                                                        intent.putExtra("inspetor", nome)
+                                                        startActivity(intent)
+                                                    }
+                                                }
+                                                .setNeutralButton("Cancelar", null)
+                                                .show()
                                         }
                                     }
                                 }.start()
