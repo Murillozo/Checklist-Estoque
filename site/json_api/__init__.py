@@ -266,7 +266,20 @@ def obter_checklist_existente():
         c for c in obra_normalizada if c.isalnum() or c in ('-', '_')
     ).lower()
 
+    ano_param = request.args.get('ano')
+    ano_normalizado = None
+    if ano_param is not None:
+        ano_texto = str(ano_param).strip()
+        if ano_texto:
+            ano_normalizado = ano_texto.lower()
+
     candidatos = []
+
+    def _normalizar_ano(valor):
+        if valor is None:
+            return ''
+        texto = str(valor).strip()
+        return texto.lower()
 
     def _coletar(diretorio: str) -> None:
         if not os.path.isdir(diretorio):
@@ -298,6 +311,11 @@ def obter_checklist_existente():
             if not deve_considerar:
                 continue
 
+            if ano_normalizado is not None:
+                ano_candidato = _normalizar_ano(dados.get('ano'))
+                if not ano_candidato or ano_candidato != ano_normalizado:
+                    continue
+
             try:
                 mtime = os.path.getmtime(caminho)
             except OSError:
@@ -305,8 +323,13 @@ def obter_checklist_existente():
 
             candidatos.append((mtime, dados))
 
-    _coletar(BASE_DIR)
-    _coletar(os.path.join(BASE_DIR, 'Posto01_Oficina'))
+    diretorios = [
+        BASE_DIR,
+        os.path.join(BASE_DIR, 'Posto01_Oficina'),
+        os.path.join(BASE_DIR, 'Posto02_Oficina'),
+    ]
+    for diretorio in diretorios:
+        _coletar(diretorio)
 
     if not candidatos:
         return jsonify({'erro': 'arquivo não encontrado'}), 404

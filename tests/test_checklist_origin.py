@@ -149,3 +149,59 @@ def test_obter_checklist_retorna_arquivo_mais_recente(tmp_path: pathlib.Path):
     dados = res.get_json()
     assert dados["checklist"]["itens"][0]["pergunta"] == "Atual"
     assert dados["checklist"]["itens"][0]["respostas"]["suprimento"][0] == "C"
+
+
+def test_obter_checklist_considera_posto02_e_ano(tmp_path: pathlib.Path):
+    client = _client(tmp_path)
+
+    base = tmp_path / "checklist_OBRA1_base.json"
+    base.write_text(
+        json.dumps(
+            {
+                "obra": "OBRA1",
+                "ano": "2023",
+                "itens": [
+                    {"pergunta": "Base", "resposta": "C"},
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    timestamp_base = time.time() - 7200
+    os.utime(base, (timestamp_base, timestamp_base))
+
+    posto02_dir = tmp_path / "Posto02_Oficina"
+    posto02_dir.mkdir()
+    posto02 = posto02_dir / "checklist_OBRA1.json"
+    posto02.write_text(
+        json.dumps(
+            {
+                "obra": "OBRA1",
+                "ano": "2024",
+                "itens": [
+                    {"pergunta": "Posto02", "resposta": "NC"},
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    res_sem_ano = client.get("/checklist", query_string={"obra": "OBRA1"})
+    assert res_sem_ano.status_code == 200
+    dados_sem_ano = res_sem_ano.get_json()["checklist"]
+    assert dados_sem_ano["ano"] == "2024"
+    assert dados_sem_ano["itens"][0]["pergunta"] == "Posto02"
+
+    res_base = client.get("/checklist", query_string={"obra": "OBRA1", "ano": "2023"})
+    assert res_base.status_code == 200
+    dados_base = res_base.get_json()["checklist"]
+    assert dados_base["ano"] == "2023"
+    assert dados_base["itens"][0]["pergunta"] == "Base"
+
+    res_posto02 = client.get("/checklist", query_string={"obra": "OBRA1", "ano": "2024"})
+    assert res_posto02.status_code == 200
+    dados_posto02 = res_posto02.get_json()["checklist"]
+    assert dados_posto02["ano"] == "2024"
+    assert dados_posto02["itens"][0]["pergunta"] == "Posto02"
