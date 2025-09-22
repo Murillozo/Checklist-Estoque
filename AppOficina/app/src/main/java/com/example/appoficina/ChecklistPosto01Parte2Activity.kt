@@ -1,19 +1,20 @@
 package com.example.appoficina
 
 import android.content.Context
-import android.os.Bundle
 import android.graphics.Typeface
+import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AlertDialog
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.OutputStreamWriter
@@ -24,6 +25,9 @@ import java.util.Locale
 
 class ChecklistPosto01Parte2Activity : AppCompatActivity() {
     private var previewDialogShown = false
+    private lateinit var previewContainer: View
+    private lateinit var previewContent: LinearLayout
+    private lateinit var previewScroll: ScrollView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -139,6 +143,45 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val triplets = mutableListOf<Triple<CheckBox, CheckBox, CheckBox>>()
         val spinners = mutableListOf<Spinner>()
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto01Parte2)
+
+        previewContainer = findViewById(R.id.preview_container)
+        previewContent = findViewById(R.id.preview_content)
+        previewScroll = findViewById(R.id.preview_scroll)
+
+        val previewHeader = findViewById<View>(R.id.preview_header)
+        val previewCloseButton = findViewById<ImageButton>(R.id.preview_close_button)
+
+        previewCloseButton.setOnClickListener {
+            previewContainer.visibility = View.GONE
+        }
+
+        var dragOffsetX = 0f
+        var dragOffsetY = 0f
+        previewHeader.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    dragOffsetX = previewContainer.x - event.rawX
+                    dragOffsetY = previewContainer.y - event.rawY
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val parent = previewContainer.parent
+                    if (parent is View && parent.width > 0 && parent.height > 0) {
+                        val maxX = (parent.width - previewContainer.width).coerceAtLeast(0)
+                        val maxY = (parent.height - previewContainer.height).coerceAtLeast(0)
+                        val newX = (event.rawX + dragOffsetX).coerceIn(0f, maxX.toFloat())
+                        val newY = (event.rawY + dragOffsetY).coerceIn(0f, maxY.toFloat())
+                        previewContainer.x = newX
+                        previewContainer.y = newY
+                        true
+                    } else {
+                        false
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> true
+                else -> false
+            }
+        }
 
         fun updateButtonState() {
             concluirButton.isEnabled = triplets.all { (c, nc, na) ->
@@ -322,11 +365,8 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
         val paddingGrande = (16 * density).toInt()
         val paddingPequeno = (8 * density).toInt()
 
-        val scroll = ScrollView(this)
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(paddingGrande, paddingGrande, paddingGrande, paddingGrande)
-        }
+        previewContent.removeAllViews()
+        previewContent.setPadding(paddingGrande, paddingGrande, paddingGrande, paddingGrande)
 
         val cabecalho = StringBuilder().apply {
             append("Obra: ")
@@ -359,7 +399,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
             text = cabecalho.toString()
             setPadding(0, 0, 0, paddingPequeno)
         }
-        container.addView(headerView)
+        previewContent.addView(headerView)
 
         for (i in 0 until itens.length()) {
             val item = itens.optJSONObject(i) ?: continue
@@ -370,7 +410,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                     setTypeface(typeface, Typeface.BOLD)
                     setPadding(0, if (i == 0) 0 else paddingPequeno, 0, 0)
                 }
-                container.addView(perguntaView)
+                previewContent.addView(perguntaView)
             }
 
             var adicionouResposta = false
@@ -391,7 +431,7 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                         text = "\u2022 ${formatarPapel(papel)}: $valor"
                         setPadding(0, paddingPequeno / 2, 0, 0)
                     }
-                    container.addView(respostaView)
+                    previewContent.addView(respostaView)
                     adicionouResposta = true
                 }
             }
@@ -403,19 +443,15 @@ class ChecklistPosto01Parte2Activity : AppCompatActivity() {
                         text = "\u2022 Resposta: $valorSimples"
                         setPadding(0, paddingPequeno / 2, 0, 0)
                     }
-                    container.addView(respostaView)
+                    previewContent.addView(respostaView)
                 }
             }
         }
 
-        scroll.addView(container)
-
-        AlertDialog.Builder(this)
-            .setTitle("Pré-visualização do checklist anterior")
-            .setView(scroll)
-            .setPositiveButton("Fechar", null)
-            .setOnDismissListener { previewDialogShown = true }
-            .show()
+        previewScroll.scrollTo(0, 0)
+        previewContainer.alpha = 0f
+        previewContainer.visibility = View.VISIBLE
+        previewContainer.animate().alpha(1f).setDuration(200L).start()
     }
 
     private fun formatarValor(valor: Any?): String {
