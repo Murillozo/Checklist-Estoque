@@ -1,0 +1,36 @@
+{
+  "obra": "OBRA_DEMO",
+  "ano": "2024",
+  "posto08_iqm": {
+    "inspetor": "",
+    "itens": [
+      {
+        "numero": 1,
+        "pergunta": "Item com NC do montador e produção",
+        "respostas": {
+          "montador": ["NC"],
+          "produção": ["NC"],
+          "inspetor": ["C"]
+        }
+      },
+      {
+        "numero": 2,
+        "pergunta": "Item com NC do inspetor",
+        "respostas": {
+          "montador": ["C"],
+          "produção": ["C"],
+          "inspetor": ["NC"]
+        }
+      },
+      {
+        "numero": 3,
+        "pergunta": "Item conforme",
+        "respostas": {
+          "montador": ["C"],
+          "produção": ["C"],
+          "inspetor": ["C"]
+        }
+      }
+    ]
+  }
+}

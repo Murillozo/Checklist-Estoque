@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.15 - COMPONENTES: Identificação do projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ75C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ75NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ75NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.15 - COMPONENTES: Separação - POSTO - 01" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ76C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ76NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ76NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.15 - COMPONENTES: Referências x Projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ77C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ77NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ77NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.15 - COMPONENTES: Material em bom estado" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ78C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ78NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ78NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Identificação do projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ79C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ79NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ79NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Separação - POSTO - 07" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ80C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ80NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ80NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Referências x Projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ81C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ81NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ81NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.16 - INVÓLUCRO - PORTAS SEM RECORTE: Material em bom estado" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ82C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ82NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ82NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Identificação do projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ83C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ83NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ83NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Separação - POSTO - 07" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ84C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ84NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ84NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Referências x Projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ85C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ85NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ85NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.17 - INVÓLUCRO - CONTRAPORTAS SEM RECORTE: Material em bom estado" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ86C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ86NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ86NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Identificação do projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ87C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ87NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ87NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Separação - POSTO - 07" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ88C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ88NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ88NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Referências x Projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ89C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ89NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ89NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.18 - INVÓLUCRO - FECHAMENTOS LATERAIS E TRASEIRO: Material em bom estado" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ90C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ90NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ90NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.19 - POLICARBONATO: Identificação do projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ91C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ91NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ91NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.19 - POLICARBONATO: Separação - POSTO - 03" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ92C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ92NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ92NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.19 - POLICARBONATO: Referências x Projeto" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ93C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ93NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ93NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="1.19 - POLICARBONATO: Material em bom estado" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/cbQ94C"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C" />
+            <CheckBox
+                android:id="@+id/cbQ94NC"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.C"
+                android:layout_marginStart="24dp" />
+            <CheckBox
+                android:id="@+id/cbQ94NA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="N.A"
+                android:layout_marginStart="24dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnConcluirPosto01Parte2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Concluir"
+            android:layout_marginTop="16dp"
+            android:enabled="true"
+            android:clickable="true" />
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>{{ filename }}</h1>
+
+<p><strong>Obra:</strong> {{ dados.obra }}</p>
+<p><strong>Ano:</strong> {{ dados.ano }}</p>
+<p><strong>Suprimento:</strong> {{ dados.suprimento }}</p>
+
+{% if prev_filename %}
+<p><a href="{{ url_for('projetista.checklist_diff', filename=filename) }}">Comparar com revisão anterior</a></p>
+{% endif %}
+
+<p><a href="#" onclick="gerarPDF('{{ url_for('projetista.checklist_pdf', filename=filename) }}'); return false;">Gerar PDF</a></p>
+
+<script>
+function gerarPDF(base){
+    const cidade=prompt('Cidade/Estado:');
+    if(cidade===null) return;
+    const projetista=prompt('Projetista:');
+    if(projetista===null) return;
+    window.location.href = base + '?cidade_estado=' + encodeURIComponent(cidade) + '&projesta=' + encodeURIComponent(projetista);
+}
+</script>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Pergunta</th>
+      <th>Resposta</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in dados.itens %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ item.pergunta }}</td>
+      <td>{{ item.resposta }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
