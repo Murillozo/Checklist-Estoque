@@ -127,8 +127,12 @@ class FloatingChecklistPreview(
                     } else {
                         json.optJSONObject("checklist")
                     }
-                    if (checklist != null) {
-                        activity.runOnUiThread { mostrarChecklist(checklist) }
+                    activity.runOnUiThread {
+                        if (checklist != null) {
+                            mostrarChecklist(checklist)
+                        } else {
+                            mostrarChecklist(json)
+                        }
                     }
                 }
                 conn.disconnect()
