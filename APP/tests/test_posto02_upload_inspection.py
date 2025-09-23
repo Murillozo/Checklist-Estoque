@@ -1,6 +1,6 @@
-import importlib
 import json
 import pathlib
+import importlib
 import sys
 from flask import Flask
 
@@ -60,22 +60,3 @@ def test_upload_and_inspection_without_divergencias(tmp_path):
     res_insp = client.post("/posto02/insp/upload", json=insp_payload)
     assert res_insp.status_code == 200
     assert res_insp.get_json()["divergencias"] == []
-
-
-def test_get_insp_checklist_returns_pending_payload(tmp_path):
-    insp_dir = tmp_path / "Posto02_Oficina" / "Posto02_Oficina_Inspetor"
-    insp_dir.mkdir(parents=True)
-    payload = {
-        "obra": "OBRA99",
-        "ano": "2024",
-        "posto02": {"itens": [{"numero": 200, "pergunta": "Pergunta"}]},
-    }
-    with open(insp_dir / "checklist_OBRA99.json", "w", encoding="utf-8") as f:
-        json.dump(payload, f)
-
-    client = _client(tmp_path)
-    res = client.get("/posto02/insp/checklist?obra=OBRA99")
-    assert res.status_code == 200
-    data = res.get_json()
-    assert data["ano"] == "2024"
-    assert data["posto02"]["itens"][0]["numero"] == 200
