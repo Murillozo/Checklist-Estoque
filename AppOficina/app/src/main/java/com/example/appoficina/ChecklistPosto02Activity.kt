@@ -10,6 +10,7 @@ import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 
 class ChecklistPosto02Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -136,6 +137,158 @@ class ChecklistPosto02Activity : AppCompatActivity() {
                 updateButtonState()
             }
         }
+
+        fun aplicarChecklistAnterior(respostas: List<Triple<Int, String?, String?>>) {
+            respostas.forEach { (index, opcaoOriginal, montadorAnterior) ->
+                if (index !in triplets.indices || index !in spinners.indices) {
+                    return@forEach
+                }
+
+                val (c, nc, na) = triplets[index]
+                val opcao = opcaoOriginal?.replace(".", "")?.uppercase()
+
+                c.isChecked = false
+                nc.isChecked = false
+                na.isChecked = false
+
+                when (opcao) {
+                    "C" -> c.isChecked = true
+                    "NC" -> nc.isChecked = true
+                    "NA" -> na.isChecked = true
+                }
+
+                val montador = montadorAnterior?.takeIf { it.isNotBlank() }
+
+                if (!montador.isNullOrBlank()) {
+                    val spinner = spinners[index]
+                    val adapter = spinner.adapter as? ArrayAdapter<String>
+                    var position = adapter?.getPosition(montador) ?: -1
+                    if (position < 0 && adapter != null) {
+                        adapter.add(montador)
+                        position = adapter.getPosition(montador)
+                    }
+                    if (position >= 0) {
+                        spinner.setSelection(position, false)
+                    }
+                }
+            }
+
+            updateButtonState()
+        }
+
+        fun extrairSecaoPosto02(json: JSONObject): JSONObject? {
+            val candidatos = mutableListOf<JSONObject>()
+            json.optJSONObject("checklist")?.let { candidatos.add(it) }
+            candidatos.add(json)
+
+            candidatos.forEach { candidato ->
+                candidato.optJSONArray("itens")?.let { return candidato }
+
+                candidato.optJSONObject("posto02")?.let { return it }
+
+                val iterator = candidato.keys()
+                while (iterator.hasNext()) {
+                    val chave = iterator.next()
+                    if (chave.equals("posto02", ignoreCase = true)) {
+                        val secao = candidato.optJSONObject(chave)
+                        if (secao != null) {
+                            return secao
+                        }
+                    }
+                }
+            }
+
+            return null
+        }
+
+        fun carregarChecklistAnterior() {
+            if (obra.isBlank()) {
+                return
+            }
+
+            Thread {
+                val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
+                    .getString("api_ip", "192.168.0.135")
+                if (ip.isNullOrBlank()) {
+                    return@Thread
+                }
+
+                val endereco = try {
+                    val builder = StringBuilder("http://$ip:5000/json_api/posto02/checklist")
+                    builder.append("?obra=")
+                    builder.append(URLEncoder.encode(obra, "UTF-8"))
+                    if (ano.isNotBlank()) {
+                        builder.append("&ano=")
+                        builder.append(URLEncoder.encode(ano, "UTF-8"))
+                    }
+                    builder.toString()
+                } catch (_: Exception) {
+                    return@Thread
+                }
+
+                try {
+                    val url = URL(endereco)
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+                    val codigo = conn.responseCode
+                    if (codigo in 200..299) {
+                        val resposta = conn.inputStream.bufferedReader().use { it.readText() }
+                        val json = JSONObject(resposta)
+                        val secao = extrairSecaoPosto02(json)
+                        val preenchimentos = mutableListOf<Triple<Int, String?, String?>>()
+
+                        val itens = secao?.optJSONArray("itens")
+                        if (itens != null) {
+                            for (i in 0 until itens.length()) {
+                                val item = itens.optJSONObject(i) ?: continue
+                                val numero = item.optInt("numero", -1)
+                                val indice = when {
+                                    numero in 200 until 200 + triplets.size -> numero - 200
+                                    else -> perguntas.indexOf(item.optString("pergunta"))
+                                }
+                                if (indice !in triplets.indices) {
+                                    continue
+                                }
+
+                                val respostasObj = item.optJSONObject("respostas")
+                                val rawRespostas = respostasObj?.opt("montador")
+                                var opcao: String? = null
+                                var nomeMontador: String? = null
+
+                                when (rawRespostas) {
+                                    is JSONArray -> {
+                                        opcao = rawRespostas.optString(0)
+                                        nomeMontador = rawRespostas.optString(1)
+                                    }
+                                    is String -> {
+                                        opcao = rawRespostas
+                                    }
+                                }
+
+                                if (nomeMontador.isNullOrBlank()) {
+                                    nomeMontador = item.optString("montador")
+                                }
+
+                                preenchimentos.add(Triple(indice, opcao, nomeMontador))
+                            }
+                        }
+
+                        if (preenchimentos.isNotEmpty()) {
+                            runOnUiThread {
+                                if (!isFinishing && !isDestroyed) {
+                                    aplicarChecklistAnterior(preenchimentos)
+                                }
+                            }
+                        }
+                    }
+                    conn.disconnect()
+                } catch (_: Exception) {
+                }
+            }.start()
+        }
+
+        carregarChecklistAnterior()
 
         updateButtonState()
 
