@@ -154,6 +154,7 @@ class FloatingChecklistPreview(
         parsed?.let { mostrarChecklist(it) }
     }
 
+
     private fun mostrarChecklist(checklist: JSONObject) {
         if (activity.isFinishing || activity.isDestroyed) {
             return

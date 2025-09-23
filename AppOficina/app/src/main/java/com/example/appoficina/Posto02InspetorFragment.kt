@@ -123,5 +123,6 @@ class Posto02InspetorFragment : Fragment() {
         }.start()
 
         return view
+    
     }
 }
