@@ -862,6 +862,28 @@ def listar_posto02_insp_proj():
     return jsonify({'projetos': projetos})
 
 
+@bp.route('/posto02/insp/checklist', methods=['GET'])
+def obter_posto02_insp_checklist():
+    """Return checklist data stored in the inspector directory for ``obra``."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(
+        BASE_DIR,
+        'Posto02_Oficina',
+        'Posto02_Oficina_Inspetor',
+        f'checklist_{obra}.json',
+    )
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+
 @bp.route('/posto02/insp/upload', methods=['POST'])
 def posto02_insp_upload():
     """Process inspector answers and advance or return checklist."""
