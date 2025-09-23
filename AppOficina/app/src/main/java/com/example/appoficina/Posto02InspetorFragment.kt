@@ -58,6 +58,7 @@ class Posto02InspetorFragment : Fragment() {
                                             "&ano=" + URLEncoder.encode(ano, "UTF-8"),
                                     )
                                     var divergencias: JSONArray? = null
+                                    var checklistSnapshot: String? = null
                                     var found = false
                                     for (addr in urlsChecklist) {
                                         try {
@@ -66,7 +67,12 @@ class Posto02InspetorFragment : Fragment() {
                                             val response = conn.inputStream.bufferedReader().use { it.readText() }
                                             conn.disconnect()
                                             val json = JSONObject(response)
-                                            divergencias = json.optJSONObject("posto02")?.optJSONArray("divergencias")
+                                            val checklist = ChecklistPayloadUtils.resolveChecklist("posto02", json)
+                                            val posto02Container = json.optJSONObject("posto02")
+                                                ?: json.optJSONObject("checklist")?.optJSONObject("posto02")
+                                                ?: checklist.optJSONObject("posto02")
+                                            divergencias = posto02Container?.optJSONArray("divergencias")
+                                            checklistSnapshot = checklist.toString()
                                             found = true
                                             break
                                         } catch (_: Exception) {
@@ -74,11 +80,13 @@ class Posto02InspetorFragment : Fragment() {
                                     }
                                     if (!isAdded) return@Thread
                                     activity?.runOnUiThread {
-                                        if (found && divergencias != null && divergencias!!.length() > 0) {
+                                        val divergenciasAtuais = divergencias
+                                        val hasDivergencias = divergenciasAtuais != null && divergenciasAtuais.length() > 0
+                                        if (found && hasDivergencias) {
                                             val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
                                             intent.putExtra("obra", obra)
                                             intent.putExtra("ano", ano)
-                                            intent.putExtra("divergencias", divergencias.toString())
+                                            intent.putExtra("divergencias", divergenciasAtuais.toString())
                                             intent.putExtra("tipo", "insp_posto02")
                                             startActivity(intent)
                                         } else {
@@ -91,6 +99,9 @@ class Posto02InspetorFragment : Fragment() {
                                                     intent.putExtra("ano", ano)
                                                     intent.putExtra("tipo", "insp_posto02")
                                                     intent.putExtra("sectionKey", "posto02")
+                                                    checklistSnapshot?.let { snapshot ->
+                                                        intent.putExtra("initialChecklist", snapshot)
+                                                    }
                                                     startActivity(intent)
                                                 }
                                                 .setNegativeButton("Iniciar inspeção") { _, _ ->

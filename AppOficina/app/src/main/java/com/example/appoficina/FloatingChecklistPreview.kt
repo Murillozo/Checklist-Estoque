@@ -127,16 +127,7 @@ class FloatingChecklistPreview(
                 if (codigo in 200..299) {
                     val resposta = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(resposta)
-                    val embeddedChecklist = if (isPosto02) {
-                        json.optJSONObject("checklist") ?: json
-                    } else {
-                        json.optJSONObject("checklist")
-                    }
-                    val displayChecklist = when {
-                        embeddedChecklist == null -> json
-                        embeddedChecklist === json -> json
-                        else -> mergeChecklistPayload(embeddedChecklist, json)
-                    }
+                    val displayChecklist = ChecklistPayloadUtils.resolveChecklist(sectionKey, json)
                     activity.runOnUiThread {
                         mostrarChecklist(displayChecklist)
                     }
@@ -148,6 +139,7 @@ class FloatingChecklistPreview(
             }
         }.start()
     }
+
 
     private fun mergeChecklistPayload(primary: JSONObject, original: JSONObject): JSONObject {
         val merged = JSONObject(primary.toString())
