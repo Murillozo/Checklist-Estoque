@@ -89,16 +89,16 @@ class Posto02InspetorFragment : Fragment() {
                                             intent.putExtra("tipo", "insp_posto02")
                                             startActivity(intent)
                                         } else {
-                                            val intent = Intent(requireContext(), ChecklistHistoryActivity::class.java)
-                                            intent.putExtra("obra", obra)
-                                            intent.putExtra("ano", ano)
-                                            intent.putExtra("tipo", "insp_posto02")
-                                            intent.putExtra("sectionKey", "posto02")
-                                            intent.putExtra("useInspectorSource", true)
-                                            checklistSnapshot?.let { snapshot ->
-                                                intent.putExtra("initialChecklist", snapshot)
+                                            promptName(requireContext(), "Nome do inspetor") { nome ->
+                                                val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
+                                                intent.putExtra("obra", obra)
+                                                intent.putExtra("ano", ano)
+                                                intent.putExtra("inspetor", nome)
+                                                checklistSnapshot?.let { snapshot ->
+                                                    intent.putExtra("initialChecklist", snapshot)
+                                                }
+                                                startActivity(intent)
                                             }
-                                            startActivity(intent)
                                         }
                                     }
                                 }.start()
