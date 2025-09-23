@@ -122,17 +122,18 @@ class FloatingChecklistPreview(
                 if (codigo in 200..299) {
                     val resposta = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(resposta)
-                    val checklist = if (isPosto02) {
+                    val embeddedChecklist = if (isPosto02) {
                         json.optJSONObject("checklist") ?: json
                     } else {
                         json.optJSONObject("checklist")
                     }
+                    val displayChecklist = when {
+                        embeddedChecklist == null -> json
+                        embeddedChecklist === json -> json
+                        else -> mergeChecklistPayload(embeddedChecklist, json)
+                    }
                     activity.runOnUiThread {
-                        if (checklist != null) {
-                            mostrarChecklist(checklist)
-                        } else {
-                            mostrarChecklist(json)
-                        }
+                        mostrarChecklist(displayChecklist)
                     }
                 }
                 conn.disconnect()
@@ -141,6 +142,65 @@ class FloatingChecklistPreview(
                 fetchInProgress = false
             }
         }.start()
+    }
+
+    private fun mergeChecklistPayload(primary: JSONObject, original: JSONObject): JSONObject {
+        val merged = JSONObject(primary.toString())
+
+        fun copyPrimitive(key: String) {
+            if (!merged.has(key)) {
+                val value = original.opt(key)
+                if (value != null && value != JSONObject.NULL) {
+                    merged.put(key, value)
+                }
+            }
+        }
+
+        copyPrimitive("obra")
+        copyPrimitive("ano")
+
+        if (!merged.has("respondentes")) {
+            original.optJSONObject("respondentes")?.let { merged.put("respondentes", it) }
+        }
+
+        if (!merged.has("itens")) {
+            original.optJSONArray("itens")?.let { merged.put("itens", it) }
+        }
+
+        sectionKey?.let { key ->
+            if (!merged.has(key)) {
+                val directMatch = original.optJSONObject(key)
+                if (directMatch != null) {
+                    merged.put(key, directMatch)
+                } else {
+                    val iterator = original.keys()
+                    while (iterator.hasNext()) {
+                        val candidate = iterator.next()
+                        if (candidate.equals(key, ignoreCase = true)) {
+                            val secao = original.optJSONObject(candidate)
+                            if (secao != null) {
+                                merged.put(key, secao)
+                            }
+                            break
+                        }
+                    }
+                }
+            }
+        } ?: run {
+            val iterator = original.keys()
+            while (iterator.hasNext()) {
+                val key = iterator.next()
+                if (merged.has(key)) {
+                    continue
+                }
+                val secao = original.optJSONObject(key) ?: continue
+                if (secao.optJSONArray("itens") != null) {
+                    merged.put(key, secao)
+                }
+            }
+        }
+
+        return merged
     }
 
     private fun mostrarChecklist(checklist: JSONObject) {
