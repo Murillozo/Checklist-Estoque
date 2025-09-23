@@ -513,6 +513,28 @@ def obter_posto02_checklist():
     return jsonify(data)
 
 
+@bp.route('/posto02/insp/checklist', methods=['GET'])
+def obter_posto02_insp_checklist():
+    """Return full checklist data for a given obra awaiting inspection."""
+    obra = request.args.get('obra')
+    if not obra:
+        return jsonify({'erro': 'obra obrigatória'}), 400
+
+    file_path = os.path.join(
+        BASE_DIR,
+        'Posto02_Oficina',
+        'Posto02_Oficina_Inspetor',
+        f'checklist_{obra}.json',
+    )
+    if not os.path.exists(file_path):
+        return jsonify({'erro': 'arquivo não encontrado'}), 404
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    return jsonify(data)
+
+
 @bp.route('/posto08_iqm/projects', methods=['GET'])
 def listar_posto08_iqm_projetos():
     """List available IQM checklists."""

@@ -20,6 +20,7 @@ class ChecklistHistoryActivity : AppCompatActivity() {
     private var ano: String? = null
     private lateinit var tipo: String
     private var sectionKey: String? = null
+    private var useInspectorSource: Boolean = false
 
     private lateinit var container: LinearLayout
     private lateinit var scrollView: ScrollView
@@ -27,6 +28,8 @@ class ChecklistHistoryActivity : AppCompatActivity() {
     private lateinit var emptyView: TextView
     private lateinit var startButton: Button
     private lateinit var closeButton: Button
+
+    private var lastChecklistSnapshot: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +39,7 @@ class ChecklistHistoryActivity : AppCompatActivity() {
         ano = intent.getStringExtra("ano")
         tipo = intent.getStringExtra("tipo") ?: "insp_posto02"
         sectionKey = intent.getStringExtra("sectionKey")
+        useInspectorSource = intent.getBooleanExtra("useInspectorSource", false)
 
         container = findViewById(R.id.history_container)
         scrollView = findViewById(R.id.history_scroll)
@@ -59,10 +63,13 @@ class ChecklistHistoryActivity : AppCompatActivity() {
 
         if (overrideChecklist != null) {
             mostrarEstadoCarregando()
-            val rendered = renderer.render(container, overrideChecklist)
+            val normalized = ChecklistPayloadUtils.resolveChecklist(sectionKey, overrideChecklist)
+            val rendered = renderer.render(container, normalized)
             if (rendered) {
+                lastChecklistSnapshot = normalized.toString()
                 mostrarConteudo()
             } else {
+                lastChecklistSnapshot = null
                 mostrarEstadoVazio()
             }
         } else {
@@ -82,10 +89,12 @@ class ChecklistHistoryActivity : AppCompatActivity() {
             }
 
             val endereco = try {
-                val path = if (sectionKey?.equals("posto02", ignoreCase = true) == true) {
-                    "/json_api/posto02/checklist"
-                } else {
-                    "/json_api/checklist"
+                val path = when {
+                    useInspectorSource && sectionKey?.equals("posto02", ignoreCase = true) == true ->
+                        "/json_api/posto02/insp/checklist"
+                    sectionKey?.equals("posto02", ignoreCase = true) == true ->
+                        "/json_api/posto02/checklist"
+                    else -> "/json_api/checklist"
                 }
                 val builder = StringBuilder("http://$ip:5000")
                 builder.append(path)
@@ -114,8 +123,10 @@ class ChecklistHistoryActivity : AppCompatActivity() {
                     val checklist = ChecklistPayloadUtils.resolveChecklist(sectionKey, json)
                     runOnUiThread {
                         if (renderer.render(container, checklist)) {
+                            lastChecklistSnapshot = checklist.toString()
                             mostrarConteudo()
                         } else {
+                            lastChecklistSnapshot = null
                             mostrarEstadoVazio()
                         }
                     }
@@ -146,6 +157,7 @@ class ChecklistHistoryActivity : AppCompatActivity() {
     }
 
     private fun mostrarEstadoVazio() {
+        lastChecklistSnapshot = null
         runOnUiThread {
             loadingIndicator.visibility = View.GONE
             scrollView.visibility = View.GONE
@@ -170,6 +182,9 @@ class ChecklistHistoryActivity : AppCompatActivity() {
             intent.putExtra("obra", obra)
             intent.putExtra("ano", ano)
             intent.putExtra(extraName, nome)
+            lastChecklistSnapshot?.let { snapshot ->
+                intent.putExtra("initialChecklist", snapshot)
+            }
             startActivity(intent)
             finish()
         }

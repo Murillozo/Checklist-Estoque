@@ -23,6 +23,7 @@ class FloatingChecklistPreview(
     previewCloseButton: ImageButton,
     private val previewToggleButton: ImageButton? = null,
     private val sectionKey: String? = null,
+    private val historyPathOverride: String? = null,
 ) {
     private var previewLoaded = false
     private var previewVisible = false
@@ -97,9 +98,9 @@ class FloatingChecklistPreview(
                 return@Thread
             }
 
-            val isPosto02 = sectionKey?.equals("posto02", ignoreCase = true) == true
             val endereco = try {
-                val path = if (isPosto02) {
+                val isPosto02 = sectionKey?.equals("posto02", ignoreCase = true) == true
+                val path = historyPathOverride ?: if (isPosto02) {
                     "/json_api/posto02/checklist"
                 } else {
                     "/json_api/checklist"
