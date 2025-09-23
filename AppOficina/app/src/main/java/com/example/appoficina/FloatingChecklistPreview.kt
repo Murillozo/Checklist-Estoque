@@ -122,9 +122,13 @@ class FloatingChecklistPreview(
                 if (codigo in 200..299) {
                     val resposta = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(resposta)
-                    val checklist = if (isPosto02) json else json.optJSONObject("checklist")
-                    if (checklist != null || isPosto02) {
-                        activity.runOnUiThread { mostrarChecklist(checklist ?: json) }
+                    val checklist = if (isPosto02) {
+                        json.optJSONObject("checklist") ?: json
+                    } else {
+                        json.optJSONObject("checklist")
+                    }
+                    if (checklist != null) {
+                        activity.runOnUiThread { mostrarChecklist(checklist) }
                     }
                 }
                 conn.disconnect()
