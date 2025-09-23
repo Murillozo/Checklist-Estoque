@@ -140,65 +140,20 @@ class FloatingChecklistPreview(
         }.start()
     }
 
-
-    private fun mergeChecklistPayload(primary: JSONObject, original: JSONObject): JSONObject {
-        val merged = JSONObject(primary.toString())
-
-        fun copyPrimitive(key: String) {
-            if (!merged.has(key)) {
-                val value = original.opt(key)
-                if (value != null && value != JSONObject.NULL) {
-                    merged.put(key, value)
-                }
-            }
+    fun showInitialChecklist(rawChecklist: String?) {
+        if (rawChecklist.isNullOrBlank() || previewLoaded) {
+            return
         }
 
-        copyPrimitive("obra")
-        copyPrimitive("ano")
-
-        if (!merged.has("respondentes")) {
-            original.optJSONObject("respondentes")?.let { merged.put("respondentes", it) }
+        val parsed = try {
+            JSONObject(rawChecklist)
+        } catch (_: Exception) {
+            null
         }
 
-        if (!merged.has("itens")) {
-            original.optJSONArray("itens")?.let { merged.put("itens", it) }
-        }
-
-        sectionKey?.let { key ->
-            if (!merged.has(key)) {
-                val directMatch = original.optJSONObject(key)
-                if (directMatch != null) {
-                    merged.put(key, directMatch)
-                } else {
-                    val iterator = original.keys()
-                    while (iterator.hasNext()) {
-                        val candidate = iterator.next()
-                        if (candidate.equals(key, ignoreCase = true)) {
-                            val secao = original.optJSONObject(candidate)
-                            if (secao != null) {
-                                merged.put(key, secao)
-                            }
-                            break
-                        }
-                    }
-                }
-            }
-        } ?: run {
-            val iterator = original.keys()
-            while (iterator.hasNext()) {
-                val key = iterator.next()
-                if (merged.has(key)) {
-                    continue
-                }
-                val secao = original.optJSONObject(key) ?: continue
-                if (secao.optJSONArray("itens") != null) {
-                    merged.put(key, secao)
-                }
-            }
-        }
-
-        return merged
+        parsed?.let { mostrarChecklist(it) }
     }
+
 
     private fun mostrarChecklist(checklist: JSONObject) {
         if (activity.isFinishing || activity.isDestroyed) {

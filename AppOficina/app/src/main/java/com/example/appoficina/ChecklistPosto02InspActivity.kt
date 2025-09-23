@@ -37,6 +37,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             sectionKey = "posto02",
         )
         previewHelper.loadPreviousChecklist(obra, ano)
+        previewHelper.showInitialChecklist(intent.getStringExtra("initialChecklist"))
 
         val perguntas = listOf(
             "2.1 - PORTAS: Identificação do projeto",
