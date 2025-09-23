@@ -103,8 +103,7 @@
         android:contentDescription="@string/show_previous_checklist"
         android:elevation="8dp"
         android:padding="12dp"
-        android:src="@android:drawable/ic_menu_view"
-        android:tint="?android:attr/textColorPrimary"
+        android:src="@null"
         android:visibility="gone" />
 
 </FrameLayout>
