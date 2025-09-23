@@ -92,8 +92,16 @@ class FloatingChecklistPreview(
                 return@Thread
             }
 
+            val isPosto02 = sectionKey?.equals("posto02", ignoreCase = true) == true
             val endereco = try {
-                val builder = StringBuilder("http://$ip:5000/json_api/checklist?obra=")
+                val path = if (isPosto02) {
+                    "/json_api/posto02/checklist"
+                } else {
+                    "/json_api/checklist"
+                }
+                val builder = StringBuilder("http://$ip:5000")
+                builder.append(path)
+                builder.append("?obra=")
                 builder.append(URLEncoder.encode(obra, "UTF-8"))
                 if (!ano.isNullOrBlank()) {
                     builder.append("&ano=")
@@ -114,9 +122,9 @@ class FloatingChecklistPreview(
                 if (codigo in 200..299) {
                     val resposta = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(resposta)
-                    val checklist = json.optJSONObject("checklist")
-                    if (checklist != null) {
-                        activity.runOnUiThread { mostrarChecklist(checklist) }
+                    val checklist = if (isPosto02) json else json.optJSONObject("checklist")
+                    if (checklist != null || isPosto02) {
+                        activity.runOnUiThread { mostrarChecklist(checklist ?: json) }
                     }
                 }
                 conn.disconnect()
