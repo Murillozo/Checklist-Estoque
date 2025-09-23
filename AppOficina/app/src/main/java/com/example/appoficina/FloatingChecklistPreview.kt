@@ -28,6 +28,7 @@ class FloatingChecklistPreview(
     private var previewVisible = false
     private var fetchInProgress = false
     private val renderer = ChecklistPreviewRenderer(activity, sectionKey)
+    private val useToggleIcons = sectionKey?.equals("posto02", ignoreCase = true) != true
 
     init {
         previewCloseButton.setOnClickListener {
@@ -65,7 +66,11 @@ class FloatingChecklistPreview(
         previewToggleButton?.apply {
             visibility = View.GONE
             isEnabled = false
-            setImageResource(android.R.drawable.ic_menu_view)
+            if (useToggleIcons) {
+                setImageResource(android.R.drawable.ic_menu_view)
+            } else {
+                setImageDrawable(null)
+            }
             contentDescription = activity.getString(R.string.show_previous_checklist)
             setOnClickListener {
                 if (previewVisible) {
@@ -122,13 +127,9 @@ class FloatingChecklistPreview(
                 if (codigo in 200..299) {
                     val resposta = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(resposta)
-                    val checklist = if (isPosto02) {
-                        json.optJSONObject("checklist") ?: json
-                    } else {
-                        json.optJSONObject("checklist")
-                    }
-                    if (checklist != null) {
-                        activity.runOnUiThread { mostrarChecklist(checklist) }
+                    val displayChecklist = ChecklistPayloadUtils.resolveChecklist(sectionKey, json)
+                    activity.runOnUiThread {
+                        mostrarChecklist(displayChecklist)
                     }
                 }
                 conn.disconnect()
@@ -137,6 +138,20 @@ class FloatingChecklistPreview(
                 fetchInProgress = false
             }
         }.start()
+    }
+
+    fun showInitialChecklist(rawChecklist: String?) {
+        if (rawChecklist.isNullOrBlank() || previewLoaded) {
+            return
+        }
+
+        val parsed = try {
+            JSONObject(rawChecklist)
+        } catch (_: Exception) {
+            null
+        }
+
+        parsed?.let { mostrarChecklist(it) }
     }
 
     private fun mostrarChecklist(checklist: JSONObject) {
@@ -183,7 +198,11 @@ class FloatingChecklistPreview(
 
         previewScroll.scrollTo(0, 0)
         previewToggleButton?.apply {
-            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            if (useToggleIcons) {
+                setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            } else {
+                setImageDrawable(null)
+            }
             contentDescription = activity.getString(R.string.hide_previous_checklist)
         }
 
@@ -204,7 +223,11 @@ class FloatingChecklistPreview(
         previewContainer.visibility = View.GONE
         previewVisible = false
         previewToggleButton?.apply {
-            setImageResource(android.R.drawable.ic_menu_view)
+            if (useToggleIcons) {
+                setImageResource(android.R.drawable.ic_menu_view)
+            } else {
+                setImageDrawable(null)
+            }
             contentDescription = activity.getString(R.string.show_previous_checklist)
         }
     }

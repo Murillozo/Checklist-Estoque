@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import org.json.JSONArray
 import org.json.JSONObject
@@ -58,6 +57,7 @@ class Posto02InspetorFragment : Fragment() {
                                             "&ano=" + URLEncoder.encode(ano, "UTF-8"),
                                     )
                                     var divergencias: JSONArray? = null
+                                    var checklistSnapshot: String? = null
                                     var found = false
                                     for (addr in urlsChecklist) {
                                         try {
@@ -66,7 +66,12 @@ class Posto02InspetorFragment : Fragment() {
                                             val response = conn.inputStream.bufferedReader().use { it.readText() }
                                             conn.disconnect()
                                             val json = JSONObject(response)
-                                            divergencias = json.optJSONObject("posto02")?.optJSONArray("divergencias")
+                                            val checklist = ChecklistPayloadUtils.resolveChecklist("posto02", json)
+                                            val posto02Container = json.optJSONObject("posto02")
+                                                ?: json.optJSONObject("checklist")?.optJSONObject("posto02")
+                                                ?: checklist.optJSONObject("posto02")
+                                            divergencias = posto02Container?.optJSONArray("divergencias")
+                                            checklistSnapshot = checklist.toString()
                                             found = true
                                             break
                                         } catch (_: Exception) {
@@ -74,36 +79,26 @@ class Posto02InspetorFragment : Fragment() {
                                     }
                                     if (!isAdded) return@Thread
                                     activity?.runOnUiThread {
-                                        if (found && divergencias != null && divergencias!!.length() > 0) {
+                                        val divergenciasAtuais = divergencias
+                                        val hasDivergencias = divergenciasAtuais != null && divergenciasAtuais.length() > 0
+                                        if (found && hasDivergencias) {
                                             val intent = Intent(requireContext(), PreviewDivergenciasActivity::class.java)
                                             intent.putExtra("obra", obra)
                                             intent.putExtra("ano", ano)
-                                            intent.putExtra("divergencias", divergencias.toString())
+                                            intent.putExtra("divergencias", divergenciasAtuais.toString())
                                             intent.putExtra("tipo", "insp_posto02")
                                             startActivity(intent)
                                         } else {
-                                            AlertDialog.Builder(requireContext())
-                                                .setTitle("Checklist anterior")
-                                                .setMessage("Deseja visualizar o checklist anterior antes de iniciar a inspeção?")
-                                                .setPositiveButton("Visualizar") { _, _ ->
-                                                    val intent = Intent(requireContext(), ChecklistHistoryActivity::class.java)
-                                                    intent.putExtra("obra", obra)
-                                                    intent.putExtra("ano", ano)
-                                                    intent.putExtra("tipo", "insp_posto02")
-                                                    intent.putExtra("sectionKey", "posto02")
-                                                    startActivity(intent)
+                                            promptName(requireContext(), "Nome do inspetor") { nome ->
+                                                val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
+                                                intent.putExtra("obra", obra)
+                                                intent.putExtra("ano", ano)
+                                                intent.putExtra("inspetor", nome)
+                                                checklistSnapshot?.let { snapshot ->
+                                                    intent.putExtra("initialChecklist", snapshot)
                                                 }
-                                                .setNegativeButton("Iniciar inspeção") { _, _ ->
-                                                    promptName(requireContext(), "Nome do inspetor") { nome ->
-                                                        val intent = Intent(requireContext(), ChecklistPosto02InspActivity::class.java)
-                                                        intent.putExtra("obra", obra)
-                                                        intent.putExtra("ano", ano)
-                                                        intent.putExtra("inspetor", nome)
-                                                        startActivity(intent)
-                                                    }
-                                                }
-                                                .setNeutralButton("Cancelar", null)
-                                                .show()
+                                                startActivity(intent)
+                                            }
                                         }
                                     }
                                 }.start()
