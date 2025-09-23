@@ -22,6 +22,18 @@ class ChecklistPosto02Activity : AppCompatActivity() {
             .getString("montadores", "") ?: ""
         val montadoresList = montadoresPrefs.split("\n").filter { it.isNotBlank() }
 
+        val previewHelper = FloatingChecklistPreview(
+            this,
+            findViewById(R.id.preview_container),
+            findViewById<LinearLayout>(R.id.preview_content),
+            findViewById<ScrollView>(R.id.preview_scroll),
+            findViewById(R.id.preview_header),
+            findViewById<ImageButton>(R.id.preview_close_button),
+            findViewById<ImageButton>(R.id.preview_toggle_button),
+            sectionKey = "posto02",
+        )
+        previewHelper.loadPreviousChecklist(obra, ano)
+
         val perguntas = listOf(
             "2.1 - PORTAS: Identificação do projeto",
             "2.1 - PORTAS: Marcação",
