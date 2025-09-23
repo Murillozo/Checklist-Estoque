@@ -2,7 +2,9 @@ package com.example.appoficina
 
 import android.content.Context
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageButton
@@ -20,11 +22,21 @@ import java.net.URL
 class ChecklistPosto02InspActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_checklist_posto02)
+        setContentView(R.layout.activity_checklist_posto02_insp)
 
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
         val inspetor = intent.getStringExtra("inspetor") ?: ""
+
+        val floatingContainer = findViewById<View>(R.id.checklist_window_container)
+        val floatingHeader = findViewById<View>(R.id.checklist_window_header)
+        val backdrop = findViewById<View>(R.id.floating_backdrop)
+        val closeButton = findViewById<ImageButton>(R.id.checklist_window_close_button)
+
+        enableFloatingDrag(floatingContainer, floatingHeader)
+
+        backdrop.setOnClickListener { finish() }
+        closeButton.setOnClickListener { finish() }
 
         val previewHelper = FloatingChecklistPreview(
             this,
@@ -172,6 +184,36 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             Thread { enviarChecklist(payload, "/json_api/posto02/insp/upload") }.start()
             Toast.makeText(this, "Encaminhado ao próximo posto", Toast.LENGTH_SHORT).show()
             finish()
+        }
+    }
+
+    private fun enableFloatingDrag(target: View, handle: View) {
+        var offsetX = 0f
+        var offsetY = 0f
+
+        handle.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    offsetX = target.x - event.rawX
+                    offsetY = target.y - event.rawY
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val parent = target.parent as? ViewGroup ?: return@setOnTouchListener false
+                    if (parent.width == 0 || parent.height == 0) {
+                        return@setOnTouchListener false
+                    }
+                    val maxX = (parent.width - target.width).coerceAtLeast(0)
+                    val maxY = (parent.height - target.height).coerceAtLeast(0)
+                    val newX = (event.rawX + offsetX).coerceIn(0f, maxX.toFloat())
+                    val newY = (event.rawY + offsetY).coerceIn(0f, maxY.toFloat())
+                    target.x = newX
+                    target.y = newY
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> true
+                else -> false
+            }
         }
     }
 
