@@ -28,6 +28,8 @@ class ChecklistHistoryActivity : AppCompatActivity() {
     private lateinit var startButton: Button
     private lateinit var closeButton: Button
 
+    private var lastChecklistSnapshot: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_checklist_history)
@@ -59,10 +61,13 @@ class ChecklistHistoryActivity : AppCompatActivity() {
 
         if (overrideChecklist != null) {
             mostrarEstadoCarregando()
-            val rendered = renderer.render(container, overrideChecklist)
+            val normalized = ChecklistPayloadUtils.resolveChecklist(sectionKey, overrideChecklist)
+            val rendered = renderer.render(container, normalized)
             if (rendered) {
+                lastChecklistSnapshot = normalized.toString()
                 mostrarConteudo()
             } else {
+                lastChecklistSnapshot = null
                 mostrarEstadoVazio()
             }
         } else {
@@ -114,8 +119,10 @@ class ChecklistHistoryActivity : AppCompatActivity() {
                     val checklist = ChecklistPayloadUtils.resolveChecklist(sectionKey, json)
                     runOnUiThread {
                         if (renderer.render(container, checklist)) {
+                            lastChecklistSnapshot = checklist.toString()
                             mostrarConteudo()
                         } else {
+                            lastChecklistSnapshot = null
                             mostrarEstadoVazio()
                         }
                     }
@@ -146,6 +153,7 @@ class ChecklistHistoryActivity : AppCompatActivity() {
     }
 
     private fun mostrarEstadoVazio() {
+        lastChecklistSnapshot = null
         runOnUiThread {
             loadingIndicator.visibility = View.GONE
             scrollView.visibility = View.GONE
@@ -170,6 +178,9 @@ class ChecklistHistoryActivity : AppCompatActivity() {
             intent.putExtra("obra", obra)
             intent.putExtra("ano", ano)
             intent.putExtra(extraName, nome)
+            lastChecklistSnapshot?.let { snapshot ->
+                intent.putExtra("initialChecklist", snapshot)
+            }
             startActivity(intent)
             finish()
         }
