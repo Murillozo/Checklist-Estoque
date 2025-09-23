@@ -19,6 +19,7 @@ class ChecklistHistoryActivity : AppCompatActivity() {
     private lateinit var obra: String
     private var ano: String? = null
     private lateinit var tipo: String
+    private var sectionKey: String? = null
 
     private lateinit var container: LinearLayout
     private lateinit var scrollView: ScrollView
@@ -34,7 +35,7 @@ class ChecklistHistoryActivity : AppCompatActivity() {
         obra = intent.getStringExtra("obra") ?: ""
         ano = intent.getStringExtra("ano")
         tipo = intent.getStringExtra("tipo") ?: "insp_posto02"
-        val sectionKey = intent.getStringExtra("sectionKey")
+        sectionKey = intent.getStringExtra("sectionKey")
 
         container = findViewById(R.id.history_container)
         scrollView = findViewById(R.id.history_scroll)
@@ -48,7 +49,25 @@ class ChecklistHistoryActivity : AppCompatActivity() {
         startButton.setOnClickListener { iniciarInspecao() }
         closeButton.setOnClickListener { finish() }
 
-        carregarChecklistAnterior(renderer)
+        val overrideChecklist = intent.getStringExtra("initialChecklist")?.let { raw ->
+            try {
+                JSONObject(raw)
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        if (overrideChecklist != null) {
+            mostrarEstadoCarregando()
+            val rendered = renderer.render(container, overrideChecklist)
+            if (rendered) {
+                mostrarConteudo()
+            } else {
+                mostrarEstadoVazio()
+            }
+        } else {
+            carregarChecklistAnterior(renderer)
+        }
     }
 
     private fun carregarChecklistAnterior(renderer: ChecklistPreviewRenderer) {
@@ -63,7 +82,14 @@ class ChecklistHistoryActivity : AppCompatActivity() {
             }
 
             val endereco = try {
-                val builder = StringBuilder("http://$ip:5000/json_api/checklist?obra=")
+                val path = if (sectionKey?.equals("posto02", ignoreCase = true) == true) {
+                    "/json_api/posto02/checklist"
+                } else {
+                    "/json_api/checklist"
+                }
+                val builder = StringBuilder("http://$ip:5000")
+                builder.append(path)
+                builder.append("?obra=")
                 builder.append(URLEncoder.encode(obra, "UTF-8"))
                 val anoAtual = ano
                 if (!anoAtual.isNullOrBlank()) {
@@ -85,9 +111,9 @@ class ChecklistHistoryActivity : AppCompatActivity() {
                 if (codigo in 200..299) {
                     val resposta = conn.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(resposta)
-                    val checklist = json.optJSONObject("checklist")
+                    val checklist = ChecklistPayloadUtils.resolveChecklist(sectionKey, json)
                     runOnUiThread {
-                        if (checklist != null && renderer.render(container, checklist)) {
+                        if (renderer.render(container, checklist)) {
                             mostrarConteudo()
                         } else {
                             mostrarEstadoVazio()
