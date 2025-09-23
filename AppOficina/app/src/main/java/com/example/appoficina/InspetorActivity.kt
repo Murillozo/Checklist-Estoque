@@ -17,6 +17,7 @@ class InspetorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inspetor)
+        supportActionBar?.title = getString(R.string.inspecao_title)
 
         // Botão de refresh
         val refreshButton: Button = findViewById(R.id.btnRefresh)
