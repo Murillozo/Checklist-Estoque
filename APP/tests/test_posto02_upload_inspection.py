@@ -60,3 +60,33 @@ def test_upload_and_inspection_without_divergencias(tmp_path):
     res_insp = client.post("/posto02/insp/upload", json=insp_payload)
     assert res_insp.status_code == 200
     assert res_insp.get_json()["divergencias"] == []
+
+
+def test_obter_posto02_insp_checklist_success(tmp_path):
+    insp_dir = tmp_path / "Posto02_Oficina" / "Posto02_Oficina_Inspetor"
+    insp_dir.mkdir(parents=True)
+    payload = {"obra": "OBRA2", "posto02": {"itens": [1, 2, 3]}}
+    with open(insp_dir / "checklist_OBRA2.json", "w", encoding="utf-8") as f:
+        json.dump(payload, f)
+
+    client = _client(tmp_path)
+
+    res = client.get("/posto02/insp/checklist", query_string={"obra": "OBRA2"})
+    assert res.status_code == 200
+    assert res.get_json() == payload
+
+
+def test_obter_posto02_insp_checklist_missing_param(tmp_path):
+    client = _client(tmp_path)
+
+    res = client.get("/posto02/insp/checklist")
+    assert res.status_code == 400
+    assert res.get_json()["erro"] == "obra obrigatória"
+
+
+def test_obter_posto02_insp_checklist_not_found(tmp_path):
+    client = _client(tmp_path)
+
+    res = client.get("/posto02/insp/checklist", query_string={"obra": "NAOEXISTE"})
+    assert res.status_code == 404
+    assert res.get_json()["erro"] == "arquivo não encontrado"
