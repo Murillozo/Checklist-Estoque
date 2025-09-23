@@ -7,4 +7,10 @@
     <string name="start_inspection">Iniciar inspeção</string>
     <string name="close">Fechar</string>
     <string name="inspecao_title">INSPEÇÃO</string>
+    <string name="floating_checklist_title_posto02">Checklist - Posto 02 (Inspetor)</string>
+    <string name="close_checklist_window">Fechar checklist</string>
+    <string name="previous_checklist_title">Pré-visualização do checklist anterior</string>
+    <string name="close_previous_checklist">Fechar pré-visualização</string>
+    <string name="concluir">Concluir</string>
+    <string name="seguir">Seguir</string>
 </resources>
