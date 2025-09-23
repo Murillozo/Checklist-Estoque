@@ -20,6 +20,7 @@ class ChecklistHistoryActivity : AppCompatActivity() {
     private var ano: String? = null
     private lateinit var tipo: String
     private var sectionKey: String? = null
+    private var useInspectorSource: Boolean = false
 
     private lateinit var container: LinearLayout
     private lateinit var scrollView: ScrollView
@@ -38,6 +39,7 @@ class ChecklistHistoryActivity : AppCompatActivity() {
         ano = intent.getStringExtra("ano")
         tipo = intent.getStringExtra("tipo") ?: "insp_posto02"
         sectionKey = intent.getStringExtra("sectionKey")
+        useInspectorSource = intent.getBooleanExtra("useInspectorSource", false)
 
         container = findViewById(R.id.history_container)
         scrollView = findViewById(R.id.history_scroll)
@@ -87,10 +89,12 @@ class ChecklistHistoryActivity : AppCompatActivity() {
             }
 
             val endereco = try {
-                val path = if (sectionKey?.equals("posto02", ignoreCase = true) == true) {
-                    "/json_api/posto02/checklist"
-                } else {
-                    "/json_api/checklist"
+                val path = when {
+                    useInspectorSource && sectionKey?.equals("posto02", ignoreCase = true) == true ->
+                        "/json_api/posto02/insp/checklist"
+                    sectionKey?.equals("posto02", ignoreCase = true) == true ->
+                        "/json_api/posto02/checklist"
+                    else -> "/json_api/checklist"
                 }
                 val builder = StringBuilder("http://$ip:5000")
                 builder.append(path)

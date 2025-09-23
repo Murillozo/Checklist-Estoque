@@ -35,6 +35,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             findViewById<ImageButton>(R.id.preview_close_button),
             findViewById<ImageButton>(R.id.preview_toggle_button),
             sectionKey = "posto02",
+            historyPathOverride = "/json_api/posto02/insp/checklist",
         )
         previewHelper.loadPreviousChecklist(obra, ano)
         previewHelper.showInitialChecklist(intent.getStringExtra("initialChecklist"))

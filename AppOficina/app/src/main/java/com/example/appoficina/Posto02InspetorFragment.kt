@@ -52,7 +52,7 @@ class Posto02InspetorFragment : Fragment() {
                             tv.setOnClickListener {
                                 Thread {
                                     val urlsChecklist = listOf(
-                                        "http://$ip:5000/json_api/posto02/checklist?obra=" +
+                                        "http://$ip:5000/json_api/posto02/insp/checklist?obra=" +
                                             URLEncoder.encode(obra, "UTF-8") +
                                             "&ano=" + URLEncoder.encode(ano, "UTF-8"),
                                     )
@@ -94,6 +94,7 @@ class Posto02InspetorFragment : Fragment() {
                                             intent.putExtra("ano", ano)
                                             intent.putExtra("tipo", "insp_posto02")
                                             intent.putExtra("sectionKey", "posto02")
+                                            intent.putExtra("useInspectorSource", true)
                                             checklistSnapshot?.let { snapshot ->
                                                 intent.putExtra("initialChecklist", snapshot)
                                             }
