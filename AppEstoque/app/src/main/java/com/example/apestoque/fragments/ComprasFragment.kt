@@ -47,7 +47,10 @@ class ComprasFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val lista = withContext(Dispatchers.IO) { NetworkModule.api(requireContext()).listarSolicitacoes() }
-                val pendentes = lista.filter { it.status != "aprovado" }
+                val statusCompras = setOf("compras", "pendente_compras")
+                val pendentes = lista.filter { sol ->
+                    sol.status?.lowercase() in statusCompras
+                }
                 if (pendentes.isEmpty()) {
                     tvMsg.text = "Nenhuma solicitação."
                     tvMsg.visibility = View.VISIBLE
