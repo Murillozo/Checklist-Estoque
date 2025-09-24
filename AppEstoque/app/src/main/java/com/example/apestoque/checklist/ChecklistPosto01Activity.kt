@@ -1,7 +1,6 @@
     package com.example.apestoque.checklist
 
     import android.app.Activity
-    import android.content.Context
     import android.content.Intent
     import android.os.Bundle
     import android.widget.Button
@@ -9,22 +8,11 @@
     import android.widget.Toast
     import androidx.activity.result.contract.ActivityResultContracts
     import androidx.appcompat.app.AppCompatActivity
-    import androidx.lifecycle.lifecycleScope
     import com.example.apestoque.R
     import com.example.apestoque.data.ChecklistItem
-    import com.example.apestoque.data.ChecklistRequest
-    import com.example.apestoque.data.ChecklistMaterial
-    import com.example.apestoque.data.ComprasRequest
-    import com.example.apestoque.data.Item
-    import com.example.apestoque.data.JsonNetworkModule
-    import com.example.apestoque.data.NetworkModule
     import com.squareup.moshi.Moshi
     import com.squareup.moshi.Types
     import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-    import kotlinx.coroutines.Dispatchers
-    import kotlinx.coroutines.launch
-    import kotlinx.coroutines.withContext
-    import java.util.Calendar
 
     class ChecklistPosto01Activity : AppCompatActivity() {
         private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -44,12 +32,6 @@
             val jsonMateriais = intent.getStringExtra("materiais") ?: "[]"
             val obra = intent.getStringExtra("obra") ?: ""
             val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-            val pendentes = jsonPend?.let {
-                val typePend = Types.newParameterizedType(List::class.java, Item::class.java)
-                moshi.adapter<List<Item>>(typePend).fromJson(it)
-            }
-            val typeMateriais = Types.newParameterizedType(List::class.java, ChecklistMaterial::class.java)
-            val materiais = moshi.adapter<List<ChecklistMaterial>>(typeMateriais).fromJson(jsonMateriais) ?: emptyList()
 
             val triplets = (1..54).map { i ->
                 val c = resources.getIdentifier("cbQ${i}C", "id", packageName)
@@ -172,28 +154,9 @@
                 }
 
                 if (respostasSelecionadas.any { it.contains("NC") }) {
-                    val ano = Calendar.getInstance().get(Calendar.YEAR).toString()
-                    val prefs = getSharedPreferences("app", Context.MODE_PRIVATE)
-                    val suprimento = prefs.getString("operador_suprimentos", "") ?: ""
-
-                    lifecycleScope.launch {
-                        try {
-                            withContext(Dispatchers.IO) {
-                                val request = ChecklistRequest(obra, ano, suprimento, itensChecklist, materiais, "AppEstoque")
-                                JsonNetworkModule.api(this@ChecklistPosto01Activity).salvarChecklist(request)
-                                if (pendentes == null) {
-                                    NetworkModule.api(this@ChecklistPosto01Activity).aprovarSolicitacao(id)
-                                } else {
-                                    NetworkModule.api(this@ChecklistPosto01Activity).marcarCompras(id, ComprasRequest(pendentes))
-                                }
-                            }
-                            Toast.makeText(this@ChecklistPosto01Activity, "MATERIAL INCOMPLETO", Toast.LENGTH_LONG).show()
-                            setResult(Activity.RESULT_OK)
-                            finish()
-                        } catch (e: Exception) {
-                            Toast.makeText(this@ChecklistPosto01Activity, "Erro ao concluir", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    Toast.makeText(this@ChecklistPosto01Activity, "MATERIAL INCOMPLETO", Toast.LENGTH_LONG).show()
+                    setResult(Activity.RESULT_CANCELED)
+                    finish()
                 } else {
                     val type = Types.newParameterizedType(List::class.java, ChecklistItem::class.java)
                     val jsonItens = moshi.adapter<List<ChecklistItem>>(type).toJson(itensChecklist)
