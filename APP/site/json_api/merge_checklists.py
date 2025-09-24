@@ -105,6 +105,48 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
 
     buckets: Dict[str, Dict[str, Any]] = {}
 
+    def _normalize_numero(valor: Any) -> Any:
+        if isinstance(valor, bool):
+            return valor
+        if isinstance(valor, (int, float)):
+            if isinstance(valor, float):
+                return int(valor) if valor.is_integer() else valor
+            return valor
+        if isinstance(valor, str):
+            texto = valor.strip()
+            if not texto:
+                return texto
+            try:
+                return int(texto)
+            except ValueError:
+                return texto
+        return valor
+
+    def _numero_sort_key(valor: Any) -> Tuple[int, Any]:
+        if isinstance(valor, bool):
+            return (2, str(valor))
+        if isinstance(valor, (int, float)):
+            return (0, float(valor))
+        if isinstance(valor, str):
+            try:
+                return (0, float(valor))
+            except ValueError:
+                return (1, valor)
+        return (3, str(valor))
+
+    def _registrar_numero(bucket: Dict[str, Any], numero: Any) -> None:
+        if isinstance(numero, list):
+            for valor in numero:
+                _registrar_numero(bucket, valor)
+            return
+        if numero is None:
+            return
+        normalizado = _normalize_numero(numero)
+        try:
+            bucket["numeros"].add(normalizado)
+        except TypeError:
+            pass
+
     def _bucket_for(pergunta: str) -> Dict[str, Any]:
         bucket = buckets.setdefault(
             pergunta,
@@ -228,8 +270,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         )
         resposta = _canonicalize_suprimento_roles(resposta)
         bucket = _bucket_for(pergunta)
-        if numero is not None:
-            bucket["numeros"].add(numero)
+        _registrar_numero(bucket, numero)
         _update_pergunta(bucket, "pergunta_sup", pergunta)
         bucket["res_sup"] = _merge_dict(bucket.get("res_sup"), resposta)
     for item in json_producao.get("itens", []):
@@ -243,15 +284,14 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
             json_producao,
         )
         bucket = _bucket_for(pergunta)
-        if numero is not None:
-            bucket["numeros"].add(numero)
+        _registrar_numero(bucket, numero)
         _update_pergunta(bucket, "pergunta_prod", pergunta)
         bucket["res_prod"] = _merge_dict(bucket.get("res_prod"), resposta)
         
         
     result_items: List[Dict[str, Any]] = []
     for pergunta, dados in buckets.items():
-        numeros = sorted(dados.get("numeros", set()))
+        numeros = sorted(dados.get("numeros", set()), key=_numero_sort_key)
         res_sup = dados.get("res_sup")
         res_prod = dados.get("res_prod")
         res_unificado = _merge_dict(res_sup, res_prod)
@@ -386,6 +426,83 @@ def _dedup_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 
+def _load_existing_suprimento_payload(
+    base_dir: str, obra: Any
+) -> Optional[Dict[str, Any]]:
+    """Return a synthetic suprimento payload based on previous merges.
+
+    When a production checklist arrives but the raw suprimento upload was
+    already consumed (and consequently deleted) we still need a baseline with
+    the warehouse answers in order to detect divergences. This helper inspects
+    the consolidated checklists stored under ``Posto01_Oficina`` and
+    ``Posto02_Oficina`` looking for a file that matches ``obra``. If found, the
+    function extracts only the suprimento answers and reshapes them into the
+    same structure produced by AppEstoque so that :func:`merge_checklists` can
+    operate normally.
+    """
+
+    if obra is None:
+        return None
+
+    obra_normalized = str(obra).strip()
+    if not obra_normalized:
+        return None
+
+    candidatos = ["Posto01_Oficina", "Posto02_Oficina"]
+    for folder in candidatos:
+        caminho = os.path.join(base_dir, folder, f"checklist_{obra_normalized}.json")
+        if not os.path.isfile(caminho):
+            continue
+        try:
+            with open(caminho, "r", encoding="utf-8") as fp:
+                dados = json.load(fp)
+        except Exception:
+            continue
+
+        itens_extraidos: List[Dict[str, Any]] = []
+        for item in dados.get("itens", []) or []:
+            respostas = item.get("respostas")
+            if not isinstance(respostas, dict):
+                continue
+            valores = respostas.get("suprimento")
+            if valores is None:
+                continue
+            if isinstance(valores, list):
+                lista = list(valores)
+            else:
+                lista = [valores]
+            if not lista:
+                continue
+            numero = item.get("numero")
+            if isinstance(numero, list):
+                numero_val = numero[0] if numero else None
+            else:
+                numero_val = numero
+            itens_extraidos.append(
+                {
+                    "numero": numero_val,
+                    "pergunta": item.get("pergunta"),
+                    "respostas": {"suprimento": lista},
+                }
+            )
+
+        if not itens_extraidos:
+            continue
+
+        respondentes = dados.get("respondentes", {}) or {}
+        suprimento_nome = respondentes.get("suprimento") or dados.get("suprimento")
+
+        return {
+            "obra": dados.get("obra", obra_normalized),
+            "ano": dados.get("ano", ""),
+            "suprimento": suprimento_nome,
+            "itens": itens_extraidos,
+            "materiais": dados.get("materiais", []),
+        }
+
+    return None
+
+
 def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dict[str, Any]]:
     """Merge checklist pairs found in ``base_dir`` grouped by ``obra``.
 
@@ -437,6 +554,10 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
             if sup_entries
             else None
         )
+        if sup is None:
+            fallback_sup = _load_existing_suprimento_payload(base_dir, obra)
+            if fallback_sup is not None:
+                sup = {"data": fallback_sup, "path": None}
         prod = (
             max(prod_entries, key=lambda e: os.path.getmtime(e["path"]))
             if prod_entries
@@ -445,17 +566,25 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
 
         # remove older checklist files to avoid leftovers
         for entry in sup_entries:
-            if sup is None or entry["path"] != sup["path"]:
-                try:
-                    os.remove(entry["path"])
-                except OSError:
-                    pass
+            if sup is None:
+                continue
+            caminho = entry.get("path")
+            if not caminho or caminho == sup.get("path"):
+                continue
+            try:
+                os.remove(caminho)
+            except OSError:
+                pass
         for entry in prod_entries:
-            if prod is None or entry["path"] != prod["path"]:
-                try:
-                    os.remove(entry["path"])
-                except OSError:
-                    pass
+            if prod is None:
+                continue
+            caminho = entry.get("path")
+            if not caminho or caminho == prod.get("path"):
+                continue
+            try:
+                os.remove(caminho)
+            except OSError:
+                pass
 
         if not (sup and prod):
             continue
@@ -488,11 +617,16 @@ def merge_directory(base_dir: str, output_dir: Optional[str] = None) -> List[Dic
 
         with open(out_path, "w", encoding="utf-8") as fp:
             json.dump(result, fp, ensure_ascii=False, indent=2)
-        try:
-            os.remove(sup["path"])
-            os.remove(prod["path"])
-        except OSError:
-            pass
+        for chosen in (sup, prod):
+            if not chosen:
+                continue
+            caminho = chosen.get("path")
+            if not caminho:
+                continue
+            try:
+                os.remove(caminho)
+            except OSError:
+                pass
         merged.append(result)
     return merged
 
