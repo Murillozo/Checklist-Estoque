@@ -1,7 +1,7 @@
 import os
 import json
 import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def _merge_respostas(
@@ -516,27 +516,117 @@ def find_mismatches(directory: str) -> List[Dict[str, Any]]:
             continue
 
         divergencias: List[Dict[str, Any]] = []
-        for item in data.get("itens", []):
-            resp = item.get("respostas")
-            has_resposta = False
-            if isinstance(resp, dict):
-                for valores in resp.values():
+
+        def _normalize_answer(value: Any) -> str:
+            texto = str(value).strip().upper()
+            for simbolo in (".", "/"):
+                texto = texto.replace(simbolo, "")
+            return texto
+
+        def _is_non_conforming(value: Any) -> bool:
+            token = _normalize_answer(value)
+            return token not in {"", "C", "OK", "SIM", "YES", "CONFORME"}
+
+        def _analisar_respostas(respostas: Any) -> Tuple[bool, bool, Dict[str, List[str]]]:
+            has_answer = False
+            has_divergent = False
+            coletadas: Dict[str, List[str]] = {}
+
+            def registrar(papel: Optional[str], valores: Any) -> None:
+                nonlocal has_answer, has_divergent
+                if isinstance(valores, list):
+                    if not valores:
+                        return
+                    primeiro = valores[0]
+                    if isinstance(primeiro, str):
+                        resposta = primeiro.strip()
+                        if not resposta:
+                            return
+                        has_answer = True
+                        if _is_non_conforming(resposta):
+                            has_divergent = True
+                    else:
+                        has_answer = True
+                        if _is_non_conforming(primeiro):
+                            has_divergent = True
+                    if isinstance(papel, str) and papel not in coletadas:
+                        coletadas[papel] = list(valores)
+                elif valores is not None:
+                    primeiro = valores
+                    if isinstance(primeiro, str):
+                        resposta = primeiro.strip()
+                        if not resposta:
+                            return
+                        has_answer = True
+                        if _is_non_conforming(resposta):
+                            has_divergent = True
+                    else:
+                        has_answer = True
+                        if _is_non_conforming(primeiro):
+                            has_divergent = True
+                    if isinstance(papel, str) and papel not in coletadas:
+                        coletadas[papel] = [str(primeiro)]
+
+            if isinstance(respostas, dict):
+                for papel, valores in respostas.items():
+                    registrar(papel, valores)
+            elif isinstance(respostas, list):
+                if respostas and all(not isinstance(entry, dict) for entry in respostas):
+                    registrar(None, respostas)
+                else:
+                    for entrada in respostas:
+                        if isinstance(entrada, dict):
+                            papel = entrada.get("papel") or entrada.get("role")
+                            valores = entrada.get("resposta") or entrada.get("valor")
+                            registrar(papel, valores)
+                        else:
+                            registrar(None, entrada)
+            elif respostas is not None:
+                registrar(None, respostas)
+
+            return has_answer, has_divergent, coletadas
+
+        def _find_first(collected: Dict[str, List[str]], candidatos: List[str]) -> Optional[List[str]]:
+            if not collected:
+                return None
+            for candidato in candidatos:
+                valores = collected.get(candidato)
+                if isinstance(valores, list) and valores:
+                    return list(valores)
+            normalized = {cand.lower() for cand in candidatos}
+            for chave, valores in collected.items():
+                if isinstance(chave, str) and chave.lower() in normalized:
                     if isinstance(valores, list) and valores:
-                        has_resposta = True
-                        break
-            elif isinstance(resp, list):
-                has_resposta = bool(resp)
-            elif isinstance(item.get("resposta"), list):  # compat
-                resp = item.get("resposta")
-                has_resposta = bool(resp)
-            if not has_resposta:
-                divergencias.append(
-                    {
-                        "numero": item.get("numero"),
-                        "pergunta": item.get("pergunta"),
-                        "respostas": resp,
-                    }
-                )
+                        return list(valores)
+            return None
+
+        for item in data.get("itens", []):
+            respostas_obj = item.get("respostas")
+            has_resposta, has_divergente, coletadas = _analisar_respostas(respostas_obj)
+            resposta_base = respostas_obj
+
+            if not has_resposta and not has_divergente:
+                legado = item.get("resposta")
+                leg_resposta, leg_divergente, coletadas_legado = _analisar_respostas(legado)
+                if leg_resposta or leg_divergente:
+                    has_resposta = leg_resposta
+                    has_divergente = has_divergente or leg_divergente
+                    resposta_base = legado
+                    coletadas.update(coletadas_legado)
+
+            if not has_resposta or has_divergente:
+                divergencia = {
+                    "numero": item.get("numero"),
+                    "pergunta": item.get("pergunta"),
+                    "respostas": resposta_base,
+                }
+                sup = _find_first(coletadas, ["suprimento"])
+                if sup is not None:
+                    divergencia["suprimento"] = sup
+                prod = _find_first(coletadas, ["produção", "producao", "montador"])
+                if prod is not None:
+                    divergencia["produção"] = prod
+                divergencias.append(divergencia)
         if divergencias:
             resultados.append(
                 {

@@ -271,6 +271,29 @@ def test_find_mismatches_ignores_additional_production_annotations(tmp_path: pat
     assert find_mismatches(str(tmp_path)) == []
 
 
+def test_find_mismatches_reports_nc_answers(tmp_path: pathlib.Path) -> None:
+    path = tmp_path / "checklist_OBRA1.json"
+    _write_checklist(path, ["NC", "Carlos"], ["C", "Joao"])
+
+    resultado = find_mismatches(str(tmp_path))
+    assert len(resultado) == 1
+    divergencia = resultado[0]["divergencias"][0]
+    assert divergencia["suprimento"] == ["NC", "Carlos"]
+    assert divergencia["produção"] == ["C", "Joao"]
+    assert divergencia["respostas"]["suprimento"] == ["NC", "Carlos"]
+
+
+def test_find_mismatches_reports_na_answers(tmp_path: pathlib.Path) -> None:
+    path = tmp_path / "checklist_OBRA1.json"
+    _write_checklist(path, ["C", "Carlos"], ["NA", "Joao"])
+
+    resultado = find_mismatches(str(tmp_path))
+    assert len(resultado) == 1
+    divergencia = resultado[0]["divergencias"][0]
+    assert divergencia["suprimento"] == ["C", "Carlos"]
+    assert divergencia["produção"] == ["NA", "Joao"]
+
+
 def test_move_matching_preserves_extra_annotations(tmp_path: pathlib.Path) -> None:
     src_dir = tmp_path / "Posto01_Oficina"
     src_dir.mkdir()
