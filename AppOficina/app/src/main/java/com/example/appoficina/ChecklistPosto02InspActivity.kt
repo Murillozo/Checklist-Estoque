@@ -2,9 +2,7 @@ package com.example.appoficina
 
 import android.content.Context
 import android.os.Bundle
-import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageButton
@@ -24,55 +22,16 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_checklist_posto02_insp)
 
-        val floatingWindow = findViewById<View>(R.id.checklist_window)
-        val floatingHeader = findViewById<View>(R.id.checklist_header)
-        val backdrop = findViewById<View>(R.id.checklist_backdrop)
+        // --- ELEMENTOS DO LAYOUT ---
         val closeButton = findViewById<ImageButton>(R.id.checklist_close_button)
+        closeButton.setOnClickListener { finish() } // Fecha a Activity ao clicar no X
 
-        val closeAction = View.OnClickListener { finish() }
-        closeButton.setOnClickListener(closeAction)
-        backdrop.setOnClickListener(closeAction)
-
-        var offsetX = 0f
-        var offsetY = 0f
-        floatingHeader.setOnTouchListener { _, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    offsetX = floatingWindow.x - event.rawX
-                    offsetY = floatingWindow.y - event.rawY
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val parent = floatingWindow.parent
-                    if (parent is View && parent.width > 0 && parent.height > 0) {
-                        val maxX = (parent.width - floatingWindow.width).coerceAtLeast(0)
-                        val maxY = (parent.height - floatingWindow.height).coerceAtLeast(0)
-                        val newX = (event.rawX + offsetX).coerceIn(0f, maxX.toFloat())
-                        val newY = (event.rawY + offsetY).coerceIn(0f, maxY.toFloat())
-                        floatingWindow.x = newX
-                        floatingWindow.y = newY
-                    }
-                    true
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> true
-                else -> false
-            }
-        }
-
+        // --- RECEBENDO DADOS DO INTENT ---
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
         val inspetor = intent.getStringExtra("inspetor") ?: ""
 
-        val floatingContainer = findViewById<View>(R.id.checklist_window_container)
-        val floatingHeader = findViewById<View>(R.id.checklist_window_header)
-        val backdrop = findViewById<View>(R.id.floating_backdrop)
-        val closeButton = findViewById<ImageButton>(R.id.checklist_window_close_button)
-
-        enableFloatingDrag(floatingContainer, floatingHeader)
-
-        backdrop.setOnClickListener { finish() }
-        closeButton.setOnClickListener { finish() }
-
+        // --- CONFIGURAÇÃO DA PRÉVIA ---
         val previewHelper = FloatingChecklistPreview(
             this,
             findViewById(R.id.preview_container),
@@ -87,6 +46,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         previewHelper.loadPreviousChecklist(obra, ano)
         previewHelper.showInitialChecklist(intent.getStringExtra("initialChecklist"))
 
+        // --- LISTA DE PERGUNTAS ---
         val perguntas = listOf(
             "2.1 - PORTAS: Identificação do projeto",
             "2.1 - PORTAS: Marcação",
@@ -115,6 +75,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             "2.3 - COMPONENTES FIXAÇÃO DIRETA: Fixação",
         )
 
+        // --- CRIAÇÃO DOS CHECKBOXES ---
         val container = findViewById<LinearLayout>(R.id.questions_container)
         val triplets = mutableListOf<Triple<CheckBox, CheckBox, CheckBox>>()
 
@@ -126,14 +87,15 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             val row = LinearLayout(this)
             row.orientation = LinearLayout.HORIZONTAL
 
-            val c = CheckBox(this)
-            c.text = "C"
-            val nc = CheckBox(this)
-            nc.text = "N.C"
-            nc.setPadding(24, 0, 0, 0)
-            val na = CheckBox(this)
-            na.text = "N.A"
-            na.setPadding(24, 0, 0, 0)
+            val c = CheckBox(this).apply { text = "C" }
+            val nc = CheckBox(this).apply {
+                text = "N.C"
+                setPadding(24, 0, 0, 0)
+            }
+            val na = CheckBox(this).apply {
+                text = "N.A"
+                setPadding(24, 0, 0, 0)
+            }
 
             row.addView(c)
             row.addView(nc)
@@ -143,10 +105,12 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
             triplets.add(Triple(c, nc, na))
         }
 
+        // --- BOTÕES ---
         val concluirButton = findViewById<Button>(R.id.btnConcluirPosto02)
         val seguirButton = findViewById<Button>(R.id.btnSeguirPosto02)
         seguirButton.visibility = View.VISIBLE
 
+        // --- FUNÇÃO PARA ATUALIZAR ESTADO DOS BOTÕES ---
         fun updateButtonState() {
             val enabled = triplets.all { (c, nc, na) ->
                 c.isChecked || nc.isChecked || na.isChecked
@@ -181,6 +145,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
 
         updateButtonState()
 
+        // --- FUNÇÃO PARA MONTAR O JSON ---
         fun buildPayload(): JSONObject {
             val itens = JSONArray()
             triplets.forEachIndexed { idx, (c, nc, na) ->
@@ -199,14 +164,15 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
                 obj.put("resposta", resp)
                 itens.put(obj)
             }
-            val payload = JSONObject()
-            payload.put("obra", obra)
-            payload.put("ano", ano)
-            payload.put("inspetor", inspetor)
-            payload.put("itens", itens)
-            return payload
+            return JSONObject().apply {
+                put("obra", obra)
+                put("ano", ano)
+                put("inspetor", inspetor)
+                put("itens", itens)
+            }
         }
 
+        // --- AÇÕES DOS BOTÕES ---
         concluirButton.setOnClickListener {
             Thread { enviarChecklist(buildPayload(), "/json_api/posto02/insp/upload") }.start()
             finish()
@@ -222,36 +188,7 @@ class ChecklistPosto02InspActivity : AppCompatActivity() {
         }
     }
 
-    private fun enableFloatingDrag(target: View, handle: View) {
-        var offsetX = 0f
-        var offsetY = 0f
-
-        handle.setOnTouchListener { _, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    offsetX = target.x - event.rawX
-                    offsetY = target.y - event.rawY
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val parent = target.parent as? ViewGroup ?: return@setOnTouchListener false
-                    if (parent.width == 0 || parent.height == 0) {
-                        return@setOnTouchListener false
-                    }
-                    val maxX = (parent.width - target.width).coerceAtLeast(0)
-                    val maxY = (parent.height - target.height).coerceAtLeast(0)
-                    val newX = (event.rawX + offsetX).coerceIn(0f, maxX.toFloat())
-                    val newY = (event.rawY + offsetY).coerceIn(0f, maxY.toFloat())
-                    target.x = newX
-                    target.y = newY
-                    true
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> true
-                else -> false
-            }
-        }
-    }
-
+    // --- FUNÇÃO PARA ENVIAR O CHECKLIST ---
     private fun enviarChecklist(json: JSONObject, path: String) {
         val ip = getSharedPreferences("config", Context.MODE_PRIVATE)
             .getString("api_ip", "192.168.0.135")
