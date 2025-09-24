@@ -214,6 +214,43 @@ def test_merge_checklists_maps_appestoque_aliases_to_suprimento() -> None:
     }
 
 
+def test_merge_checklists_accepts_list_numbers_from_previous_merges() -> None:
+    pergunta = "1.1 - INVÓLUCRO"
+    sup = {
+        "obra": "OBRA123",
+        "ano": "2025",
+        "suprimento": "Ana",
+        "itens": [
+            {
+                "numero": [55, 56],
+                "pergunta": pergunta,
+                "respostas": {"suprimento": ["NC"]},
+            }
+        ],
+    }
+    prod = {
+        "obra": "OBRA123",
+        "ano": "2025",
+        "origem": "AppOficina",
+        "itens": [
+            {
+                "numero": 128,
+                "pergunta": pergunta,
+                "respostas": {"producao": ["NA", "Carlos"]},
+            }
+        ],
+    }
+
+    merged = merge.merge_checklists(sup, prod)
+
+    item = next(entry for entry in merged["itens"] if entry["pergunta"] == pergunta)
+    assert item["numero"] == [55, 56, 128]
+    assert item["respostas"] == {
+        "suprimento": ["NC", "Ana"],
+        "producao": ["NA", "Carlos"],
+    }
+
+
 def test_merge_directory_preserves_suprimento_answers_for_component_block(
     tmp_path: pathlib.Path,
 ) -> None:

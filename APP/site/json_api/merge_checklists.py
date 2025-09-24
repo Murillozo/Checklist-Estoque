@@ -105,6 +105,48 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
 
     buckets: Dict[str, Dict[str, Any]] = {}
 
+    def _normalize_numero(valor: Any) -> Any:
+        if isinstance(valor, bool):
+            return valor
+        if isinstance(valor, (int, float)):
+            if isinstance(valor, float):
+                return int(valor) if valor.is_integer() else valor
+            return valor
+        if isinstance(valor, str):
+            texto = valor.strip()
+            if not texto:
+                return texto
+            try:
+                return int(texto)
+            except ValueError:
+                return texto
+        return valor
+
+    def _numero_sort_key(valor: Any) -> Tuple[int, Any]:
+        if isinstance(valor, bool):
+            return (2, str(valor))
+        if isinstance(valor, (int, float)):
+            return (0, float(valor))
+        if isinstance(valor, str):
+            try:
+                return (0, float(valor))
+            except ValueError:
+                return (1, valor)
+        return (3, str(valor))
+
+    def _registrar_numero(bucket: Dict[str, Any], numero: Any) -> None:
+        if isinstance(numero, list):
+            for valor in numero:
+                _registrar_numero(bucket, valor)
+            return
+        if numero is None:
+            return
+        normalizado = _normalize_numero(numero)
+        try:
+            bucket["numeros"].add(normalizado)
+        except TypeError:
+            pass
+
     def _bucket_for(pergunta: str) -> Dict[str, Any]:
         bucket = buckets.setdefault(
             pergunta,
@@ -228,8 +270,7 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
         )
         resposta = _canonicalize_suprimento_roles(resposta)
         bucket = _bucket_for(pergunta)
-        if numero is not None:
-            bucket["numeros"].add(numero)
+        _registrar_numero(bucket, numero)
         _update_pergunta(bucket, "pergunta_sup", pergunta)
         bucket["res_sup"] = _merge_dict(bucket.get("res_sup"), resposta)
     for item in json_producao.get("itens", []):
@@ -243,15 +284,14 @@ def merge_checklists(json_suprimento: Dict[str, Any], json_producao: Dict[str, A
             json_producao,
         )
         bucket = _bucket_for(pergunta)
-        if numero is not None:
-            bucket["numeros"].add(numero)
+        _registrar_numero(bucket, numero)
         _update_pergunta(bucket, "pergunta_prod", pergunta)
         bucket["res_prod"] = _merge_dict(bucket.get("res_prod"), resposta)
         
         
     result_items: List[Dict[str, Any]] = []
     for pergunta, dados in buckets.items():
-        numeros = sorted(dados.get("numeros", set()))
+        numeros = sorted(dados.get("numeros", set()), key=_numero_sort_key)
         res_sup = dados.get("res_sup")
         res_prod = dados.get("res_prod")
         res_unificado = _merge_dict(res_sup, res_prod)
