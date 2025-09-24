@@ -27,7 +27,9 @@ class DivergenciaAdapter(private val itens: List<Divergencia>) :
     override fun onBindViewHolder(holder: VH, position: Int) {
         val d = itens[position]
         holder.pergunta.text = "Item ${d.numero.joinToString()}: ${d.pergunta}"
-        holder.sup.text = "Suprimento: ${d.suprimento?.joinToString() ?: "-"}"
-        holder.prod.text = "Produção: ${d.producao?.joinToString() ?: "-"}"
+        val respostasSup = d.respostaSuprimento()
+        val respostasProd = d.respostaProducao()
+        holder.sup.text = "Suprimento: ${respostasSup?.joinToString() ?: "-"}"
+        holder.prod.text = "Produção: ${respostasProd?.joinToString() ?: "-"}"
     }
 }
