@@ -2,6 +2,7 @@ package com.example.appoficina
 
 import android.content.Context
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
@@ -20,7 +21,42 @@ import java.net.URL
 class ChecklistPosto02InspActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_checklist_posto02)
+        setContentView(R.layout.activity_checklist_posto02_insp)
+
+        val floatingWindow = findViewById<View>(R.id.checklist_window)
+        val floatingHeader = findViewById<View>(R.id.checklist_header)
+        val backdrop = findViewById<View>(R.id.checklist_backdrop)
+        val closeButton = findViewById<ImageButton>(R.id.checklist_close_button)
+
+        val closeAction = View.OnClickListener { finish() }
+        closeButton.setOnClickListener(closeAction)
+        backdrop.setOnClickListener(closeAction)
+
+        var offsetX = 0f
+        var offsetY = 0f
+        floatingHeader.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    offsetX = floatingWindow.x - event.rawX
+                    offsetY = floatingWindow.y - event.rawY
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val parent = floatingWindow.parent
+                    if (parent is View && parent.width > 0 && parent.height > 0) {
+                        val maxX = (parent.width - floatingWindow.width).coerceAtLeast(0)
+                        val maxY = (parent.height - floatingWindow.height).coerceAtLeast(0)
+                        val newX = (event.rawX + offsetX).coerceIn(0f, maxX.toFloat())
+                        val newY = (event.rawY + offsetY).coerceIn(0f, maxY.toFloat())
+                        floatingWindow.x = newX
+                        floatingWindow.y = newY
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> true
+                else -> false
+            }
+        }
 
         val obra = intent.getStringExtra("obra") ?: ""
         val ano = intent.getStringExtra("ano") ?: ""
