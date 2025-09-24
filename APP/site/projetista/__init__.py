@@ -806,13 +806,38 @@ def checklist_pdf(filename):
     producao = _safe_responsavel(respondentes, "produção", "producao")
     inspetor = _encontrar_inspetor(dados)
 
-    teste_insp = dados.get("posto08_teste", {}).get("inspetor", "").strip()
+    def _safe_inspetor(section):
+        if isinstance(section, dict):
+            nome = section.get("inspetor")
+            if isinstance(nome, str):
+                return nome.strip()
+        elif isinstance(section, str):
+            return section.strip()
+        return ""
+
+    teste_insp = _safe_inspetor(dados.get("posto08_teste"))
     section_insp_names = {
-        "IQM - Inspeção de Qualidade Mecânica": (
-            dados.get("posto08_iqm", {}).get("inspetor", "").strip()
+        "POSTO - 02: OFICINA": _safe_inspetor(dados.get("posto02")),
+        "POSTO - 03: PRÉ-MONTAGEM - 01": _safe_inspetor(
+            dados.get("posto03_pre_montagem_01")
         ),
-        "IQE - Inspeção de Qualidade Elétrica": (
-            dados.get("posto08_iqe", {}).get("inspetor", "").strip()
+        "POSTO - 04: BARRAMENTO - Identificação": _safe_inspetor(
+            dados.get("posto04_barramento")
+        ),
+        "POSTO - 05: CABLAGEM - 01": _safe_inspetor(
+            dados.get("posto05_cablagem_01")
+        ),
+        "POSTO - 06: PRÉ-MONTAGEM - 02": _safe_inspetor(
+            dados.get("posto06_pre_montagem_02")
+        ),
+        "POSTO - 06: CABLAGEM - 02": _safe_inspetor(
+            dados.get("posto06_cablagem_02")
+        ),
+        "IQM - Inspeção de Qualidade Mecânica": _safe_inspetor(
+            dados.get("posto08_iqm")
+        ),
+        "IQE - Inspeção de Qualidade Elétrica": _safe_inspetor(
+            dados.get("posto08_iqe")
         ),
         "TESTE - CONFIGURAÇÃO DE DISPOSITIVOS": teste_insp,
         "TESTES - DADOS": teste_insp,
@@ -1249,6 +1274,23 @@ def checklist_pdf(filename):
                 role_vals = (sub.get("respostas") or {}).get(role)
                 vals = _prepare_role_values(role, role_vals)
                 role_lower = (role or "").lower()
+                if role_lower == "inspetor":
+                    insp_name = section_insp_names.get(current_section, "").strip()
+                    if insp_name:
+                        normalized_insp = _norm(insp_name)
+                        existing_names = [
+                            _norm(v)
+                            for v in vals
+                            if v and v.upper() not in STATUS_MARKERS
+                        ]
+                        if normalized_insp and normalized_insp not in existing_names:
+                            vals = list(vals)
+                            if vals and vals[0].upper() in STATUS_MARKERS:
+                                vals.append(insp_name)
+                            elif vals:
+                                vals.append(insp_name)
+                            else:
+                                vals = [insp_name]
                 if role_lower in ("resposta", "inspetor") and len(vals) >= 5:
                     formatted = (
                         f"1. Tensão aplicada: {vals[1]} {vals[0]}\n"
