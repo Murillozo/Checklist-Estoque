@@ -264,6 +264,61 @@ def test_merge_directory_preserves_suprimento_answers_for_component_block(
         assert respostas["producao"][0] == "C"
 
 
+def test_merge_directory_reuses_previous_suprimento_answers(
+    tmp_path: pathlib.Path,
+) -> None:
+    """Production uploads should reuse the last known suprimento answers."""
+
+    posto02 = tmp_path / "Posto02_Oficina"
+    posto02.mkdir()
+
+    merged_payload = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "respondentes": {"suprimento": "Victor", "produção": "Carlos"},
+        "itens": [
+            {
+                "numero": [1],
+                "pergunta": "Pergunta",
+                "respostas": {
+                    "suprimento": ["C", "Victor"],
+                    "producao": ["C", "Carlos"],
+                },
+            }
+        ],
+        "materiais": [],
+    }
+    (posto02 / "checklist_OBRA1.json").write_text(
+        json.dumps(merged_payload), encoding="utf-8"
+    )
+
+    novo_prod = {
+        "obra": "OBRA1",
+        "ano": "2024",
+        "origem": "AppOficina",
+        "itens": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "respostas": {"producao": ["NC", "Carlos"]},
+            }
+        ],
+    }
+    raw_path = tmp_path / "checklist_OBRA1_20240101.json"
+    raw_path.write_text(json.dumps(novo_prod), encoding="utf-8")
+
+    merged = merge.merge_directory(str(tmp_path))
+
+    assert merged, "Expected merge to reuse suprimento payload"
+    respostas = merged[0]["itens"][0]["respostas"]
+    assert respostas["suprimento"][0] == "C"
+    assert respostas["producao"][0] == "NC"
+
+    destino = tmp_path / "Posto01_Oficina" / "checklist_OBRA1.json"
+    assert destino.exists(), "Merged checklist should be stored for revisão"
+    assert not raw_path.exists(), "Raw production upload must be removed"
+
+
 def test_find_mismatches_ignores_additional_production_annotations(tmp_path: pathlib.Path) -> None:
     path = tmp_path / "checklist_OBRA1.json"
     _write_checklist(path, ["C", "Joao"], ["C", "Joao", "Maria"])
