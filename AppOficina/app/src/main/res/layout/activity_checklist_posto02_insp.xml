@@ -1,170 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent">
+    android:orientation="vertical"
+    android:background="@android:color/white">
 
-    <View
-        android:id="@+id/checklist_backdrop"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#88000000"
-        android:clickable="true"
-        android:focusable="true" />
-
+    <!-- Cabeçalho fixo -->
     <LinearLayout
-        android:id="@+id/checklist_window"
+        android:id="@+id/checklist_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="24dp"
-        android:background="@drawable/bg_preview_window"
-        android:elevation="12dp"
-        android:orientation="vertical">
+        android:gravity="center_vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="16dp"
+        android:background="?attr/colorPrimary">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/inspector_checklist_title"
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:textColor="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/checklist_close_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/close"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:tint="@android:color/white" />
+    </LinearLayout>
+
+    <!-- Área de conteúdo scrollável -->
+    <ScrollView
+        android:id="@+id/checklist_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:padding="16dp">
 
         <LinearLayout
-            android:id="@+id/checklist_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Container das perguntas -->
+            <LinearLayout
+                android:id="@+id/questions_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- Botões -->
+            <Button
+                android:id="@+id/btnConcluirPosto02"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Concluir" />
+
+            <Button
+                android:id="@+id/btnSeguirPosto02"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Seguir"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Prévia (ainda opcional, pode ocultar se não precisar) -->
+    <LinearLayout
+        android:id="@+id/preview_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/darker_gray"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/preview_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:paddingStart="20dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="16dp">
+            android:padding="12dp">
 
             <TextView
+                android:id="@+id/preview_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/inspector_checklist_title"
-                android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+                android:text="@string/previous_checklist_title"
+                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                android:textStyle="bold"
+                android:textColor="@android:color/white" />
 
             <ImageButton
-                android:id="@+id/checklist_close_button"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:id="@+id/preview_close_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/close"
                 android:padding="4dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
-                android:tint="?android:attr/textColorPrimary" />
+                android:tint="@android:color/white" />
         </LinearLayout>
 
-        <View
+        <ScrollView
+            android:id="@+id/preview_scroll"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#26000000" />
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="240dp">
-
-            <ScrollView
-                android:id="@+id/checklist_scroll"
-                android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:fillViewport="true"
-                android:padding="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <LinearLayout
-                        android:id="@+id/questions_container"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-
-                    <Button
-                        android:id="@+id/btnConcluirPosto02"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="Concluir" />
-
-                    <Button
-                        android:id="@+id/btnSeguirPosto02"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Seguir"
-                        android:visibility="gone" />
-                </LinearLayout>
-            </ScrollView>
+            android:layout_height="200dp"
+            android:fillViewport="true">
 
             <LinearLayout
-                android:id="@+id/preview_container"
-                android:layout_width="300dp"
+                android:id="@+id/preview_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end|top"
-                android:layout_margin="16dp"
-                android:background="@drawable/bg_preview_window"
-                android:elevation="8dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:id="@+id/preview_header"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/preview_title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/previous_checklist_title"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                        android:textStyle="bold" />
-
-                    <ImageButton
-                        android:id="@+id/preview_close_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/close"
-                        android:padding="4dp"
-                        android:src="@android:drawable/ic_menu_close_clear_cancel"
-                        android:tint="?android:attr/textColorPrimary" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#33000000" />
-
-                <ScrollView
-                    android:id="@+id/preview_scroll"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:fillViewport="true">
-
-                    <LinearLayout
-                        android:id="@+id/preview_content"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-                </ScrollView>
-            </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/preview_toggle_button"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="end|bottom"
-                android:layout_margin="16dp"
-                android:background="@drawable/bg_preview_toggle"
-                android:contentDescription="@string/show_previous_checklist"
-                android:elevation="8dp"
-                android:padding="12dp"
-                android:src="@null"
-                android:visibility="gone" />
-        </FrameLayout>
+                android:orientation="vertical" />
+        </ScrollView>
     </LinearLayout>
 
-</FrameLayout>
+    <ImageButton
+        android:id="@+id/preview_toggle_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_preview_toggle"
+        android:contentDescription="@string/show_previous_checklist"
+        android:elevation="8dp"
+        android:padding="12dp"
+        android:src="@null"
+        android:visibility="gone" />
+
+</LinearLayout>
