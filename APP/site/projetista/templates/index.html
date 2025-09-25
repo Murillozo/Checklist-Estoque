@@ -5,7 +5,7 @@
     <label for="status-filter" class="form-label">Filtrar por Status</label>
     <select id="status-filter" class="form-select">
       <option value="">Todos</option>
-      <option value="analise">Aguardando Andamento</option>
+      <option value="analise">Aguardando separação</option>
       <option value="aprovado">Separado</option>
       <option value="compras">Pendente em compras</option>
     </select>
@@ -76,7 +76,7 @@
         return 'Material separado completo';
       }
       const map = {
-        analise: 'Aguardando Andamento',
+        analise: 'Aguardando separação',
         compras: 'Pendente em compras',
       };
       return map[status] || status;
