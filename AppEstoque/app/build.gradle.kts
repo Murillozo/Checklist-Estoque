@@ -54,6 +54,7 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
     implementation("androidx.viewpager2:viewpager2:1.1.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // Retrofit & Moshi
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
