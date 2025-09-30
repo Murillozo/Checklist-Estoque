@@ -1,5 +1,8 @@
 package com.example.apestoque.fragments
 
+import android.content.Context
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,15 +17,15 @@ import com.example.apestoque.adapter.InspecaoAdapter
 import com.example.apestoque.adapter.InspecaoSolicitacaoAdapter
 import com.example.apestoque.data.InspecaoResultadoItem
 import com.example.apestoque.data.InspecaoResultadoRequest
+import com.example.apestoque.data.InspecaoSolicitacao
 import com.example.apestoque.data.NetworkModule
 import com.example.apestoque.data.SolicitacaoRepository
-import com.example.apestoque.data.InspecaoSolicitacao
+import com.example.apestoque.util.InspecaoPollingWorker
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.LazyThreadSafetyMode
 import kotlin.math.max
-import android.media.AudioManager
-import android.media.ToneGenerator
 
 class InspecionarFragment : Fragment() {
     private var solicitacaoId: Int? = null
@@ -31,6 +34,9 @@ class InspecionarFragment : Fragment() {
     private val repo by lazy { SolicitacaoRepository(NetworkModule.api(requireContext())) }
     private var refreshJob: Job? = null
     private var knownIds: Set<Int> = emptySet()
+    private val prefs by lazy(LazyThreadSafetyMode.NONE) {
+        requireContext().getSharedPreferences(InspecaoPollingWorker.PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,6 +46,10 @@ class InspecionarFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        knownIds = prefs.getStringSet(InspecaoPollingWorker.KEY_KNOWN_IDS, emptySet())
+            ?.mapNotNull { it.toIntOrNull() }
+            ?.toSet().orEmpty()
 
         val recyclerSolic = view.findViewById<RecyclerView>(R.id.recyclerSolicitacoes)
         val recyclerItens = view.findViewById<RecyclerView>(R.id.recyclerInspecao)
@@ -108,6 +118,9 @@ class InspecionarFragment : Fragment() {
         if (knownIds.isNotEmpty() && (currentIds - knownIds).isNotEmpty()) {
             playTone()
         }
+        prefs.edit()
+            .putStringSet(InspecaoPollingWorker.KEY_KNOWN_IDS, currentIds.map { it.toString() }.toSet())
+            .apply()
         knownIds = currentIds
         listaAdapter.submitList(lista)
     }
