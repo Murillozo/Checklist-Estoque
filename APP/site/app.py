@@ -87,7 +87,13 @@ def create_app():
             cols = [c['name'] for c in insp.get_columns('item')]
             if 'status' not in cols:
                 db.session.execute(
-                    text("ALTER TABLE item ADD COLUMN status VARCHAR(20) DEFAULT 'Nao iniciada'")
+                    text("ALTER TABLE item ADD COLUMN status VARCHAR(20) DEFAULT 'Separado'")
+                )
+                db.session.commit()
+            else:
+                # atualiza registros legados para refletirem o novo status inicial
+                db.session.execute(
+                    text("UPDATE item SET status = 'Separado' WHERE status = 'Nao iniciada'")
                 )
                 db.session.commit()
             if 'previsao_entrega' not in cols:

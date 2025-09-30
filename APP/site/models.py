@@ -8,7 +8,7 @@ db = SQLAlchemy()
 
 # Opções de status individuais para cada item
 ITEM_STATUS_OPTIONS = [
-    'Nao iniciada',
+    'Separado',
     'Em cotação',
     'Fechado',
     'Faturado',
@@ -34,7 +34,7 @@ class Item(db.Model):
     solicitacao_id = db.Column(db.Integer, db.ForeignKey('solicitacao.id'), nullable=False)
     referencia = db.Column(db.String(100), nullable=False)
     quantidade = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(20), default='Nao iniciada')
+    status = db.Column(db.String(20), default='Separado')
     previsao_entrega = db.Column(db.Date)
 
 
