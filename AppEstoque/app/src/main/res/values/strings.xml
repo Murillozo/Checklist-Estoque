@@ -2,9 +2,14 @@
     <string name="app_name">Almoxarifado</string>
     <string name="notification_channel_inspecao">Solicitações de inspeção</string>
     <string name="notification_inspecao_title">Nova solicitação de inspeção</string>
+    <string name="notification_inspecao_reminder_title">Solicitações de inspeção pendentes</string>
     <plurals name="notification_inspecao_message">
         <item quantity="one">Há %d nova solicitação para inspeção.</item>
         <item quantity="other">Há %d novas solicitações para inspeção.</item>
+    </plurals>
+    <plurals name="notification_inspecao_reminder_message">
+        <item quantity="one">Ainda há %d solicitação aguardando inspeção.</item>
+        <item quantity="other">Ainda há %d solicitações aguardando inspeção.</item>
     </plurals>
     <string name="notification_permission_rationale">Permita notificações para ser avisado sobre novas inspeções.</string>
     <string name="notification_permission_denied">As notificações foram desativadas. Você pode habilitá-las nas configurações do app.</string>

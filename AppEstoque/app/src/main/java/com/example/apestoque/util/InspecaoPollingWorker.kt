@@ -6,18 +6,19 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
-import android.media.RingtoneManager
 import android.content.pm.PackageManager
 import android.os.Build
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
-import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.example.apestoque.MainActivity
@@ -44,15 +45,19 @@ class InspecaoPollingWorker(
                     ?.mapNotNull { it.toIntOrNull() }
                     ?.toSet().orEmpty()
                 val currentIds = lista.map { it.id }.toSet()
-                if (storedIds.isNotEmpty() && (currentIds - storedIds).isNotEmpty()) {
-                    notifyNewSolicitacao(currentIds - storedIds)
-                } else if (storedIds.isEmpty() && currentIds.isNotEmpty()) {
-                    // Primeira sincronização com itens já pendentes
-                    notifyNewSolicitacao(currentIds)
-                }
+
                 prefs.edit()
                     .putStringSet(KEY_KNOWN_IDS, currentIds.map { it.toString() }.toSet())
                     .apply()
+
+                if (currentIds.isNotEmpty()) {
+                    val newIdsCount = (currentIds - storedIds).size
+                    notifySolicitacoes(currentIds, newIdsCount)
+                } else {
+                    cancelNotifications()
+                }
+
+                Companion.scheduleNext(applicationContext)
                 Result.success()
             },
             onFailure = {
@@ -61,7 +66,7 @@ class InspecaoPollingWorker(
         )
     }
 
-    private fun notifyNewSolicitacao(newIds: Set<Int>) {
+    private fun notifySolicitacoes(currentIds: Set<Int>, newIdsCount: Int) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val hasPermission = ContextCompat.checkSelfPermission(
                 applicationContext,
@@ -85,33 +90,58 @@ class InspecaoPollingWorker(
             flags
         )
 
-        val title = applicationContext.getString(R.string.notification_inspecao_title)
-        val content = applicationContext.resources.getQuantityString(
-            R.plurals.notification_inspecao_message,
-            newIds.size,
-            newIds.size
-        )
+        val title = if (newIdsCount > 0) {
+            applicationContext.getString(R.string.notification_inspecao_title)
+        } else {
+            applicationContext.getString(R.string.notification_inspecao_reminder_title)
+        }
+        val content = if (newIdsCount > 0) {
+            applicationContext.resources.getQuantityString(
+                R.plurals.notification_inspecao_message,
+                newIdsCount,
+                newIdsCount
+            )
+        } else {
+            applicationContext.resources.getQuantityString(
+                R.plurals.notification_inspecao_reminder_message,
+                currentIds.size,
+                currentIds.size
+            )
+        }
 
         val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_ALARM)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_inspecao_notification)
             .setContentTitle(title)
             .setContentText(content)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setSound(alarmSound)
+            .setSound(alarmSound, audioAttributes)
+            .setVibrate(VIBRATION_PATTERN)
+            .setDefaults(NotificationCompat.DEFAULT_LIGHTS)
+            .setOnlyAlertOnce(false)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .build()
 
         NotificationManagerCompat.from(applicationContext).notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun cancelNotifications() {
+        NotificationManagerCompat.from(applicationContext).cancel(NOTIFICATION_ID)
     }
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             val audioAttributes = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
             val manager = applicationContext.getSystemService(NotificationManager::class.java)
@@ -123,10 +153,16 @@ class InspecaoPollingWorker(
                     NotificationManager.IMPORTANCE_HIGH
                 ).apply {
                     setSound(alarmSound, audioAttributes)
+                    enableVibration(true)
+                    vibrationPattern = VIBRATION_PATTERN
+                    enableLights(true)
                 }
                 manager?.createNotificationChannel(channel)
             } else {
                 existingChannel.setSound(alarmSound, audioAttributes)
+                existingChannel.enableVibration(true)
+                existingChannel.vibrationPattern = VIBRATION_PATTERN
+                existingChannel.enableLights(true)
                 manager?.createNotificationChannel(existingChannel)
             }
         }
@@ -138,19 +174,31 @@ class InspecaoPollingWorker(
         const val KEY_KNOWN_IDS = "known_ids"
         private const val CHANNEL_ID = "inspecao_channel"
         private const val NOTIFICATION_ID = 1001
+        private const val ALERT_INTERVAL_SECONDS = 30L
+        private val VIBRATION_PATTERN = longArrayOf(0, 800, 400, 800, 400, 800, 400, 800)
 
         fun schedule(context: Context) {
+            scheduleNext(context, 0)
+        }
+
+        internal fun scheduleNext(context: Context, delaySeconds: Long = ALERT_INTERVAL_SECONDS) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-            val request = PeriodicWorkRequestBuilder<InspecaoPollingWorker>(15, TimeUnit.MINUTES)
+            val request = OneTimeWorkRequestBuilder<InspecaoPollingWorker>()
+                .setInitialDelay(delaySeconds, TimeUnit.SECONDS)
+                .setBackoffCriteria(
+                    BackoffPolicy.LINEAR,
+                    ALERT_INTERVAL_SECONDS,
+                    TimeUnit.SECONDS
+                )
                 .setConstraints(constraints)
                 .build()
 
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            WorkManager.getInstance(context).enqueueUniqueWork(
                 WORK_NAME,
-                ExistingPeriodicWorkPolicy.UPDATE,
+                ExistingWorkPolicy.REPLACE,
                 request
             )
         }
