@@ -265,7 +265,7 @@ def nova_solicitacao():
                     solicitacao_id=sol.id,
                     referencia=str(ref).strip(),
                     quantidade=int(qt),
-                    status='Nao iniciada'
+                    status='Separado'
                 )
                 db.session.add(item)
 
@@ -281,7 +281,7 @@ def nova_solicitacao():
                     solicitacao_id=sol.id,
                     referencia=ref,
                     quantidade=int(qt),
-                    status='Nao iniciada'
+                    status='Separado'
                 )
                 db.session.add(item)
 
