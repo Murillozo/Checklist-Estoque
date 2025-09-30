@@ -1,29 +1,50 @@
 package com.example.apestoque
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.apestoque.fragments.AprovadoFragment
-import com.example.apestoque.fragments.ComprasFragment
-import com.example.apestoque.fragments.SolicitacoesFragment
-import com.example.apestoque.fragments.RevisaoFragment
-import com.example.apestoque.fragments.LogisticaFragment
-import com.example.apestoque.fragments.InspecionarFragment
 import com.example.apestoque.fragments.CameraFragment
+import com.example.apestoque.fragments.ComprasFragment
+import com.example.apestoque.fragments.InspecionarFragment
+import com.example.apestoque.fragments.LogisticaFragment
+import com.example.apestoque.fragments.RevisaoFragment
+import com.example.apestoque.fragments.SolicitacoesFragment
+import com.example.apestoque.util.InspecaoPollingWorker
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import android.view.Menu
-import android.view.MenuItem
 
 class MainActivity : AppCompatActivity() {
+
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (!granted) {
+                Toast.makeText(
+                    this,
+                    R.string.notification_permission_denied,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        InspecaoPollingWorker.schedule(applicationContext)
+        maybeRequestNotificationPermission()
 
         // Toolbar
         findViewById<Toolbar>(R.id.toolbar).also { setSupportActionBar(it) }
@@ -86,6 +107,27 @@ class MainActivity : AppCompatActivity() {
         })
 
         swipe.isEnabled = pager.currentItem != 6
+    }
+
+    private fun maybeRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val permission = Manifest.permission.POST_NOTIFICATIONS
+        when {
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
+                // Already granted
+            }
+
+            shouldShowRequestPermissionRationale(permission) -> {
+                Toast.makeText(
+                    this,
+                    R.string.notification_permission_rationale,
+                    Toast.LENGTH_LONG
+                ).show()
+                requestNotificationPermission.launch(permission)
+            }
+
+            else -> requestNotificationPermission.launch(permission)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
