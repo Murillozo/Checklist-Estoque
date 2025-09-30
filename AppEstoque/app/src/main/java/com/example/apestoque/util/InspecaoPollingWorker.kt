@@ -7,9 +7,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.media.AudioAttributes
-import android.media.RingtoneManager
+import android.media.AudioManager
+import android.net.Uri
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -109,11 +110,7 @@ class InspecaoPollingWorker(
             )
         }
 
-        val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ALARM)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
+        val alarmSound = customAlarmSound(applicationContext)
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_inspecao_notification)
@@ -122,7 +119,7 @@ class InspecaoPollingWorker(
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setSound(alarmSound, audioAttributes)
+            .setSound(alarmSound, AudioManager.STREAM_ALARM)
             .setVibrate(VIBRATION_PATTERN)
             .setDefaults(NotificationCompat.DEFAULT_LIGHTS)
             .setOnlyAlertOnce(false)
@@ -139,7 +136,7 @@ class InspecaoPollingWorker(
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            val alarmSound = customAlarmSound(applicationContext)
             val audioAttributes = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -176,6 +173,11 @@ class InspecaoPollingWorker(
         private const val NOTIFICATION_ID = 1001
         private const val ALERT_INTERVAL_SECONDS = 30L
         private val VIBRATION_PATTERN = longArrayOf(0, 800, 400, 800, 400, 800, 400, 800)
+
+        private fun customAlarmSound(context: Context): Uri {
+            val packageName = context.packageName
+            return Uri.parse("android.resource://$packageName/${R.raw.meualarme}")
+        }
 
         fun schedule(context: Context) {
             scheduleNext(context, 0)
