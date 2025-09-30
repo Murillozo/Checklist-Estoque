@@ -6,6 +6,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -90,6 +92,8 @@ class InspecaoPollingWorker(
             newIds.size
         )
 
+        val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_inspecao_notification)
             .setContentTitle(title)
@@ -97,6 +101,7 @@ class InspecaoPollingWorker(
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setSound(alarmSound)
             .build()
 
         NotificationManagerCompat.from(applicationContext).notify(NOTIFICATION_ID, notification)
@@ -104,13 +109,26 @@ class InspecaoPollingWorker(
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                applicationContext.getString(R.string.notification_channel_inspecao),
-                NotificationManager.IMPORTANCE_HIGH
-            )
+            val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            val audioAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
             val manager = applicationContext.getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
+            val existingChannel = manager?.getNotificationChannel(CHANNEL_ID)
+            if (existingChannel == null) {
+                val channel = NotificationChannel(
+                    CHANNEL_ID,
+                    applicationContext.getString(R.string.notification_channel_inspecao),
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    setSound(alarmSound, audioAttributes)
+                }
+                manager?.createNotificationChannel(channel)
+            } else {
+                existingChannel.setSound(alarmSound, audioAttributes)
+                manager?.createNotificationChannel(existingChannel)
+            }
         }
     }
 
