@@ -185,14 +185,22 @@ class InspecaoPollingWorker(
         const val KEY_KNOWN_IDS = "known_ids"
         private const val CHANNEL_ID = "inspecao_channel"
         private const val NOTIFICATION_ID = 1001
-        private const val ALERT_INTERVAL_SECONDS = 30L
+        private val ALERT_INTERVAL_SECONDS = TimeUnit.MINUTES.toSeconds(5)
         private val VIBRATION_PATTERN = longArrayOf(0, 800, 400, 800, 400, 800, 400, 800)
 
         private fun customAlarmSound(context: Context): Uri {
-            val packageName = context.packageName
-            return Uri.parse(
-                "${ContentResolver.SCHEME_ANDROID_RESOURCE}://$packageName/${R.raw.meualarme}"
-            )
+            val rawId = R.raw.meualarme
+            val resources = context.resources
+            val packageName = resources.getResourcePackageName(rawId)
+            val typeName = resources.getResourceTypeName(rawId)
+            val entryName = resources.getResourceEntryName(rawId)
+
+            return Uri.Builder()
+                .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                .authority(packageName)
+                .appendPath(typeName)
+                .appendPath(entryName)
+                .build()
         }
 
         fun schedule(context: Context) {
