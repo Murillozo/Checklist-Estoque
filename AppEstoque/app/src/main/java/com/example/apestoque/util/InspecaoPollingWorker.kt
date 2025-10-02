@@ -113,6 +113,7 @@ class InspecaoPollingWorker(
 
         val alarmSound = customAlarmSound(applicationContext)
 
+
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_inspecao_notification)
             .setContentTitle(title)
