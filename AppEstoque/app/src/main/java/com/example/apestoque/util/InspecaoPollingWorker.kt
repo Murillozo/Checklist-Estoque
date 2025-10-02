@@ -4,12 +4,14 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.media.AudioAttributes
-import android.media.RingtoneManager
+import android.media.AudioManager
+import android.net.Uri
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -109,11 +111,7 @@ class InspecaoPollingWorker(
             )
         }
 
-        val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ALARM)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
+        val alarmSound = customAlarmSound(applicationContext)
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_inspecao_notification)
@@ -122,7 +120,7 @@ class InspecaoPollingWorker(
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setSound(alarmSound, audioAttributes)
+            .setSound(alarmSound, AudioManager.STREAM_ALARM)
             .setVibrate(VIBRATION_PATTERN)
             .setDefaults(NotificationCompat.DEFAULT_LIGHTS)
             .setOnlyAlertOnce(false)
@@ -139,32 +137,44 @@ class InspecaoPollingWorker(
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            val alarmSound = customAlarmSound(applicationContext)
             val audioAttributes = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
             val manager = applicationContext.getSystemService(NotificationManager::class.java)
             val existingChannel = manager?.getNotificationChannel(CHANNEL_ID)
+
             if (existingChannel == null) {
-                val channel = NotificationChannel(
-                    CHANNEL_ID,
-                    applicationContext.getString(R.string.notification_channel_inspecao),
-                    NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    setSound(alarmSound, audioAttributes)
-                    enableVibration(true)
-                    vibrationPattern = VIBRATION_PATTERN
-                    enableLights(true)
-                }
-                manager?.createNotificationChannel(channel)
+                manager?.createNotificationChannel(
+                    buildChannel(alarmSound, audioAttributes)
+                )
             } else {
-                existingChannel.setSound(alarmSound, audioAttributes)
-                existingChannel.enableVibration(true)
-                existingChannel.vibrationPattern = VIBRATION_PATTERN
-                existingChannel.enableLights(true)
-                manager?.createNotificationChannel(existingChannel)
+                val soundMatches = existingChannel.sound == alarmSound
+                val usageMatches = existingChannel.audioAttributes?.usage == AudioAttributes.USAGE_ALARM
+                if (!soundMatches || !usageMatches) {
+                    manager?.deleteNotificationChannel(CHANNEL_ID)
+                    manager?.createNotificationChannel(
+                        buildChannel(alarmSound, audioAttributes)
+                    )
+                }
             }
+        }
+    }
+
+    private fun buildChannel(
+        alarmSound: Uri,
+        audioAttributes: AudioAttributes
+    ): NotificationChannel {
+        return NotificationChannel(
+            CHANNEL_ID,
+            applicationContext.getString(R.string.notification_channel_inspecao),
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            setSound(alarmSound, audioAttributes)
+            enableVibration(true)
+            vibrationPattern = VIBRATION_PATTERN
+            enableLights(true)
         }
     }
 
@@ -174,8 +184,23 @@ class InspecaoPollingWorker(
         const val KEY_KNOWN_IDS = "known_ids"
         private const val CHANNEL_ID = "inspecao_channel"
         private const val NOTIFICATION_ID = 1001
-        private const val ALERT_INTERVAL_SECONDS = 30L
+        private val ALERT_INTERVAL_SECONDS = TimeUnit.MINUTES.toSeconds(5)
         private val VIBRATION_PATTERN = longArrayOf(0, 800, 400, 800, 400, 800, 400, 800)
+
+        private fun customAlarmSound(context: Context): Uri {
+            val rawId = R.raw.meualarme
+            val resources = context.resources
+            val packageName = resources.getResourcePackageName(rawId)
+            val typeName = resources.getResourceTypeName(rawId)
+            val entryName = resources.getResourceEntryName(rawId)
+
+            return Uri.Builder()
+                .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                .authority(packageName)
+                .appendPath(typeName)
+                .appendPath(entryName)
+                .build()
+        }
 
         fun schedule(context: Context) {
             scheduleNext(context, 0)
